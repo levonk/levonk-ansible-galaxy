@@ -17,7 +17,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- levonk <v3l8dud3@lkara.com>
+- your name <example@domain.com>
 
 
 ### OPTIONAL but strongly recommended
@@ -27,7 +27,7 @@ description: your collection description
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
 license:
-- AGPL-3.0-only
+- GPL-2.0-or-later
 
 # The path to the license file for the collection. This path is relative to the root of the collection. This key is
 # mutually exclusive with 'license'
@@ -44,7 +44,7 @@ tags: []
 dependencies: {}
 
 # The URL of the originating SCM repository
-repository: http://github.com/levonk/levonk-ansible-galaxy
+repository: http://example.com/repository
 
 # The URL to any online docs
 documentation: http://docs.example.com
