@@ -1,0 +1,88 @@
+# site.yml - Example playbook for {{ collection_name }}
+# Description: {{ collection_description }}
+# Author: {{ author_name }}
+# Created: {{ creation_date }}
+# Last Updated: {{ last_updated_date }}
+
+---
+# Basic playbook example
+- name: Basic {{ collection_name }} deployment
+  hosts: all
+  gather_facts: true
+  become: true
+  
+  # Environment-specific settings
+  vars:
+    # Common variables
+    ansible_python_interpreter: auto_silent
+    
+    # Collection-specific variables
+    # Uncomment and modify as needed
+    # {{ collection_name }}_version: "1.0.0"
+    # {{ collection_name }}_config_dir: "/etc/{{ collection_name }}"
+  
+  # Pre-tasks run before roles
+  pre_tasks:
+    - name: Check system requirements
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == '{{ supported_os | default("Debian") }}'
+          - ansible_memtotal_mb >= {{ min_memory_mb | default(1024) }}
+        fail_msg: >
+          Unsupported system configuration.
+          Required: {{ supported_os | default("Debian") }} with at least {{ min_memory_mb | default(1024) }}MB RAM.
+          Found: {{ ansible_os_family }} with {{ ansible_memtotal_mb }}MB RAM.
+      tags: always
+  
+  # Include roles
+  roles:
+    # Common base role (if applicable)
+    # - role: common
+    #   vars:
+    #     common_setting: value
+    
+    # Main collection role
+    - role: {{ collection_name }}
+      # Role-specific variables
+      # example_setting: value
+  
+  # Post-tasks run after roles
+  post_tasks:
+    - name: Verify {{ collection_name }} installation
+      ansible.builtin.debug:
+        msg: "{{ collection_name }} has been successfully configured"
+      tags: always
+
+# Additional playbook examples can be added below
+# - name: Advanced configuration example
+#   hosts: specific_group
+#   become: true
+#   roles:
+#     - role: {{ collection_name }}
+#       vars:
+#         advanced_setting: enabled
+#         custom_config: "{{ lookup('template', 'templates/custom.conf.j2') }}"
+
+# - name: Multi-node deployment example
+#   hosts: "{{ target_nodes | default('all') }}"
+#   become: true
+#   vars:
+#     node_role: "{{ 'primary' if inventory_hostname == groups['primary'][0] else 'replica' }}
+#   roles:
+#     - role: {{ collection_name }}
+#       vars:
+#         node_type: "{{ node_role }}"
+#         config_file: "{{ node_role }}_config.yml"
+
+# Usage:
+# 1. Basic usage:
+#    ansible-playbook -i inventory/hosts site.yml
+#
+# 2. With extra variables:
+#    ansible-playbook -i inventory/hosts site.yml --extra-vars "deployment_environment=production"
+#
+# 3. Limit to specific hosts:
+#    ansible-playbook -i inventory/hosts site.yml --limit webservers
+#
+# 4. Run with tags:
+#    ansible-playbook -i inventory/hosts site.yml --tags "config,service"

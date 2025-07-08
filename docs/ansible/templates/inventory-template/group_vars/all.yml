@@ -1,0 +1,62 @@
+---
+# Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+# *Document generated on: {{ "now" | strftime("%Y-%m-%d") }}*  
+# *Version: {{ collection_version | default('1.0.0') }}*
+
+
+
+# Common variables for all hosts
+
+# System settings
+system_timezone: UTC
+system_locale: en_US.UTF-8
+system_packages_update: true
+
+# User management
+admin_users:
+  - name: admin
+    groups: sudo
+    ssh_key: "ssh-rsa AAAAB3NzaC1yc2E... user@example.com"
+
+# Network settings
+dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# Security settings
+security_ssh_port: 22
+security_firewall_enable: true
+security_auto_updates: true
+security_unattended_upgrades: true
+
+# Monitoring
+monitoring_enabled: true
+monitoring_server: monitoring.example.com
+
+# Logging
+log_level: info
+log_retention_days: 30
+
+# Backup settings
+backup_enabled: true
+backup_schedule: "0 2 * * *"
+backup_retention_days: 7
+
+# Application specific settings
+app_environment: production
+app_version: "1.0.0"
+
+# Proxy settings (if needed)
+# http_proxy: http://proxy.example.com:8080
+# https_proxy: http://proxy.example.com:8080
+# no_proxy: localhost,127.0.0.1,::1
+
+# Custom variables
+custom_settings: {}
+
+# Role-specific variables can be included here or in separate files
+# Example:
+# nginx_enable: true
+# nginx_worker_processes: auto
+# nginx_worker_connections: 1024

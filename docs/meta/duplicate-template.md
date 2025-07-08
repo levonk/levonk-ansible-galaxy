@@ -236,3 +236,8 @@ ansible-galaxy collection install git+https://github.com/your-username/your-coll
 ## Support
 
 For support, please open an issue in the repository or contact the maintainers.
+
+---
+
+Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+See LICENSE file in the project root for full license information.

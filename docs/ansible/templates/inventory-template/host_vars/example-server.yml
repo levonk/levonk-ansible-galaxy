@@ -1,0 +1,95 @@
+---
+# Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+# *Document generated on: {{ "now" | strftime("%Y-%m-%d") }}*  
+# *Version: {{ collection_version | default('1.0.0') }}*
+
+# Host-specific variables for example-server
+
+# System identification
+hostname: example-server
+domain: example.com
+fqdn: "{{ hostname }}.{{ domain }}
+
+# Network configuration
+ansible_host: 192.168.1.100
+ansible_port: 22
+ansible_user: admin
+ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+
+# System resources
+system_memory: 16GB
+system_cpus: 4
+system_storage: 100GB
+
+# Role assignments
+roles:
+  - webserver
+  - database
+
+# Application configuration
+app_settings:
+  environment: production
+  debug: false
+  log_level: WARNING
+
+# Database configuration
+database:
+  type: postgresql
+  version: "14"
+  name: myapp_production
+  user: myapp_user
+  password: "{{ vault_database_password }}"
+  port: 5432
+  max_connections: 100
+
+# Web server configuration
+webserver:
+  type: nginx
+  version: "1.18"
+  server_name: "{{ fqdn }}"
+  ssl_enabled: true
+  ssl_certificate: "/etc/ssl/certs/{{ fqdn }}.crt"
+  ssl_key: "/etc/ssl/private/{{ fqdn }}.key"
+  
+  # Virtual hosts
+  vhosts:
+    - name: "{{ fqdn }}"
+      document_root: "/var/www/{{ fqdn }}"
+      access_log: "/var/log/nginx/{{ fqdn }}.access.log"
+      error_log: "/var/log/nginx/{{ fqdn }}.error.log"
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  agent: datadog
+  api_key: "{{ vault_monitoring_api_key }}"
+  tags:
+    - "env:production"
+    - "role:webserver"
+    - "role:database"
+
+# Backup configuration
+backup:
+  enabled: true
+  provider: aws-s3
+  schedule: "0 3 * * *"
+  retention_days: 30
+  include:
+    - "/etc"
+    - "/var/www"
+    - "/var/lib/postgresql"
+  exclude:
+    - "*.tmp"
+    - "*.log"
+
+# Custom host-specific variables
+custom:
+  maintenance_window: "Sunday 02:00-04:00"
+  contact: "operations@example.com"
+  notes: "Production web server - handle with care"
+
+# Sensitive variables should be encrypted with Ansible Vault
+# and referenced like this:
+# db_password: "{{ vault_db_password }}"
+# api_key: "{{ vault_api_key }}"

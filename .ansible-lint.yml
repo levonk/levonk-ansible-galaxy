@@ -1,0 +1,105 @@
+---
+# .ansible-lint.yml
+
+# Based on recommended settings + adaptations for Ansible roles/playbooks
+
+# Configure verbosity (0, 1, 2)
+verbosity: 1
+
+# Rules selection
+rules:
+  # Core rules (Enable/Disable as needed)
+  braces:
+    enabled: true
+  commands-instead-of-arguments:
+    enabled: true # Favor argument forms over shell/command
+  deprecated-command-usage:
+    enabled: true # Warn about deprecated modules/parameters
+  deprecated-module:
+    enabled: true
+  fqcn-builtins:
+    enabled: false # Enable for more explicit names (e.g., ansible.builtin.copy)
+  fqcn-import:
+    enabled: false # same as above, for imports.
+  name[casing]:
+    enabled: false
+  no-changed-when:
+    enabled: false # requires better context awareness
+  no-relative-paths:
+    enabled: true # Requires better setup and design to use safely
+  package-latest:
+    enabled: true  # Ensure packages are updated/upgradable
+  risky-file-permissions:
+    enabled: true # Enforce good practices for permissions.
+  role-name:
+    enabled: false
+  rule-unnecessary-task:
+    enabled: false # Requires manual setup of linting
+  unnamed-task:
+    enabled: false # Requires a different paradigm
+
+  # Basic checks (Generally keep enabled)
+  arguments-order:
+    enabled: false # This could be enabled but often gets too pedantic
+  jinja-variable-name:
+    enabled: false
+  line-length:
+    enabled: false # already done in yamllint
+  no-tabs:
+    enabled: true  # No tabs in YAML
+  parser-error:
+    enabled: true  # Syntax errors
+  syntax:
+    enabled: true  # Check playbook and task syntax
+
+  # Idempotency and Conditionals:
+  command-shell:
+    enabled: false # False positives.
+  conditional-complexity:
+    enabled: false
+  conditional-indentation:
+    enabled: true
+  no-handler:
+    enabled: false
+  unnamed-task:
+    enabled: false
+
+  # Naming Conventions
+  name[missing]:
+    enabled: true # tasks always need a name!
+
+  # Security focused checks (Important)
+  no-loop-var:
+    enabled: true  # Prevent loop variable name collision
+  private-ok:
+    enabled: true  # Force to create and use private roles
+
+# Paths to exclude
+exclude_paths:
+  - .git
+  - .venv
+  - .tox
+  - docs
+  - tests
+  - library # if using custom modules
+  - vars/ #May want to exclude the vars and only include defaults.
+
+# Configure colored output (if supported)
+color: true
+
+# Allow or deny rules based on tags (advanced)
+#warn_list: # Rules to only show as warnings, not errors.
+#skip_list: # Rules to disable entirely.
+
+# Custom rule directories (if you have them)
+#rulesdir:
+#  - /path/to/custom/rules
+
+# Enable or disable rules based on file extensions
+file_defaults:
+  - files:
+      - ./*.yml
+      - ./*.yaml
+    rules:
+      braces:
+        level: "error"

@@ -1,0 +1,81 @@
+# Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+# *Document generated on: {{ "now" | strftime("%Y-%m-%d") }}*  
+# *Version: {{ collection_version | default('1.0.0') }}*
+
+
+# Sample inventory file for {{ collection_name }}
+# This file defines the hosts and groups for your Ansible deployment
+
+# Common variables for all hosts
+[all:vars]
+ansible_user=admin
+ansible_ssh_private_key_file=~/.ssh/id_rsa
+ansible_python_interpreter=/usr/bin/python3
+
+# Control nodes
+[control]
+# control1.example.com
+# control2.example.com
+
+# Application servers
+[app]
+# app[01:03].example.com  # Example of host range pattern
+
+# Database servers
+[database]
+# db01.example.com
+# db02.example.com  # Standby/read replica
+
+# Web servers with load balancer configuration
+[web]
+# web[01:03].example.com
+
+# Group of groups - combine multiple groups
+[production:children]
+control
+app
+database
+web
+
+# Environment-specific variables
+[production:vars]
+environment=production
+# db_host=db01.example.com
+# app_servers="{{ groups['app'] | join(',') }}"
+
+# Development environment (example)
+[development]
+# dev01.example.com
+
+[development:vars]
+environment=development
+# db_host=localhost
+
+# Local testing
+[local]
+127.0.0.1 ansible_connection=local
+
+[local:vars]
+environment=local
+# db_host=localhost
+
+# Example of using dynamic inventory with static overrides
+#[tag_Environment_Prod:children]
+#production
+
+# Host variables can be defined here or in host_vars/
+#[host1.example.com:vars]
+#custom_setting=value
+
+# Example of using ranges
+#[webservers]
+#www[01:50].example.com
+
+# Example of patterns
+#[datacenter1]
+#10.0.0.[11:20]
+
+# Example of aliases
+#host1 ansible_host=192.168.1.10
+#host2 ansible_host=192.168.1.11

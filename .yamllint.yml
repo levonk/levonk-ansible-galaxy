@@ -1,0 +1,108 @@
+---
+# .yamllint.yml
+
+# Based on recommended settings + adaptations for Ansible roles
+
+extends: default
+
+# Rules
+rules:
+  # Comments
+  comments:
+    level: warning  # Consider 'error' for stricter enforcement
+    require-spaces-after: true # Must have space after #
+
+  # Document start
+  document-start:
+    level: error   # Must have --- at the beginning of each document
+
+  # Empty values
+  empty-values:
+    level: warning   # Consider 'error' to be more strict
+    forbid-flow-scalars: true  # Forbid flow scalars
+
+  # Key names
+  key-ordering: disable # Too opinionated
+  key-duplicates:
+    level: error   # No duplicate keys in a YAML document
+  quoted-strings:
+    level: "consistent"
+    implicit: "any"  # Allow unquoted strings when they are implicit scalars
+
+  # Line length
+  line-length:
+    level: warning  # Or 'error' for stricter enforcement
+    max: 120       # Maximum line length
+    allow-non-breakable-words: true  # Allow long words to exceed the limit
+    allow-non-breakable-inline-mappings: true  # Allow long inline mappings
+
+  # New lines
+  new-lines:
+    level: warning   # New lines at file boundaries
+    type: unix      # Force Unix-style newlines (LF)
+
+  # Octal values
+  octal-values:
+    level: error   # No octal values
+
+  # Trailing spaces
+  trailing-spaces:
+    level: warning  # Or 'error' for stricter enforcement
+    #ignore-empty: false # Report on blank lines
+
+  # Indentation
+  indentation:
+    level: error   # Indentation must be consistent
+    spaces: 2       # Use 2 spaces for indentation
+    check-multi-line-strings: false
+
+  # Braces
+  braces:
+    level: warning  # Style check
+    max-spaces-inside: 1
+    min-spaces-inside: 1
+    max-spaces-outside: 1
+    min-spaces-outside: 1
+
+  # Colons
+  colons:
+    level: error   # Colons must be consistent
+    max-spaces-before: 0
+    max-spaces-after: 1
+
+  # Commas
+  commas:
+    level: warning  # Style check
+    max-spaces-before: 0
+    max-spaces-after: 1
+    min-spaces-after: 1
+
+  # Hyphens
+  hyphens:
+    level: error
+    max-spaces-before: 0
+    max-spaces-after: 1
+
+  # Empty lines
+  empty-lines:
+    level: warning
+    max-start: 1    # No more than 1 empty line at start of file
+    max-end: 1      # No more than 1 empty line at end of file
+    max-consecutive: 1  # No more than 1 consecutive empty line
+
+  # Truthy
+  truthy:
+    level: warning
+    check: [ "lower", "upper", "camel", "number", "string" ]  # List of allowed types
+
+  # Scalar spacing
+  scalar-spaces:
+    level: warning  # Recommended for readability
+    min-spaces-left: 1
+    min-spaces-right: 1
+
+  # Ignore specific files or directories
+  ignore: |
+    ansible/roles/*/files/**/*
+    ansible/roles/*/templates/**/*
+    CHANGELOG.md
