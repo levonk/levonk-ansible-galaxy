@@ -1,0 +1,115 @@
+# Ansible .gitignore for shared deployment
+# This file should be committed to version control
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyo
+*.pyc
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Editor files
+.idea/
+*.sublime-*
+*.code-workspace
+*.swp
+
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Local development
+.local/
+.cache/
+
+
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Ansible
+*.retry
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Ansible specific
+*.retry
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Ansible Vault
+!vault.yml
+!vault.yaml
+!vault/
+
+# Local overrides
+local.yml
+local.yaml
+host_vars/localhost.yml
+host_vars/localhost.yaml
+group_vars/local.yml
+group_vars/local.yaml
+
+# Ansible Galaxy
+downloads/
+*.tar.gz
+roles/external/
+collections/ansible_collections/*
