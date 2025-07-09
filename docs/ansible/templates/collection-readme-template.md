@@ -61,11 +61,11 @@ ansible-test integration
 
 ## License
 
-{{ license | default('MIT') }}
+{{ license | default('AGPL-3.0') }}
 
 ## Author Information
 
-{{ author | default('Your Name') }}
+{{ author | default('levonk') }}
 
 *Document generated on: {{ "now" | strftime("%Y-%m-%d") }}*  
 *Version: {{ collection_version | default('1.0.0') }}*
