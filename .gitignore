@@ -1,6 +1,8 @@
 # Ansible .gitignore for shared deployment
 # This file should be committed to version control
 
+mcp_config.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
