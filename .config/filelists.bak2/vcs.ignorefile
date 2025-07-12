@@ -1,0 +1,242 @@
+# .gitignore for shared deployment
+# This file should be committed to version control
+
+# Credentials Protection
+
+## Cloud Files
+.aws/credentials
+.azure/credentials
+google-services.json
+
+## SSH Files
+.ssh
+id_rsa
+id_rsa.pub
+known_hosts
+
+## Keystore Files
+*.jks
+*.keystore
+
+# Environment setup
+.env
+!.env.example
+
+# 3rd party repos
+3rdparty/ignore/*
+
+# Deployment
+## Vercel
+.vercel/
+
+# NextJS
+
+## TypeScript
+*.tsbuildinfo
+*.d.ts
+*.spec.ts
+*.test.ts
+
+## Node 
+node_modules/
+*.spec.js
+*.test.js
+
+### Local testing artifacts
+coverage/
+*.local.js
+*.test.js.snap
+
+## Next.js build output
+.next/
+out/
+
+## Next.js build output
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyo
+*.pyc
+
+## Python Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Editor files
+*.sublime-*
+*.code-workspace
+*.swp
+*~
+
+# Temporary files
+.bak
+.tmp
+.temp
+*.swp
+*.swo
+
+# Transient files
+*.tmp
+*.~
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Local development
+.local/
+.cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Logs
+*.log
+logs
+
+# Ansible specific
+*.retry
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+## Ansible Vault
+!vault.yml
+!vault.yaml
+!vault/
+
+## Ansible Local overrides
+local.yml
+local.yaml
+host_vars/localhost.yml
+host_vars/localhost.yaml
+group_vars/local.yml
+group_vars/local.yaml
+
+## Ansible Galaxy
+downloads/
+*.tar.gz
+roles/external/
+collections/ansible_collections/*
+
+# Scala
+## Scala Build artifacts
+target/
+project/target/
+*.class
+
+## Scala SBT-specific
+.cache/
+.history/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+## Scala IDEs
+*.iml
+*.iws
+.scala_dependencies
+.worksheet
+.ensime_cache
+.bloop/
+.metals/
+.scala-build/
+
+# Android Studio
+.externalNativeBuild
+.cxx
+*.aab
+*.apk
+output-metadata.json
+captures/
+
+## Android Profiling
+*.hprof
+
+# Java
+
+## Java Build output
+target/
+bin/
+*.class
+
+## Java Maven
+.mvn/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
+
+## Java Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+## Java IDEs
+*.iml
+*.ipr
+*.iws
+
+# C#
+## .NET Build artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+## .NET User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## .NET NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
