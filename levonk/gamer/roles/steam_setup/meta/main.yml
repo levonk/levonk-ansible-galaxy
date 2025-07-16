@@ -1,0 +1,19 @@
+---
+dependency: []
+author: v3l8dud3@lkara.com
+description: Install and configure Steam for gaming
+license: MIT
+min_ansible_version: '2.9'
+platforms:
+  - name: Debian
+    versions: [all]
+  - name: Ubuntu
+    versions: [all]
+  - name: RedHat
+    versions: [all]
+  - name: Windows
+    versions: [all]
+tags:
+  - gamer
+  - steam
+  - gaming

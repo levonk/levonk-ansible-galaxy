@@ -1,0 +1,12 @@
+---
+- name: Install Discord (Windows)
+  ansible.windows.win_chocolatey:
+    name: discord
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Install Discord (Linux)
+  ansible.builtin.package:
+    name: discord
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']

@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  roles:
+    - role: user_setup
+      vars:
+        username: testuser
+        user_use_chezmoi: false

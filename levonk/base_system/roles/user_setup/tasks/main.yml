@@ -1,0 +1,56 @@
+---
+# tasks file for user_setup
+
+- name: Ensure user account exists (Linux/macOS)
+  ansible.builtin.user:
+    name: "{{ username }}"
+    shell: /bin/bash
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+- name: Ensure user account exists (Windows)
+  ansible.windows.win_user:
+    name: "{{ username }}"
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Generate SSH key for user (Linux/macOS)
+  ansible.builtin.openssh_keypair:
+    path: "/home/{{ username }}/.ssh/id_rsa"
+    type: rsa
+    size: 4096
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: '0600'
+  when: ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+- name: Generate GPG key for user (Linux/macOS)
+  ansible.builtin.command: "gpg --batch --gen-key /home/{{ username }}/gpg_batch.cfg"
+  become: true
+  become_user: "{{ username }}"
+  args:
+    creates: "/home/{{ username }}/.gnupg"
+  when: ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+- name: Disable password login for user (Linux/macOS)
+  ansible.builtin.user:
+    name: "{{ username }}"
+    password_lock: true
+  when: ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+- name: Install chezmoi (Linux/macOS)
+  ansible.builtin.shell: |
+    sh -c "$(curl -fsLS get.chezmoi.io)"
+  args:
+    creates: /usr/local/bin/chezmoi
+  when: user_use_chezmoi and ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+- name: Initialize chezmoi for user (Linux/macOS)
+  become: true
+  become_user: "{{ username }}"
+  ansible.builtin.shell: |
+    chezmoi init {{ chezmoi_repo_url }}
+    chezmoi apply
+  when: user_use_chezmoi and ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+# TODO: Add Windows SSH/GPG/chezmoi support

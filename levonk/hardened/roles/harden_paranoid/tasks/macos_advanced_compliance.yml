@@ -1,0 +1,18 @@
+---
+# macOS advanced compliance (CIS/NIST/2FA/MFA, kernel hardening)
+
+- name: Document 2FA/MFA for privileged access (manual/integration)
+  ansible.builtin.debug:
+    msg: "Ensure 2FA/MFA is enabled for privileged users (e.g., smartcard, Yubikey, Apple ID). See documentation for integration steps."
+
+- name: Harden kernel parameters (sysctl)
+  ansible.builtin.command: "sysctl -w {{ item.key }}={{ item.value }}"
+  loop:
+    - { key: 'kern.securelevel', value: '1' }
+    - { key: 'net.inet.icmp.icmplim', value: '50' }
+    - { key: 'net.inet.tcp.blackhole', value: '2' }
+    - { key: 'net.inet.udp.blackhole', value: '1' }
+
+- name: CIS/NIST mapping documentation
+  ansible.builtin.debug:
+    msg: "See README.md for full CIS/NIST mapping."

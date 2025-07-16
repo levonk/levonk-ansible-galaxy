@@ -1,0 +1,8 @@
+---
+# macOS baseline hardening tasks
+
+- name: Ensure basic firewall is enabled
+  ansible.builtin.command: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on"
+
+- name: Enforce password policy on macOS
+  ansible.builtin.command: "pwpolicy -n /Local/Default -setglobalpolicy 'minChars=12 requiresAlpha=1 requiresNumeric=1'"

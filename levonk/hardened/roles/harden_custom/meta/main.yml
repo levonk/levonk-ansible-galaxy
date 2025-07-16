@@ -1,0 +1,25 @@
+---
+dependency: []
+galaxy_info:
+  author: levonk <v3l8dud3@lkara.com>
+  description: Custom/organization-defined security hardening
+  license: AGPL-3.0-only
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions: [all]
+    - name: Debian
+      versions: [all]
+    - name: EL
+      versions: [all]
+    - name: Fedora
+      versions: [all]
+    - name: MacOSX
+      versions: [all]
+    - name: Windows
+      versions: [all]
+  galaxy_tags:
+    - hardening
+    - custom
+    - security
+    - compliance

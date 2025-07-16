@@ -1,0 +1,48 @@
+---
+# Linux baseline hardening tasks
+
+- name: Ensure sudo is required for privileged actions
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    regexp: '^%sudo'
+    line: '%sudo   ALL=(ALL:ALL) ALL'
+    validate: 'visudo -cf %s'
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Disable root SSH login
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PermitRootLogin'
+    line: 'PermitRootLogin no'
+    create: yes
+    backup: yes
+  notify: Restart sshd
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Ensure password authentication is disabled
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+    create: yes
+    backup: yes
+  notify: Restart sshd
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Ensure UFW is enabled (Debian/Ubuntu)
+  ansible.builtin.ufw:
+    state: enabled
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Ensure firewalld is enabled (RedHat/Fedora)
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: yes
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure auditd is installed
+  ansible.builtin.package:
+    name: auditd
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']

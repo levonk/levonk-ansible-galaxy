@@ -1,0 +1,8 @@
+---
+# vars file for base_system
+base_system_packages:
+  - vim
+  - curl
+  - wget
+  - git
+  - ca-certificates

@@ -1,0 +1,25 @@
+---
+dependency: []
+galaxy_info:
+  author: levonk
+  description: Core OS configuration and package management
+  company: ''
+  license: AGPL-3.0-only
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+  galaxy_tags:
+    - base
+    - system
+    - bootstrap

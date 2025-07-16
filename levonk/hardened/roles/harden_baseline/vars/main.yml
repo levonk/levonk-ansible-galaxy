@@ -1,0 +1,3 @@
+---
+# vars file for harden_baseline
+harden_baseline_enable: true

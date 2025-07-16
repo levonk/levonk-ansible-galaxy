@@ -1,0 +1,3 @@
+---
+# vars file for harden_paranoid
+harden_paranoid_enable: true

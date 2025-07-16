@@ -1,0 +1,26 @@
+---
+# Paranoid hardening: OS dispatcher with advanced compliance
+
+- name: Include Linux paranoid tasks
+  import_tasks: linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include Linux advanced compliance tasks
+  import_tasks: linux_advanced_compliance.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include macOS paranoid tasks
+  import_tasks: macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include macOS advanced compliance tasks
+  import_tasks: macos_advanced_compliance.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include Windows paranoid tasks
+  import_tasks: windows.yml
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Include Windows advanced compliance tasks
+  import_tasks: windows_advanced_compliance.yml
+  when: ansible_facts['os_family'] == 'Windows'

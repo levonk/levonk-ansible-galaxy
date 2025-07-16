@@ -1,0 +1,18 @@
+---
+# Windows paranoid hardening tasks
+
+- name: Enable BitLocker (manual step)
+  ansible.builtin.debug:
+    msg: "Ensure BitLocker is enabled on all Windows systems (manual/organizational policy)."
+
+- name: Enforce strict Windows password policy (placeholder)
+  ansible.builtin.debug:
+    msg: "TODO: Implement strict Windows password policy (min length, complexity, expiration, lockout)."
+
+- name: Ensure Windows firewall is enabled
+  ansible.windows.win_firewall:
+    state: enabled
+
+- name: Enable Windows audit policy (placeholder)
+  ansible.builtin.debug:
+    msg: "TODO: Implement strict Windows audit policy configuration."

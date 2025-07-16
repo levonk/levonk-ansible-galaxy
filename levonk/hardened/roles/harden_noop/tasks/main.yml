@@ -1,0 +1,7 @@
+---
+# tasks file for harden_noop
+# No-op for testing/compatibility only
+
+- name: No hardening performed (noop)
+  ansible.builtin.debug:
+    msg: "harden_noop: No hardening actions performed. This role is for pipeline/test compatibility only."

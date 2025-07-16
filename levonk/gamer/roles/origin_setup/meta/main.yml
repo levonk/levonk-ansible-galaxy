@@ -1,0 +1,13 @@
+---
+dependency: []
+author: v3l8dud3@lkara.com
+description: Install and configure Origin for gaming
+license: MIT
+min_ansible_version: '2.9'
+platforms:
+  - name: Windows
+    versions: [all]
+tags:
+  - gamer
+  - origin
+  - gaming

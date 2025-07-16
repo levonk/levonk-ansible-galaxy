@@ -1,0 +1,14 @@
+---
+- name: Ensure local user exists
+  ansible.builtin.user:
+    name: "{{ local_user_name }}"
+    shell: "{{ local_user_shell | default('/bin/bash') }}"
+    groups: "{{ local_user_groups | default([]) }}"
+    state: present
+
+- name: Set authorized SSH keys
+  ansible.posix.authorized_key:
+    user: "{{ local_user_name }}"
+    key: "{{ item }}"
+  loop: "{{ local_user_ssh_keys | default([]) }}"
+  when: local_user_ssh_keys is defined and local_user_ssh_keys|length > 0

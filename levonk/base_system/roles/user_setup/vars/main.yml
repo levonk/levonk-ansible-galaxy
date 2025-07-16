@@ -1,0 +1,5 @@
+---
+# vars file for user_setup
+username: ""
+user_use_chezmoi: false
+chezmoi_repo_url: ""

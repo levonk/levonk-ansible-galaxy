@@ -1,0 +1,26 @@
+---
+# tasks file for harden_custom
+# Template for user/organization-defined custom hardening
+
+# Example: include baseline, moderate, or paranoid as needed
+- name: Include baseline hardening
+  import_role:
+    name: harden_baseline
+  when: harden_custom_include_baseline | default(true)
+
+- name: Include moderate hardening
+  import_role:
+    name: harden_moderate
+  when: harden_custom_include_moderate | default(false)
+
+- name: Include paranoid hardening
+  import_role:
+    name: harden_paranoid
+  when: harden_custom_include_paranoid | default(false)
+
+# TODO: Add user/organization-specific controls below
+# - name: Custom control example
+#   ansible.builtin.lineinfile:
+#     path: /etc/example
+#     line: 'custom_setting = enabled'
+#   when: custom_var | default(false)

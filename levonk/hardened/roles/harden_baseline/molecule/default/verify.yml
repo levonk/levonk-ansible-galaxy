@@ -1,0 +1,25 @@
+---
+- name: Verify baseline compliance controls
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check password authentication is disabled (Linux)
+      ansible.builtin.command: grep '^PasswordAuthentication no' /etc/ssh/sshd_config
+      register: passwd_auth
+      failed_when: passwd_auth.rc != 0
+      changed_when: false
+      when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+    - name: Check firewall is enabled (Linux/macOS)
+      ansible.builtin.command: |
+        ufw status | grep -q active || /usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -q enabled
+      register: fw_status
+      failed_when: fw_status.rc != 0
+      changed_when: false
+      when: ansible_facts['os_family'] in ['Debian', 'Darwin']
+
+    - name: Check Windows firewall (Windows)
+      ansible.windows.win_firewall:
+        state: enabled
+      check_mode: yes
+      when: ansible_facts['os_family'] == 'Windows'

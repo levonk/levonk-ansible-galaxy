@@ -1,0 +1,15 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check if user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: "testuser"
+      register: user_entry
+      failed_when: user_entry is not defined or user_entry is none
+    - name: Check if SSH key exists
+      stat:
+        path: "/home/testuser/.ssh/id_rsa"
+      register: ssh_key
+      failed_when: not ssh_key.stat.exists

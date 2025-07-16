@@ -1,0 +1,3 @@
+---
+# vars file for harden_custom
+harden_custom_enable: true

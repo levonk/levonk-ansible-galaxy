@@ -1,0 +1,12 @@
+---
+- name: Ensure PHP is installed (Linux)
+  ansible.builtin.package:
+    name: php
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Ensure PHP is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: php
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'

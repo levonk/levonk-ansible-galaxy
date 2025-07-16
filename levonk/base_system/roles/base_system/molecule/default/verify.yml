@@ -1,0 +1,12 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check if vim is installed
+      command: which vim
+      register: vim_path
+      failed_when: vim_path.rc != 0
+    - name: Check if curl is installed
+      command: which curl
+      register: curl_path
+      failed_when: curl_path.rc != 0

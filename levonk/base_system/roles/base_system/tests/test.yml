@@ -1,0 +1,4 @@
+---
+- hosts: localhost
+  roles:
+    - role: base_system

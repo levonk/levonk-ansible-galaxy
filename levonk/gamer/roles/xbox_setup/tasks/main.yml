@@ -1,0 +1,6 @@
+---
+- name: Install Xbox app (Windows)
+  ansible.windows.win_chocolatey:
+    name: xbox
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'

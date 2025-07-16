@@ -1,0 +1,20 @@
+---
+dependency: []
+author: v3l8dud3@lkara.com
+description: Install and configure Minecraft Forge mod loader
+license: MIT
+min_ansible_version: '2.9'
+platforms:
+  - name: Windows
+    versions: [all]
+  - name: Debian
+    versions: [all]
+  - name: Ubuntu
+    versions: [all]
+  - name: RedHat
+    versions: [all]
+tags:
+  - gamer
+  - minecraft
+  - forge
+  - gaming

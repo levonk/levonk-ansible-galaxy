@@ -1,0 +1,71 @@
+---
+# Linux paranoid hardening tasks
+
+- name: Enforce SSH Protocol 2 only
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^Protocol'
+    line: 'Protocol 2'
+    create: yes
+    backup: yes
+  notify: Restart sshd
+
+- name: Disable unused services
+  ansible.builtin.service:
+    name: '{{ item }}'
+    state: stopped
+    enabled: no
+  with_items:
+    - avahi-daemon
+    - cups
+    - nfs
+    - rpcbind
+    - telnet
+    - tftp
+    - vsftpd
+    - xinetd
+    - ypserv
+
+- name: Restrict kernel module loading
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/disable-usb-storage.conf
+    content: "install usb-storage /bin/true\n"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enforce strict file permissions on /etc/shadow
+  ansible.builtin.file:
+    path: /etc/shadow
+    owner: root
+    group: root
+    mode: '0400'
+
+- name: Enable full auditd rules
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/audit.rules
+    content: |
+      -w /etc/passwd -p wa
+      -w /etc/shadow -p wa
+      -w /etc/group -p wa
+      -w /etc/gshadow -p wa
+      -w /etc/security/opasswd -p wa
+      -w /var/log/lastlog -p wa
+      -w /var/log/faillog -p wa
+      -w /var/log/tallylog -p wa
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Restart auditd
+
+- name: Restrict removable media
+  ansible.builtin.copy:
+    dest: /etc/modprobe.d/disable-usb.conf
+    content: "install usb-storage /bin/true\n"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enforce advanced firewall rules
+  ansible.builtin.command: "ufw default deny incoming && ufw default allow outgoing && ufw enable"
+  when: ansible_facts['os_family'] == 'Debian'

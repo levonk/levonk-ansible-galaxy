@@ -1,0 +1,10 @@
+---
+- name: Set high performance power profile (Windows)
+  ansible.windows.win_power_plan:
+    name: 'High performance'
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Set CPU governor to performance (Linux)
+  ansible.builtin.command: cpupower frequency-set -g performance
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']

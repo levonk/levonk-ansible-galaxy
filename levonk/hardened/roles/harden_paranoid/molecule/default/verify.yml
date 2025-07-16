@@ -1,0 +1,35 @@
+---
+- name: Verify advanced compliance controls
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check kernel randomize_va_space (Linux)
+      ansible.builtin.command: sysctl -n kernel.randomize_va_space
+      register: va_space
+      failed_when: va_space.stdout|int != 2
+      changed_when: false
+      when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+    - name: Check sysctl net.ipv4.tcp_syncookies (Linux)
+      ansible.builtin.command: sysctl -n net.ipv4.tcp_syncookies
+      register: syncookies
+      failed_when: syncookies.stdout|int != 1
+      changed_when: false
+      when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+    - name: Check kernel securelevel (macOS)
+      ansible.builtin.command: sysctl -n kern.securelevel
+      register: securelevel
+      failed_when: securelevel.stdout|int < 1
+      changed_when: false
+      when: ansible_facts['os_family'] == 'Darwin'
+
+    - name: Check Windows firewall (Windows)
+      ansible.windows.win_firewall:
+        state: enabled
+      check_mode: yes
+      when: ansible_facts['os_family'] == 'Windows'
+
+    - name: Compliance mapping documentation
+      ansible.builtin.debug:
+        msg: "See README.md for full CIS/NIST mapping."

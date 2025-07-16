@@ -1,0 +1,32 @@
+---
+- name: Verify moderate compliance controls
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check SSH ClientAliveInterval (Linux)
+      ansible.builtin.command: grep '^ClientAliveInterval 300' /etc/ssh/sshd_config
+      register: client_alive
+      failed_when: client_alive.rc != 0
+      changed_when: false
+      when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+    - name: Check SELinux/AppArmor status (Linux)
+      ansible.builtin.command: |
+        getenforce || systemctl is-active apparmor
+      register: selinux_apparmor
+      failed_when: selinux_apparmor.rc != 0
+      changed_when: false
+      when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+    - name: Check password policy (macOS)
+      ansible.builtin.command: pwpolicy -getglobalpolicy
+      register: pwpolicy_out
+      failed_when: pwpolicy_out.stdout is not search('minChars=16')
+      changed_when: false
+      when: ansible_facts['os_family'] == 'Darwin'
+
+    - name: Check Windows firewall (Windows)
+      ansible.windows.win_firewall:
+        state: enabled
+      check_mode: yes
+      when: ansible_facts['os_family'] == 'Windows'

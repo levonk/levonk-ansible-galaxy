@@ -1,0 +1,77 @@
+---
+# Linux moderate hardening tasks
+
+- name: Ensure SSH AllowUsers is set
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowUsers'
+    line: 'AllowUsers {{ ansible_user | default("*") }}'
+    create: yes
+    backup: yes
+  notify: Restart sshd
+
+- name: Set SSH ClientAliveInterval
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^ClientAliveInterval'
+    line: 'ClientAliveInterval 300'
+    create: yes
+    backup: yes
+  notify: Restart sshd
+
+- name: Ensure SELinux is enforcing (RedHat/Fedora)
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure AppArmor is enabled (Debian/Ubuntu)
+  ansible.builtin.service:
+    name: apparmor
+    state: started
+    enabled: yes
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Enforce password complexity
+  ansible.builtin.lineinfile:
+    path: /etc/security/pwquality.conf
+    regexp: '^minlen'
+    line: 'minlen = 12'
+    create: yes
+    backup: yes
+
+- name: Restrict cron to root
+  ansible.builtin.copy:
+    dest: /etc/cron.allow
+    content: "root\n"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Restrict at to root
+  ansible.builtin.copy:
+    dest: /etc/at.allow
+    content: "root\n"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Enable automatic security updates (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Enable automatic security updates (RedHat/Fedora)
+  ansible.builtin.yum:
+    name: dnf-automatic
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure audit log retention is set
+  ansible.builtin.lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^max_log_file_action'
+    line: 'max_log_file_action = keep_logs'
+    create: yes
+    backup: yes

@@ -1,0 +1,12 @@
+---
+- name: Ensure Rust is installed (Linux/Mac)
+  ansible.builtin.shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  args:
+    creates: ~/.cargo/bin/rustc
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+- name: Ensure Rust is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: rust
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'

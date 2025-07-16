@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+namespace: levonk
+name: base_system
+version: 1.0.0
+readme: README.md
+authors:
+  - levonk <v3l8dud3@lkara.com>
+description: Core OS configuration, user setup, and foundational packages for cross-platform hosts (Linux, macOS, Windows)
+license:
+  - AGPL-3.0-only
+tags:
+  - base
+  - system
+  - bootstrap
+  - user
+  - chezmoi
+  - crossplatform
+dependencies: {}
+repository: http://github.com/levonk/levonk-ansible-galaxy
+documentation: http://docs.example.com
+homepage: http://github.com/levonk/levonk-ansible-galaxy
+issues: http://github.com/levonk/levonk-ansible-galaxy/issue/tracker

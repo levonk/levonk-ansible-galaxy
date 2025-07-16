@@ -1,0 +1,3 @@
+---
+# vars file for harden_moderate
+harden_moderate_enable: true

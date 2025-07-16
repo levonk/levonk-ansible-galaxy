@@ -1,0 +1,14 @@
+---
+- name: Download Minecraft Forge installer (Windows)
+  ansible.windows.win_get_url:
+    url: "{{ minecraft_forge_windows_url }}"
+    dest: "{{ minecraft_forge_windows_installer_path | default('C:/Temp/forge-installer.exe') }}"
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Download Minecraft Forge installer (Linux)
+  ansible.builtin.get_url:
+    url: "{{ minecraft_forge_linux_url }}"
+    dest: "{{ minecraft_forge_linux_installer_path | default('/tmp/forge-installer.jar') }}"
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+# TODO: Add tasks to run the installer and verify installation

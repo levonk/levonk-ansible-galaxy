@@ -1,0 +1,14 @@
+---
+# Windows advanced compliance (CIS/NIST/2FA/MFA, kernel/network hardening)
+
+- name: Document 2FA/MFA for privileged access (manual/integration)
+  ansible.builtin.debug:
+    msg: "Ensure 2FA/MFA is enabled for privileged users (e.g., Windows Hello, smartcard, Yubikey, AD integration). See documentation for integration steps."
+
+- name: Harden network policy (registry, firewall, GPO)
+  ansible.builtin.debug:
+    msg: "TODO: Implement registry/GPO/network policy for CIS/NIST compliance. See README.md for mapping."
+
+- name: CIS/NIST mapping documentation
+  ansible.builtin.debug:
+    msg: "See README.md for full CIS/NIST mapping."

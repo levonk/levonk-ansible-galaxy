@@ -1,0 +1,14 @@
+---
+# Moderate hardening: OS dispatcher
+
+- name: Include Linux moderate tasks
+  import_tasks: linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include macOS moderate tasks
+  import_tasks: macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include Windows moderate tasks
+  import_tasks: windows.yml
+  when: ansible_facts['os_family'] == 'Windows'

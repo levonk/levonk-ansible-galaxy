@@ -1,0 +1,26 @@
+---
+# tasks file for base_system
+# Install essential packages cross-platform
+- name: Install essential packages on Debian/Ubuntu
+  apt:
+    name: "{{ base_system_packages }}"
+    state: present
+    update_cache: yes
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Install essential packages on macOS
+  homebrew:
+    name: "{{ base_system_packages }}"
+    state: present
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Install essential packages on Windows
+  win_chocolatey:
+    name: "{{ base_system_packages }}"
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
+
+# Placeholder for networking configuration (platform-specific)
+- name: Ensure networking is configured (platform-specific)
+  debug:
+    msg: "Networking configuration would go here."

@@ -1,0 +1,18 @@
+---
+- name: Ensure Ansible is installed (Linux)
+  ansible.builtin.pip:
+    name: "ansible=={{ ansible_version | default('latest') }}"
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']
+
+- name: Ensure Ansible is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: ansible
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Install dev tools/plugins
+  ansible.builtin.pip:
+    name: "{{ dev_ansible_tools | default(['molecule','ansible-lint']) }}"
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']

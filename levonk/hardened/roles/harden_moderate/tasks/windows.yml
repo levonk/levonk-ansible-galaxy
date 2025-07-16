@@ -1,0 +1,14 @@
+---
+# Windows moderate hardening tasks
+
+- name: Enforce Windows password policy (placeholder)
+  ansible.builtin.debug:
+    msg: "TODO: Implement Windows password policy enforcement (min length, complexity, expiration)."
+
+- name: Ensure Windows firewall is enabled
+  ansible.windows.win_firewall:
+    state: enabled
+
+- name: Enable Windows audit policy (placeholder)
+  ansible.builtin.debug:
+    msg: "TODO: Implement Windows audit policy configuration."

@@ -1,0 +1,12 @@
+---
+- name: Ensure Go is installed (Linux)
+  ansible.builtin.package:
+    name: golang
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Ensure Go is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: golang
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'

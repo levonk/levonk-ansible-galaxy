@@ -1,0 +1,22 @@
+---
+- name: Ensure remote user exists
+  ansible.builtin.user:
+    name: "{{ remote_user_name }}"
+    shell: "/bin/bash"
+    groups: "{{ remote_user_groups | default([]) }}"
+    state: present
+
+- name: Set authorized SSH keys for remote user
+  ansible.posix.authorized_key:
+    user: "{{ remote_user_name }}"
+    key: "{{ item }}"
+  loop: "{{ remote_user_ssh_keys | default([]) }}"
+  when: remote_user_ssh_keys is defined and remote_user_ssh_keys|length > 0
+
+- name: Enable RDP access (Windows)
+  ansible.windows.win_user:
+    name: "{{ remote_user_name }}"
+    password_never_expires: true
+    user_cannot_change_password: false
+    state: present
+  when: ansible_facts['os_family'] == 'Windows' and remote_user_rdp_enabled|default(false)

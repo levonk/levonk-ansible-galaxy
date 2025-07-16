@@ -1,0 +1,18 @@
+---
+- name: Ensure build-essential is installed (Linux)
+  ansible.builtin.package:
+    name: build-essential
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
+
+- name: Ensure gcc-c++ is installed (RedHat)
+  ansible.builtin.package:
+    name: gcc-c++
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure MSVC Build Tools are present (Windows)
+  ansible.windows.win_chocolatey:
+    name: visualstudio2019buildtools
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'

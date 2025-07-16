@@ -1,0 +1,8 @@
+---
+- name: Ensure service user exists
+  ansible.builtin.user:
+    name: "{{ service_user_name }}"
+    shell: "{{ service_user_shell | default('/usr/sbin/nologin') }}"
+    groups: "{{ service_user_groups | default([]) }}"
+    state: present
+    system: true

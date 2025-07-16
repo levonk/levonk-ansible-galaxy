@@ -1,0 +1,12 @@
+---
+- name: Ensure Ruby is installed (Linux)
+  ansible.builtin.package:
+    name: ruby-full
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Ensure Ruby is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: ruby
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'

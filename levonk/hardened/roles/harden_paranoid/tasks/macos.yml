@@ -1,0 +1,15 @@
+---
+# macOS paranoid hardening tasks
+
+- name: Enable FileVault (manual step)
+  ansible.builtin.debug:
+    msg: "Ensure FileVault is enabled on all macOS systems (manual/organizational policy)."
+
+- name: Enforce strict password policy on macOS
+  ansible.builtin.command: "pwpolicy -n /Local/Default -setglobalpolicy 'minChars=20 requiresAlpha=1 requiresNumeric=1 requiresSymbol=1 maxFailedLoginAttempts=5'"
+
+- name: Ensure macOS firewall is enabled
+  ansible.builtin.command: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on"
+
+- name: Enable macOS audit logging
+  ansible.builtin.command: "/usr/bin/audit -s"

@@ -1,0 +1,18 @@
+---
+- name: Ensure Docker is installed (Linux)
+  ansible.builtin.package:
+    name: docker.io
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
+
+- name: Ensure Docker is installed (RedHat)
+  ansible.builtin.package:
+    name: docker
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure Docker Desktop is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: docker-desktop
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
