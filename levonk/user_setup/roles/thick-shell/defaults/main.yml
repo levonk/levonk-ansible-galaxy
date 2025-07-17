@@ -1,0 +1,3 @@
+---
+# Default shell stack (can be overridden by playbook or inventory)
+shell_stack: zsh

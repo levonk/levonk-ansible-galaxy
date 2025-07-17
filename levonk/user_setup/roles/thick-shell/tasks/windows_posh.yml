@@ -1,0 +1,7 @@
+---
+# Always install Oh My Posh + Posh-Git on Windows
+- name: Install Oh My Posh (winget)
+  win_command: winget install JanDeDobbeleer.OhMyPosh -h --accept-package-agreements --accept-source-agreements
+
+- name: Install Posh-Git (PowerShell Gallery)
+  win_shell: Install-Module posh-git -Scope CurrentUser -Force

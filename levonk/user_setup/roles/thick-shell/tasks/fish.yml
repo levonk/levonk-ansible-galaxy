@@ -1,0 +1,28 @@
+---
+# Fish + Oh My Fish + Starship
+- block:
+    - name: Install fish
+      become: true
+      ansible.builtin.package:
+        name: fish
+        state: present
+
+    - name: Securely install Oh My Fish (vetted)
+      include_role:
+        name: levonk.common.roles.vet_script_installer
+      vars:
+        vet_script_url: "https://get.oh-my.fish"
+        vet_script_dest: "/tmp/omf-install.sh"
+        vet_script_args: "--noninteractive"
+      when: ansible_system != 'Windows'
+
+    - name: Securely install Starship prompt (vetted)
+      include_role:
+        name: levonk.common.roles.vet_script_installer
+      vars:
+        vet_script_url: "https://starship.rs/install.sh"
+        vet_script_dest: "/tmp/starship-install.sh"
+        vet_script_args: "-y"
+      when: ansible_system != 'Windows'
+  name: Fish Shell Stack
+  become: true

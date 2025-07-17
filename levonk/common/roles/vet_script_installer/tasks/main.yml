@@ -1,0 +1,28 @@
+---
+# vet_script_installer/tasks/main.yml
+# Securely downloads, vets, and executes shell scripts/plugins
+
+- name: Ensure vet is installed
+  ansible.builtin.shell: |
+    if ! command -v vet &>/dev/null; then
+      curl -fsSL https://github.com/vet-run/vet/releases/latest/download/vet-linux-amd64 -o /usr/local/bin/vet
+      chmod +x /usr/local/bin/vet
+    fi
+  args:
+    creates: /usr/local/bin/vet
+  become: yes
+
+- name: Download script
+  ansible.builtin.get_url:
+    url: "{{ vet_script_url }}"
+    dest: "{{ vet_script_dest }}"
+    mode: '0755'
+
+- name: Vet script (non-interactive)
+  ansible.builtin.shell: vet --non-interactive {{ vet_script_dest }}
+  register: vet_result
+  failed_when: vet_result.rc != 0
+
+- name: Execute script only if vetted
+  ansible.builtin.shell: "{{ vet_script_dest }} {{ vet_script_args | default('') }}"
+  when: vet_result.rc == 0

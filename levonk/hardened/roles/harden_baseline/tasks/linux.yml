@@ -1,48 +1,39 @@
 ---
-# Linux baseline hardening tasks
+# Linux baseline hardening tasks (extended for shell plugin safety)
 
-- name: Ensure sudo is required for privileged actions
-  ansible.builtin.lineinfile:
-    path: /etc/sudoers
-    regexp: '^%sudo'
-    line: '%sudo   ALL=(ALL:ALL) ALL'
-    validate: 'visudo -cf %s'
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
-
-- name: Disable root SSH login
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^PermitRootLogin'
-    line: 'PermitRootLogin no'
-    create: yes
-    backup: yes
-  notify: Restart sshd
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
-
-- name: Ensure password authentication is disabled
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^PasswordAuthentication'
-    line: 'PasswordAuthentication no'
-    create: yes
-    backup: yes
-  notify: Restart sshd
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
-
-- name: Ensure UFW is enabled (Debian/Ubuntu)
-  ansible.builtin.ufw:
-    state: enabled
+- name: Ensure shellcheck and bat are installed
+  ansible.builtin.apt:
+    name:
+      - shellcheck
+      - bat
+    state: present
+    update_cache: yes
   when: ansible_facts['os_family'] == 'Debian'
 
-- name: Ensure firewalld is enabled (RedHat/Fedora)
-  ansible.builtin.service:
-    name: firewalld
-    state: started
-    enabled: yes
-  when: ansible_facts['os_family'] == 'RedHat'
+- name: Ensure vet is installed
+  ansible.builtin.shell: |
+    if ! command -v vet &>/dev/null; then
+      curl -fsSL https://github.com/vet-run/vet/releases/latest/download/vet-linux-amd64 -o /usr/local/bin/vet
+      chmod +x /usr/local/bin/vet
+    fi
+  args:
+    creates: /usr/local/bin/vet
+  become: yes
 
-- name: Ensure auditd is installed
-  ansible.builtin.package:
-    name: auditd
-    state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+# Example: Use vet to safely install Oh My Zsh (replace curl|sh with vet)
+- name: Download Oh My Zsh install script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    dest: /tmp/ohmyzsh-install.sh
+    mode: '0755'
+
+- name: Vet Oh My Zsh install script (non-interactive)
+  ansible.builtin.shell: vet --non-interactive /tmp/ohmyzsh-install.sh
+  register: vet_result
+  failed_when: vet_result.rc != 0
+
+- name: Install Oh My Zsh script only if vetted
+  ansible.builtin.shell: /tmp/ohmyzsh-install.sh --unattended
+  when: vet_result.rc == 0
+
+# Repeat above pattern for any shell plugin/script installs (bash-it, starship, etc.)

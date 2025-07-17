@@ -1,0 +1,9 @@
+---
+namespace: levonk
+name: thick_shell
+version: 1.0.0
+readme: README.md
+description: >-
+  Multi-shell installation and configuration role (zsh, bash, fish, Windows posh)
+author: Your Name
+license: MIT

@@ -1,0 +1,21 @@
+---
+# Main task for thick-shell role (multi-shell support)
+- name: Set default shell list if not specified
+  set_fact:
+    thick_shells: "{{ thick_shells | default(['zsh']) }}"
+
+- name: Ensure zsh stack if requested
+  include_tasks: zsh.yml
+  when: "'zsh' in thick_shells"
+
+- name: Ensure bash stack if requested
+  include_tasks: bash.yml
+  when: "'bash' in thick_shells"
+
+- name: Ensure fish stack if requested
+  include_tasks: fish.yml
+  when: "'fish' in thick_shells"
+
+- name: Always install Oh My Posh + Posh-Git on Windows
+  include_tasks: windows_posh.yml
+  when: ansible_system == 'Windows'

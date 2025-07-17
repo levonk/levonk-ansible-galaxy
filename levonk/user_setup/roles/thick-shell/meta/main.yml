@@ -1,0 +1,5 @@
+---
+dependency:
+  name: galaxy
+
+# Add any role dependencies here
