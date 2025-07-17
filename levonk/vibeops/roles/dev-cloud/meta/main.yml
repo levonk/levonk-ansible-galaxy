@@ -2,4 +2,4 @@
 
 ---
 dependencies:
-  - role: levonk.vibeops.dev-cloud
+  - role: levonk.common.vet_script_installer

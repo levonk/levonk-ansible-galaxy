@@ -1,0 +1,106 @@
+# Copyright (c) 2025 the person whos account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License. See LICENSE file in the project root for full license information.
+
+---
+- name: Check if gcloud is installed
+  ansible.builtin.command: which gcloud
+  register: gcloud_exists
+  changed_when: false
+  ignore_errors: true
+
+- name: Install Google Cloud SDK
+  when: gcloud_exists.rc != 0
+  block:
+    - name: Download Google Cloud SDK installer
+      ansible.builtin.get_url:
+        url: https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-481.0.0-linux-x86_64.tar.gz
+        dest: /tmp/google-cloud-sdk.tar.gz
+
+    - name: Unarchive the SDK
+      ansible.builtin.unarchive:
+        src: /tmp/google-cloud-sdk.tar.gz
+        dest: /usr/local/
+        remote_src: yes
+
+    - name: Vet the gcloud install script
+      ansible.builtin.command: vet --non-interactive /usr/local/google-cloud-sdk/install.sh
+      register: vet_gcloud
+      failed_when: vet_gcloud.rc != 0
+
+    - name: Run the install script
+      ansible.builtin.command: /usr/local/google-cloud-sdk/install.sh --quiet --path-update true
+      changed_when: true
+      when: vet_gcloud.rc == 0
+
+- name: Check if KICS is installed
+  ansible.builtin.command: which kics
+  register: kics_exists
+  changed_when: false
+  ignore_errors: true
+
+- name: Install KICS
+  when: kics_exists.rc != 0
+  block:
+    - name: Download KICS install script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/Checkmarx/kics/master/install.sh
+        dest: /tmp/kics-install.sh
+        mode: '0755'
+
+    - name: Vet KICS install script
+      ansible.builtin.command: vet --non-interactive /tmp/kics-install.sh
+      register: vet_kics
+      failed_when: vet_kics.rc != 0
+
+    - name: Run KICS install script
+      ansible.builtin.shell: "/tmp/kics-install.sh -b /usr/local/bin"
+      changed_when: true
+      when: vet_kics.rc == 0
+
+- name: Check if AWS CLI is installed
+  ansible.builtin.command: which aws
+  register: aws_exists
+  changed_when: false
+  ignore_errors: true
+
+- name: Install AWS CLI
+  when: aws_exists.rc != 0
+  block:
+    - name: Download AWS CLI installer
+      ansible.builtin.get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+
+    - name: Unzip AWS CLI installer
+      ansible.builtin.unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: yes
+
+    - name: Run AWS CLI installer
+      ansible.builtin.command: /tmp/aws/install
+      changed_when: true
+
+- name: Check if Azure CLI is installed
+  ansible.builtin.command: which az
+  register: az_exists
+  changed_when: false
+  ignore_errors: true
+
+- name: Install Azure CLI
+  when: az_exists.rc != 0
+  block:
+    - name: Download Azure CLI install script
+      ansible.builtin.get_url:
+        url: https://aka.ms/InstallAzureCLIDeb
+        dest: /tmp/azure-cli-install.sh
+        mode: '0755'
+
+    - name: Vet Azure CLI install script
+      ansible.builtin.command: vet --non-interactive /tmp/azure-cli-install.sh
+      register: vet_azure
+      failed_when: vet_azure.rc != 0
+
+    - name: Run Azure CLI install script
+      ansible.builtin.shell: "bash /tmp/azure-cli-install.sh"
+      changed_when: true
+      when: vet_azure.rc == 0

@@ -1,0 +1,22 @@
+# Copyright (c) 2025 the person whos account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License. See LICENSE file in the project root for full license information.
+
+---
+- name: Install Google Cloud SDK using Chocolatey
+  community.windows.win_chocolatey:
+    name: gcloudsdk
+    state: present
+
+- name: Install KICS using Chocolatey
+  community.windows.win_chocolatey:
+    name: kics
+    state: present
+
+- name: Install AWS CLI using Chocolatey
+  community.windows.win_chocolatey:
+    name: awscli
+    state: present
+
+- name: Install Azure CLI using Chocolatey
+  community.windows.win_chocolatey:
+    name: azure-cli
+    state: present
