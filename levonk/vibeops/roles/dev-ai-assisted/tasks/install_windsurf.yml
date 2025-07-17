@@ -1,0 +1,29 @@
+---
+- name: "Install Windsurf (macOS)"
+  community.general.homebrew_cask:
+    name: windsurf
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install Windsurf (Windows)"
+  ansible.windows.win_winget:
+    name: Windsurf.Windsurf
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+
+- name: "Install Windsurf (Linux)"
+  block:
+    - name: "Download Windsurf AppImage"
+      ansible.builtin.get_url:
+        url: "https://download.windsurf.ai/linux/latest/Windsurf.AppImage"
+        dest: "/usr/local/bin/Windsurf.AppImage"
+        mode: '0755'
+      become: true
+
+    - name: "Create symlink for Windsurf"
+      ansible.builtin.file:
+        src: "/usr/local/bin/Windsurf.AppImage"
+        dest: "/usr/local/bin/windsurf"
+        state: link
+      become: true
+  when: ansible_facts['os_family'] == "Debian"

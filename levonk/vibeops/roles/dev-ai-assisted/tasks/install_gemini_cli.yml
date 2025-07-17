@@ -1,0 +1,12 @@
+---
+- name: "Ensure gcloud beta components are installed for Gemini CLI (Linux/macOS)"
+  ansible.builtin.command:
+    cmd: "gcloud components install beta --quiet"
+  changed_when: false
+  when: ansible_facts['os_family'] != "Windows"
+
+- name: "Ensure gcloud beta components are installed for Gemini CLI (Windows)"
+  ansible.windows.win_command:
+    command: "gcloud components install beta --quiet"
+  changed_when: false
+  when: ansible_facts['os_family'] == "Windows"

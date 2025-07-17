@@ -1,0 +1,26 @@
+---
+- name: "Install Cline (via Fig) (macOS)"
+  community.general.homebrew_cask:
+    name: fig
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install Cline (via Fig) (Windows)"
+  ansible.windows.win_winget:
+    name: Fig.Fig
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+
+- name: "Install Cline (via Fig) (Linux)"
+  block:
+    - name: "Download Fig .deb package"
+      ansible.builtin.get_url:
+        url: "https://fig.io/download/linux/deb"
+        dest: "/tmp/fig.deb"
+        mode: '0644'
+
+    - name: "Install Fig from .deb package"
+      ansible.builtin.apt:
+        deb: "/tmp/fig.deb"
+      become: true
+  when: ansible_facts['os_family'] == "Debian"

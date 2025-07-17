@@ -1,0 +1,33 @@
+---
+- name: "Install Google Cloud SDK (macOS)"
+  community.general.homebrew_cask:
+    name: google-cloud-sdk
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install Google Cloud SDK (Windows)"
+  ansible.windows.win_chocolatey:
+    name: gcloudsdk
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+
+- name: "Install Google Cloud SDK (Linux)"
+  block:
+    - name: "Add Google Cloud GPG key"
+      ansible.builtin.get_url:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        dest: /etc/apt/trusted.gpg.d/google-cloud-sdk.gpg
+        mode: '0644'
+
+    - name: "Add Google Cloud repository"
+      ansible.builtin.apt_repository:
+        repo: "deb https://packages.cloud.google.com/apt cloud-sdk main"
+        state: present
+        filename: google-cloud-sdk
+
+    - name: "Install Google Cloud SDK with apt"
+      ansible.builtin.apt:
+        name: google-cloud-sdk
+        state: present
+        update_cache: true
+  when: ansible_facts['os_family'] == "Debian"

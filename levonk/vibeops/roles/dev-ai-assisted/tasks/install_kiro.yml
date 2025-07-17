@@ -1,0 +1,29 @@
+---
+- name: "Install Kiro (macOS)"
+  community.general.homebrew_cask:
+    name: kiro
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install Kiro (Windows)"
+  ansible.windows.win_winget:
+    name: Kiro.Kiro
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+
+- name: "Install Kiro (Linux)"
+  block:
+    - name: "Download Kiro AppImage"
+      ansible.builtin.get_url:
+        url: "https://download.kiro.app/linux/latest/Kiro.AppImage"
+        dest: "/usr/local/bin/Kiro.AppImage"
+        mode: '0755'
+      become: true
+
+    - name: "Create symlink for Kiro"
+      ansible.builtin.file:
+        src: "/usr/local/bin/Kiro.AppImage"
+        dest: "/usr/local/bin/kiro"
+        state: link
+      become: true
+  when: ansible_facts['os_family'] == "Debian"

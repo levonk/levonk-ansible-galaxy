@@ -1,0 +1,32 @@
+---
+- name: "Install AWS CLI (macOS)"
+  community.general.homebrew:
+    name: awscli
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install AWS CLI (Windows)"
+  ansible.windows.win_package:
+    path: https://awscli.amazonaws.com/AWSCLIV2.msi
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+
+- name: "Install AWS CLI (Linux)"
+  block:
+    - name: "Download AWS CLI installer"
+      ansible.builtin.get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+        mode: '0755'
+
+    - name: "Unarchive AWS CLI installer"
+      ansible.builtin.unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: yes
+
+    - name: "Run AWS CLI installer"
+      ansible.builtin.command:
+        cmd: /tmp/aws/install
+      become: true
+  when: ansible_facts['os_family'] == "Debian"

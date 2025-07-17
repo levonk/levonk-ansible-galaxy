@@ -1,0 +1,20 @@
+---
+- name: "Install Claude Suite VS Code Extensions"
+  community.general.vscode_extension:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - Anthropic.claude-code
+    - Anthropic.claude-taskmaster
+    - RooCode.roocode-boomerang
+  become: false
+  when: ansible_facts['os_family'] != "Windows"
+
+- name: "Install Claude Suite VS Code Extensions (Windows)"
+  ansible.windows.win_command: "code --install-extension {{ item }}"
+  loop:
+    - Anthropic.claude-code
+    - Anthropic.claude-taskmaster
+    - RooCode.roocode-boomerang
+  changed_when: false
+  when: ansible_facts['os_family'] == "Windows"

@@ -1,0 +1,35 @@
+---
+# tasks file for dev-ai-assisted
+
+- name: "Install Visual Studio Code"
+  include_tasks: install_vscode.yml
+
+- name: "Install Cursor"
+  include_tasks: install_cursor.yml
+
+- name: "Install Warp"
+  include_tasks: install_warp.yml
+
+- name: "Install Google Cloud SDK"
+  include_tasks: install_gcloud_sdk.yml
+
+- name: "Install Gemini CLI"
+  include_tasks: install_gemini_cli.yml
+
+- name: "Install AWS CLI"
+  include_tasks: install_aws_cli.yml
+
+- name: "Install Amazon Q"
+  include_tasks: install_amazon_q.yml
+
+- name: "Install Cline"
+  include_tasks: install_cline.yml
+
+- name: "Install Windsurf"
+  include_tasks: install_windsurf.yml
+
+- name: "Install Kiro"
+  include_tasks: install_kiro.yml
+
+- name: "Install Claude Suite"
+  include_tasks: install_claude_suite.yml

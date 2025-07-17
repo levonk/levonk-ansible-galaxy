@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: "Include dev-ai-assisted role"
+      include_role:
+        name: "levonk.vibeops.dev-ai-assisted"

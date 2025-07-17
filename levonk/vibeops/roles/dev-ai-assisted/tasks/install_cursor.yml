@@ -1,0 +1,26 @@
+---
+- name: "Install Cursor (macOS)"
+  community.general.homebrew_cask:
+    name: cursor
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install Cursor (Windows)"
+  ansible.windows.win_winget:
+    name: Cursor.Cursor
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+
+- name: "Install Cursor (Linux)"
+  block:
+    - name: "Download Cursor .deb package"
+      ansible.builtin.get_url:
+        url: "https://dl.todesktop.com/210403leiiy0f4z/linux/deb/x64"
+        dest: "/tmp/cursor.deb"
+        mode: '0644'
+
+    - name: "Install Cursor from .deb package"
+      ansible.builtin.apt:
+        deb: "/tmp/cursor.deb"
+      become: true
+  when: ansible_facts['os_family'] == "Debian"

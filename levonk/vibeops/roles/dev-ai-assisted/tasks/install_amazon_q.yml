@@ -1,0 +1,4 @@
+---
+- name: "Placeholder for Amazon Q configuration"
+  ansible.builtin.debug:
+    msg: "Amazon Q is integrated with the AWS CLI. Please configure your AWS credentials to use it."
