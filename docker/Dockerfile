@@ -4,6 +4,10 @@
 # It includes ansible, ansible-lint, molecule, and other useful tools.
 FROM python:3.11-slim
 
+LABEL org.opencontainers.image.title="levonk/ansible-dev" \
+      org.opencontainers.image.description="Ansible development environment with linting and testing tools." \
+      org.opencontainers.image.licenses="AGPL-3.0"
+
 # Install essential Ansible development tools
 RUN pip install --no-cache-dir \
     ansible \
