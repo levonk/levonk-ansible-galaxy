@@ -1,12 +1,19 @@
 ---
+dependency:
+  name: galaxy
 driver:
   name: docker
 platforms:
   - name: instance
-    image: geerlingguy/docker-ubuntu2004-ansible:latest
+    image: "geerlingguy/docker-ubuntu2004-ansible:latest"
+    privileged: true
+    pre_build_image: true
 provisioner:
   name: ansible
-  lint:
-    name: ansible-lint
+  lint: |
+    yamllint .
+    ansible-lint
 verifier:
-  name: testinfra
+  name: ansible
+scenario:
+  name: default

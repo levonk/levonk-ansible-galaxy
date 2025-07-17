@@ -1,4 +1,12 @@
 ---
-- hosts: localhost
+- name: Test base_system role
+  hosts: all
   roles:
     - role: base_system
+  tasks:
+    - name: Assert essential packages present
+      assert:
+        that:
+          - ansible_facts.packages is defined
+        fail_msg: "Essential packages not installed"
+# TODO: Add more comprehensive tests and compliance checks

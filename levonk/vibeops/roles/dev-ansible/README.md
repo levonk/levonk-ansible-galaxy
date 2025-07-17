@@ -1,17 +1,40 @@
-# dev-ansible Role
+# Ansible Role: dev-ansible
 
-This role sets up an Ansible development environment for users or CI systems. It supports:
-- Ansible and dependencies install (pip or system)
-- Linting, molecule, and test setup
-- Common plugins and collections
+This role sets up a complete Ansible development environment on a target host.
+
+## Features
+
+- Installs `ansible-core` to provide the base Ansible engine.
+- Installs essential development and testing tools via pip:
+  - `molecule`: For robust, multi-scenario testing of Ansible roles.
+  - `ansible-lint`: For enforcing best practices and catching common errors in Ansible content.
+  - `yamllint`: For linting YAML files to ensure syntax and style consistency.
+- Provides cross-platform support for Linux, macOS, and Windows (via Chocolatey).
+
+## Usage Example
+
+To use this role, simply include it in your playbook:
+
+```yaml
+- hosts: all
+  roles:
+    - role: levonk.vibeops.dev-ansible
+```
 
 ## Variables
-- `ansible_version`: Ansible version to install
-- `dev_ansible_tools`: List of tools/plugins to install
 
-## Compliance
-- Follows secure install practices
-- Supports reproducible builds
+- `ansible_version`: Specify a version of Ansible to install (e.g., '6.7.0'). Defaults to 'latest'.
+- `dev_ansible_tools`: A list of Python packages to install for the development environment. Defaults to `['molecule', 'ansible-lint', 'yamllint']`.
 
-## Testing
-- Molecule scenario included for install and environment checks
+## Requirements
+
+- `pip` must be available on the target host for Linux/macOS.
+- `Chocolatey` must be installed on Windows hosts.
+
+## License
+
+AGPL-3.0-only
+
+## Author
+
+levonk

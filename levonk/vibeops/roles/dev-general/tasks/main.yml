@@ -1,0 +1,7 @@
+---
+- name: Ensure Super-Linter Docker image is present
+  community.docker.docker_image:
+    name: github/super-linter
+    tag: latest
+    source: pull
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX', 'Windows']

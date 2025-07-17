@@ -1,39 +1,74 @@
-# levonk.base_system Collection
+# base_system Collection
 
-This Ansible Galaxy collection provides foundational OS configuration, user setup, and cross-platform (Linux, macOS, Windows) bootstrapping roles. It is designed for use as the first step in provisioning a new host.
-
-## Included Roles
-
-| Role        | Description                               |
-|-------------|-------------------------------------------|
-| base_system | Core OS packages and networking setup      |
-| user_setup  | User account, SSH/GPG, chezmoi management |
+{{ collection_description }}
 
 ## Installation
-```bash
-ansible-galaxy collection install levonk.base_system
-```
 
-## Usage Example
-```yaml
-- hosts: all
-  collections:
-    - levonk.base_system
-  roles:
-    - role: base_system
-    - role: user_setup
-      vars:
-        user_use_chezmoi: true
-        chezmoi_repo_url: "https://github.com/example/dotfiles"
-        username: alice-202507-myhost
+```bash
+ansible-galaxy collection install {{ collection_namespace }}.base_system
 ```
 
 ## Requirements
-- Ansible 2.9+
-- Supported OS: Linux (Debian/Ubuntu), macOS, Windows
+
+- Ansible {{ min_ansible_version | default('2.9+') }}
+- Python {{ min_python_version | default('3.6+') }}
+- Additional requirements...
+
+## Included Content
+
+### Roles
+
+| Name | Description |
+|------|-------------|
+| `role_name` | Brief description of the role |
+
+### Modules
+
+| Name | Description |
+|------|-------------|
+| `module_name` | Brief description of the module |
+
+## Usage
+
+### Using a role
+
+```yaml
+- name: Include base_system role
+  hosts: localhost
+  collections:
+    - {{ collection_namespace }}.base_system
+  roles:
+    - role_name
+```
+
+### Using a module
+
+```yaml
+- name: Use base_system module
+  {{ collection_namespace }}.base_system.module_name:
+    parameter: value
+```
+
+## Testing
+
+```bash
+# Install test requirements
+pip install -r requirements-test.txt
+
+# Run tests
+ansible-test integration
+```
 
 ## License
-AGPL-3.0-only
 
-## Author
-levonk <v3l8dud3@lkara.com>
+{{ license | default('AGPL-3.0') }}
+
+## Author Information
+
+{{ author | default('levonk') }}
+
+*Document generated on: {{ "now" | strftime("%Y-%m-%d") }}*  
+*Version: {{ collection_version | default('1.0.0') }}*
+
+Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+See LICENSE file in the project root for full license information.
