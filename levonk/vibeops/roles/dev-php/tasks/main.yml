@@ -10,3 +10,4 @@
     name: php
     state: present
   when: ansible_facts['os_family'] == 'Windows'
+

@@ -16,3 +16,70 @@
     name: "{{ dev_python_tools | default(['black','flake8','pytest']) }}"
     state: present
   when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']
+
+# --- Python Environment Tools ---
+# pyenv (Linux/macOS only)
+- name: Ensure pyenv dependencies are installed (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - make
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libbz2-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - wget
+      - curl
+      - llvm
+      - libncurses5-dev
+      - libncursesw5-dev
+      - xz-utils
+      - tk-dev
+      - libffi-dev
+      - liblzma-dev
+      - git
+    state: present
+    update_cache: yes
+  when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
+
+- name: Ensure pyenv is cloned
+  ansible.builtin.git:
+    repo: 'https://github.com/pyenv/pyenv.git'
+    dest: "{{ ansible_env.HOME }}/.pyenv"
+    version: master
+    update: yes
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Set pyenv environment variables
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PYENV_ROOT="$HOME/.pyenv" && export PATH="$PYENV_ROOT/bin:$PATH" && eval "$(pyenv init --path)"'
+    create: yes
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+# poetry (Linux/macOS)
+- name: Ensure pipx is installed (Linux)
+  ansible.builtin.pip:
+    name: pipx
+    executable: pip3
+    state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Ensure poetry is installed with pipx (Linux)
+  ansible.builtin.command:
+    cmd: "pipx install poetry"
+    creates: "{{ ansible_env.HOME }}/.local/bin/poetry"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+# poetry (Windows)
+- name: Ensure poetry is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: poetry
+    state: present
+  when: ansible_facts['os_family'] == 'Windows'
+
+# TODO: Compliance - Review installation sources, privacy, and licensing for pyenv/poetry.
