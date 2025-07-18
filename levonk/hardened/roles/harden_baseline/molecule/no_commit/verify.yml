@@ -1,0 +1,32 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Verify etckeeper package is installed
+      ansible.builtin.package:
+        name: etckeeper
+        state: present
+      check_mode: yes
+
+    - name: Verify etckeeper git repository exists
+      ansible.builtin.stat:
+        path: /etc/.git
+      register: etckeeper_git_dir
+
+    - name: Fail if etckeeper git repository does not exist
+      ansible.builtin.fail:
+        msg: "Etckeeper git repository was not found at /etc/.git"
+      when: not etckeeper_git_dir.stat.exists
+
+    - name: Check for the automated commit message in etckeeper log
+      ansible.builtin.command:
+        cmd: git log --grep="Ansible committed configuration changes" --oneline
+        chdir: /etc
+      register: etckeeper_commit_log
+      changed_when: false
+
+    - name: Fail if the automated commit was found
+      ansible.builtin.fail:
+        msg: "The automated etckeeper commit was found in the git log when it should not have been."
+      when: etckeeper_commit_log.stdout | length > 0

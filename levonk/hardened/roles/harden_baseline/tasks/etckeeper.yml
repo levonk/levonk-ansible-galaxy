@@ -1,0 +1,23 @@
+---
+# tasks file for etckeeper
+
+- name: Etckeeper | Ensure etckeeper is installed
+  ansible.builtin.package:
+    name: etckeeper
+    state: present
+  become: yes
+
+- name: Etckeeper | Configure etckeeper to use git
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?VCS='
+    line: 'VCS="git"'
+    state: present
+  become: yes
+  notify: Commit changes to /etc
+
+- name: Etckeeper | Initialize etckeeper repository
+  ansible.builtin.command:
+    cmd: etckeeper init
+    creates: /etc/.git
+  become: yes

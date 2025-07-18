@@ -37,3 +37,7 @@
   when: vet_result.rc == 0
 
 # Repeat above pattern for any shell plugin/script installs (bash-it, starship, etc.)
+
+- name: Include etckeeper tasks
+  import_tasks: etckeeper.yml
+

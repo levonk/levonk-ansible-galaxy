@@ -1,2 +1,7 @@
 ---
 # handlers file for harden_baseline
+- name: Commit changes to /etc
+  ansible.builtin.command:
+    cmd: etckeeper commit "Ansible committed configuration changes"
+  become: yes
+  when: etckeeper_commit_changes | default(true)

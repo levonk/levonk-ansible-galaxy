@@ -1,0 +1,16 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Include the harden_baseline role
+      ansible.builtin.include_role:
+        name: levonk.hardened.harden_baseline
+
+    - name: Create a test file to trigger etckeeper commit
+      ansible.builtin.copy:
+        content: "test file to trigger commit"
+        dest: /etc/molecule_test_file.conf
+        mode: '0644'
+      notify: Commit changes to /etc
