@@ -1,0 +1,33 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Test idempotence: run again with no flag set"
+      ansible.builtin.include_role:
+        name: "levonk.base_system.reboot_manager"
+      register: idempotence_check
+
+    - name: "Assert that no reboot was triggered"
+      ansible.builtin.assert:
+        that:
+          - not idempotence_check.changed
+        fail_msg: "Idempotence check failed: reboot was triggered without the flag."
+        success_msg: "Idempotence check passed."
+
+    - name: "Set reboot_required fact for testing"
+      ansible.builtin.set_fact:
+        reboot_required: true
+
+    - name: "Run reboot_manager in check mode to see if reboot is triggered"
+      ansible.builtin.include_role:
+        name: "levonk.base_system.reboot_manager"
+      check_mode: true
+      register: reboot_check
+
+    - name: "Assert that reboot would have been triggered"
+      ansible.builtin.assert:
+        that:
+          - reboot_check.changed
+        fail_msg: "Reboot was not triggered in check mode when reboot_required was true."
+        success_msg: "Reboot was correctly triggered in check mode."

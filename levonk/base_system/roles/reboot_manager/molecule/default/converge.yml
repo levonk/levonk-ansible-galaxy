@@ -1,0 +1,11 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Set reboot_required fact for testing"
+      ansible.builtin.set_fact:
+        reboot_required: true
+
+    - name: "Include levonk.base_system.reboot_manager"
+      ansible.builtin.include_role:
+        name: "levonk.base_system.reboot_manager"

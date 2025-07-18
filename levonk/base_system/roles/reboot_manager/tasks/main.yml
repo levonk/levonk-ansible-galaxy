@@ -1,0 +1,16 @@
+---
+# tasks file for levonk.base_system.reboot_manager
+
+- name: Reboot the system if required
+  tags:
+    - reboot_manager
+  block:
+    - name: Reboot system
+      ansible.builtin.reboot:
+        msg: "Rebooting system as requested by a previous task"
+        connect_timeout: 5
+        reboot_timeout: 600
+        pre_reboot_delay: 0
+        post_reboot_delay: 30
+        test_command: whoami
+      when: reboot_required | default(false)
