@@ -1,0 +1,7 @@
+---
+- name: Test chezmoi role with Kitchen
+  hosts: all
+  vars:
+    chezmoi_repo: "https://github.com/brillarc/dotfiles-starter-test.git"
+  roles:
+    - role: "chezmoi"

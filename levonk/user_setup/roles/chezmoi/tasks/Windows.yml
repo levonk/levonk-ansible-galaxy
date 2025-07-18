@@ -1,0 +1,14 @@
+---
+# tasks file for levonk.user_setup.chezmoi on Windows
+# Copyright (c) 2025, Brillarc, LLC
+
+- name: "Install | chezmoi (Windows)"
+  block:
+    - name: "Install chezmoi via vetted script installer"
+      ansible.builtin.include_role:
+        name: levonk.common.roles.vet_script_installer
+      vars:
+        vet_script_url: "https://get.chezmoi.io"
+        # The vet_script_installer should handle placing this in a temp location for Windows
+        vet_script_dest: "chezmoi-install.ps1"
+        vet_script_args: ""

@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    chezmoi_repo: "https://github.com/brillarc/dotfiles-starter-test.git"
+  roles:
+    - role: "levonk.user_setup.chezmoi"

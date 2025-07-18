@@ -1,0 +1,16 @@
+---
+- name: Verify
+  hosts: all
+  become: no
+  tasks:
+    - name: "Verify | Role failed as expected"
+      ansible.builtin.assert:
+        that:
+          - role_run_result.failed
+        fail_msg: "The role did not fail when 'chezmoi_repo' was missing."
+
+    - name: "Verify | Role failed with the correct message"
+      ansible.builtin.assert:
+        that:
+          - '"The ''chezmoi_repo'' variable is required" in role_run_result.msg'
+        fail_msg: "The role failed, but not with the expected error message."

@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Run chezmoi role without required var"
+      ansible.builtin.include_role:
+        name: "levonk.user_setup.chezmoi"
+      ignore_errors: true
+      register: role_run_result

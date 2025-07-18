@@ -1,0 +1,28 @@
+---
+- name: Verify
+  hosts: all
+  become: no
+  tasks:
+    - name: "Check | See if chezmoi binary exists"
+      ansible.builtin.stat:
+        path: "~/.local/bin/chezmoi"
+      register: chezmoi_binary
+
+    - name: "Verify | chezmoi binary is present and executable"
+      ansible.builtin.assert:
+        that:
+          - chezmoi_binary.stat.exists
+          - chezmoi_binary.stat.isreg
+          - chezmoi_binary.stat.executable
+        fail_msg: "chezmoi binary was not found or is not executable."
+
+    - name: "Check | See if test dotfile exists"
+      ansible.builtin.stat:
+        path: "~/.test-dotfile"
+      register: test_dotfile
+
+    - name: "Verify | Test dotfile was created"
+      ansible.builtin.assert:
+        that:
+          - test_dotfile.stat.exists
+        fail_msg: "Test dotfile '.test-dotfile' was not created by chezmoi."

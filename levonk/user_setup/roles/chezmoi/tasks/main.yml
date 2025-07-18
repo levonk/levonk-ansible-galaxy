@@ -1,0 +1,35 @@
+---
+# tasks file for levonk.user_setup.chezmoi
+# Copyright (c) 2025, Brillarc, LLC
+
+- name: Pre-flight checks
+  block:
+    - name: "Check | Fail if 'chezmoi_repo' is not defined"
+      ansible.builtin.fail:
+        msg: "The 'chezmoi_repo' variable is required to initialize chezmoi. Please set it to your dotfiles repository URL."
+      when: chezmoi_repo is not defined or chezmoi_repo | length == 0
+  tags:
+    - always
+
+- name: Install chezmoi
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
+  tags:
+    - chezmoi_install
+
+- name: Configure chezmoi
+  block:
+    - name: "Initialize chezmoi with the repository"
+      ansible.builtin.command:
+        cmd: "chezmoi init {{ chezmoi_repo }}"
+      args:
+        creates: "~/.local/share/chezmoi"
+      changed_when: true
+      become: false
+
+    - name: "Apply dotfiles with chezmoi"
+      ansible.builtin.command:
+        cmd: "chezmoi apply -v"
+      changed_when: true
+      become: false
+  tags:
+    - chezmoi_configure

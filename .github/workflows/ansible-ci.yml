@@ -14,16 +14,22 @@ on:
 
 jobs:
   molecule:
-    name: Molecule Test - ${{ matrix.role }}
+    name: Molecule Test - ${{ matrix.role.name }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         role:
-          - dev-ai-assisted
-          # - dev-ansible
-          # - dev-general
-          # - dev-python
+          - name: dev-ai-assisted
+            path: levonk/vibeops/roles/dev-ai-assisted
+          # - name: dev-ansible
+          #   path: levonk/vibeops/roles/dev-ansible
+          # - name: dev-general
+          #   path: levonk/vibeops/roles/dev-general
+          # - name: dev-python
+          #   path: levonk/vibeops/roles/dev-python
+          - name: chezmoi
+            path: levonk/user_setup/roles/chezmoi
 
     steps:
       - name: Check out the codebase
@@ -39,7 +45,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install ansible ansible-lint yamllint molecule molecule-plugins[docker] docker
 
-      - name: Run Molecule tests for ${{ matrix.role }}
+      - name: Run Molecule tests for ${{ matrix.role.name }}
         run: |
-          cd levonk/vibeops/roles/${{ matrix.role }}
+          cd ${{ matrix.role.path }}
           molecule test
