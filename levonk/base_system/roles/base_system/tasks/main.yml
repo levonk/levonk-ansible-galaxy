@@ -14,6 +14,13 @@
     state: present
   when: ansible_facts['os_family'] == 'Darwin'
 
+- name: Install Chocolatey if not present
+  win_shell: |
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+  args:
+    creates: C:\ProgramData\chocolatey\bin\choco.exe
+  when: ansible_facts['os_family'] == 'Windows'
+
 - name: Install essential packages on Windows
   win_chocolatey:
     name: "{{ base_system_packages }}"
