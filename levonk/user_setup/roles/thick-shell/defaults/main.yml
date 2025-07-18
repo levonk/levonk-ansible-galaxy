@@ -1,3 +1,9 @@
 ---
 # Default shell stack (can be overridden by playbook or inventory)
 shell_stack: zsh
+
+# Set to true to install the corresponding terminal multiplexer or remote shell.
+thick_shell_install_tmux: false
+thick_shell_install_zellij: false
+thick_shell_install_mosh: false
+

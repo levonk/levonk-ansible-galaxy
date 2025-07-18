@@ -1,3 +1,63 @@
-# Ansible Collection - levonk.template
+# Ansible Role: levonk.user_setup.thick-shell
 
-Documentation for the collection.
+Installs and configures various shell environments (Zsh, Bash, Fish) and advanced terminal tools like tmux, Zellij, and Mosh.
+
+## Description
+
+This role is designed to create a "thick shell" environment for power users. It handles the installation of different shells, shell frameworks (like Oh My Zsh), and essential command-line utilities across Windows, macOS, and Debian-based systems. It also installs terminal multiplexers and a remote shell to enhance productivity.
+
+### Supported Shells
+
+-   **Zsh**: Installs Zsh and the Oh My Zsh framework.
+-   **Bash**: Installs Bash (where applicable) and basic configurations.
+-   **Fish**: Installs the Fish shell.
+
+### Advanced Terminal Tools
+
+-   **tmux**: A popular terminal multiplexer.
+-   **Zellij**: A modern, Rust-based terminal workspace and multiplexer.
+-   **Mosh**: A remote terminal application that allows roaming and supports intermittent connectivity.
+
+**Note**: On Windows, these tools are intended for use within the Windows Subsystem for Linux (WSL). The role will not install them on the native Windows host but will display a message advising to install them within WSL.
+
+## Requirements
+
+-   `winget` on Windows.
+-   `homebrew` on macOS.
+-   `apt` on Debian-based systems.
+-   For **Zellij** on Debian, a working **Rust** development environment is required (e.g., via the `levonk.dev_setup.dev-rust` role).
+
+## Role Variables
+
+-   `shell_stack`: A list of shells to install. Defaults to `['zsh']`. Supported values are `zsh`, `bash`, `fish`.
+-   `thick_shell_install_tmux`: Set to `true` to install tmux.
+-   `thick_shell_install_zellij`: Set to `true` to install Zellij.
+-   `thick_shell_install_mosh`: Set to `true` to install Mosh.
+
+## Dependencies
+
+-   The `levonk.common.fonts` role is a dependency to ensure Nerd Fonts are available for shell themes.
+-   The Zellij task requires a Rust environment on Debian systems.
+
+## Example Playbook
+
+To install the default Zsh stack along with tmux and Zellij:
+
+```yaml
+---
+- hosts: workstations
+  become: yes
+  vars:
+    thick_shell_install_tmux: true
+    thick_shell_install_zellij: true
+  roles:
+    - role: levonk.user_setup.thick-shell
+```
+
+## License
+
+Brillarc, LLC
+
+## Author Information
+
+This role was created by Cascade, an AI agent from Windsurf.

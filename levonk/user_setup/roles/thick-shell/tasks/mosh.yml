@@ -1,0 +1,21 @@
+---
+# tasks file for levonk.user_setup.thick-shell - mosh
+
+- name: Install mosh on macOS
+  community.general.homebrew:
+    name: mosh
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install mosh on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: mosh
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
+- name: Show note for mosh on Windows
+  ansible.builtin.debug:
+    msg: "mosh is not available as a native Windows application. Please install it within your WSL (Windows Subsystem for Linux) environment."
+  when: ansible_os_family == 'Windows'

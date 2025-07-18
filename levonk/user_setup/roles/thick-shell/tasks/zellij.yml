@@ -1,0 +1,25 @@
+---
+# tasks file for levonk.user_setup.thick-shell - zellij
+
+- name: Install zellij on macOS
+  community.general.homebrew:
+    name: zellij
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install zellij on Debian-based systems using cargo
+  become: false
+  community.general.cargo:
+    name: zellij
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Show note about Rust dependency for zellij
+  ansible.builtin.debug:
+    msg: "zellij was installed using cargo. This requires a functional Rust development environment, which can be set up using the 'levonk.dev_setup.dev-rust' role."
+  when: ansible_os_family == 'Debian'
+
+- name: Show note for zellij on Windows
+  ansible.builtin.debug:
+    msg: "zellij is not available as a native Windows application. Please install it within your WSL (Windows Subsystem for Linux) environment."
+  when: ansible_os_family == 'Windows'

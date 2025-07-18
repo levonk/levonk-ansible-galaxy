@@ -19,3 +19,15 @@
 - name: Always install Oh My Posh + Posh-Git on Windows
   include_tasks: windows_posh.yml
   when: ansible_system == 'Windows'
+
+- name: Install tmux
+  include_tasks: tmux.yml
+  when: thick_shell_install_tmux | default(false)
+
+- name: Install zellij
+  include_tasks: zellij.yml
+  when: thick_shell_install_zellij | default(false)
+
+- name: Install mosh
+  include_tasks: mosh.yml
+  when: thick_shell_install_mosh | default(false)
