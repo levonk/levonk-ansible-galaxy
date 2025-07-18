@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include levonk.base_system.syscheck"
+      ansible.builtin.include_role:
+        name: "levonk.base_system.syscheck"

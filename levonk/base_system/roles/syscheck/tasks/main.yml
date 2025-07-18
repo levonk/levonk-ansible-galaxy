@@ -1,0 +1,34 @@
+---
+# tasks file for levonk.base_system.syscheck
+
+- name: Perform system integrity checks
+  tags:
+    - syscheck
+  block:
+
+    - name: Run System File Checker on Windows
+      ansible.windows.win_shell: sfc /scannow
+      args:
+        warn: false
+      when: ansible_facts['os_family'] == 'Windows'
+      async: 3600 # Timeout in 1 hour
+      poll: 0 # Fire and forget
+
+    - name: Verify volume on macOS
+      ansible.builtin.command: diskutil verifyVolume /
+      when: ansible_facts['os_family'] == 'Darwin'
+      async: 3600 # Timeout in 1 hour
+      poll: 0 # Fire and forget
+
+    - name: Schedule filesystem check on next reboot for Linux
+      ansible.builtin.file:
+        path: /forcefsck
+        state: touch
+        mode: '0644'
+      when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+      register: fsck_scheduled
+
+    - name: Set reboot_required fact when fsck is scheduled
+      ansible.builtin.set_fact:
+        reboot_required: true
+      when: fsck_scheduled.changed

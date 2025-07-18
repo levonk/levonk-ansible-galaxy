@@ -1,0 +1,16 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if /forcefsck file was created
+      ansible.builtin.stat:
+        path: /forcefsck
+      register: forcefsck_file
+
+    - name: Assert that /forcefsck file exists
+      ansible.builtin.assert:
+        that:
+          - forcefsck_file.stat.exists
+        fail_msg: "The /forcefsck file was not created."
+        success_msg: "The /forcefsck file was successfully created."
