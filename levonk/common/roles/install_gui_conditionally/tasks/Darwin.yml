@@ -1,0 +1,6 @@
+---
+# macOS-specific GUI installation tasks
+
+- name: Verify that macOS has a GUI
+  ansible.builtin.debug:
+    msg: "macOS always includes a graphical user interface. No installation needed."

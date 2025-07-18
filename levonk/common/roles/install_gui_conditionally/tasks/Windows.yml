@@ -1,0 +1,31 @@
+---
+# Windows-specific GUI installation tasks
+
+- name: Check if Server GUI Shell feature is installed
+  ansible.windows.win_powershell:
+    script: '(Get-WindowsFeature -Name Server-Gui-Shell).Installed'
+  register: gui_shell_feature
+  changed_when: false
+  failed_when: false
+
+- name: Set fact for GUI presence
+  ansible.builtin.set_fact:
+    gui_present: "{{ gui_shell_feature.stdout | trim | bool }}"
+
+- name: Install Server GUI Shell and Management Infrastructure on Core editions
+  ansible.windows.win_feature:
+    name:
+      - Server-Gui-Shell
+      - Server-Gui-Mgmt-Infra
+    state: present
+  when:
+    - not gui_present
+    - ansible_os_edition | lower is search('core')
+  register: install_gui_result
+  notify: Reboot Windows
+
+- name: Display message for non-core editions
+  ansible.builtin.debug:
+    msg: "Windows edition is not 'Core' or GUI is already present. No action taken."
+  when:
+    - gui_present or (ansible_os_edition | lower is not search('core'))

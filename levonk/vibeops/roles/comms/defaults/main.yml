@@ -1,37 +1,12 @@
 ---
 # defaults file for levonk.vibeops.comms
 
-# Define a list of communication apps to install.
-# Users can override this variable to customize the installation.
+# Set to true to install the corresponding communication tool.
 
-comms_apps_windows:
-  - id: Discord.Discord
-    name: Discord
-  - id: Telegram.TelegramDesktop
-    name: Telegram
-  - id: OpenWhisperSystems.Signal
-    name: Signal
-  - id: SlackTechnologies.Slack
-    name: Slack
-  - id: Zoom.Zoom
-    name: Zoom
-  - id: Microsoft.Teams
-    name: Microsoft Teams
-  - id: Google.Meet
-    name: Google Meet
-
-comms_apps_debian:
-  - discord
-  - telegram-desktop
-  - signal-desktop
-  - slack-desktop
-  - zoom
-
-comms_apps_darwin:
-  - discord
-  - telegram
-  - signal
-  - slack
-  - zoom
-  - microsoft-teams
-  - google-meet
+comms_install_discord: false
+comms_install_telegram: false
+comms_install_signal: false
+comms_install_slack: false
+comms_install_zoom: false
+comms_install_teams: false
+comms_install_google_meet: false

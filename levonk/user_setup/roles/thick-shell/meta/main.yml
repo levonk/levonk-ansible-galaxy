@@ -1,5 +1,3 @@
 ---
-dependency:
-  name: galaxy
-
-# Add any role dependencies here
+dependencies:
+  - role: levonk.common.fonts

@@ -1,0 +1,15 @@
+---
+# tasks file for levonk.vibeops.devops - gitkeeper
+
+- name: Install gitkeeper
+  become: false
+  community.general.go:
+    name: github.com/taoky/gitkeeper@latest
+    state: present
+  environment:
+    GOPATH: "{{ ansible_env.HOME }}/go"
+    PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/go/bin"
+
+- name: Note about Go dependency
+  ansible.builtin.debug:
+    msg: "gitkeeper has been installed using 'go install'. This requires a functional Go development environment, which can be set up using the 'levonk.dev_setup.dev-go' role."

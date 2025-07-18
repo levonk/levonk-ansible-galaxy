@@ -1,12 +1,30 @@
 ---
 # tasks file for levonk.vibeops.comms
 
-- name: "Include OS-specific tasks"
-  ansible.builtin.include_tasks:
-    file: "{{ ansible_os_family }}.yml"
-  when: ansible_os_family in ['Windows', 'Debian', 'Darwin']
+- name: Install Discord
+  ansible.builtin.include_tasks: discord.yml
+  when: comms_install_discord
 
-- name: "Fail if OS is not supported"
-  ansible.builtin.fail:
-    msg: "The '{{ ansible_os_family }}' operating system is not supported by this role."
-  when: ansible_os_family not in ['Windows', 'Debian', 'Darwin']
+- name: Install Telegram
+  ansible.builtin.include_tasks: telegram.yml
+  when: comms_install_telegram
+
+- name: Install Signal
+  ansible.builtin.include_tasks: signal.yml
+  when: comms_install_signal
+
+- name: Install Slack
+  ansible.builtin.include_tasks: slack.yml
+  when: comms_install_slack
+
+- name: Install Zoom
+  ansible.builtin.include_tasks: zoom.yml
+  when: comms_install_zoom
+
+- name: Install Microsoft Teams
+  ansible.builtin.include_tasks: teams.yml
+  when: comms_install_teams
+
+- name: Install Google Meet
+  ansible.builtin.include_tasks: google_meet.yml
+  when: comms_install_google_meet

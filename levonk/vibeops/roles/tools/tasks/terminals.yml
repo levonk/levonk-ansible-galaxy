@@ -1,0 +1,22 @@
+---
+# tasks file for levonk.vibeops.tools - Terminals
+
+- name: Install Windows Terminal on Windows
+  ansible.windows.win_winget:
+    name: Microsoft.WindowsTerminal
+    state: present
+  when: ansible_os_family == "Windows"
+
+- name: Install Tilix on Debian-based systems
+  ansible.builtin.apt:
+    name: tilix
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+
+- name: Install iTerm2 on macOS
+  community.general.homebrew_cask:
+    name: iterm2
+    state: present
+  when: ansible_os_family == "Darwin"

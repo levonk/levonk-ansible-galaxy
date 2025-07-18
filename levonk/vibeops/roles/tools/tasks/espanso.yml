@@ -1,0 +1,35 @@
+---
+# tasks file for levonk.vibeops.tools - Espanso
+
+- name: Install Espanso on Windows
+  ansible.windows.win_winget:
+    name: Espanso
+    id: Espanso.Espanso
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Espanso on macOS
+  community.general.homebrew_cask:
+    name: espanso
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install Espanso on Debian-based systems
+  become: true
+  when: ansible_os_family == 'Debian'
+  block:
+    - name: Download Espanso installation script
+      ansible.builtin.get_url:
+        url: https://sh.espanso.org/install
+        dest: /tmp/install_espanso.sh
+        mode: '0755'
+
+    - name: Run Espanso installation script
+      ansible.builtin.command:
+        cmd: /tmp/install_espanso.sh
+        creates: /usr/local/bin/espanso
+
+    - name: Clean up installation script
+      ansible.builtin.file:
+        path: /tmp/install_espanso.sh
+        state: absent

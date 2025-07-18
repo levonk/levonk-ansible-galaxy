@@ -1,0 +1,5 @@
+---
+# handlers file for install_gui_conditionally
+
+- name: Reboot Windows
+  ansible.windows.win_reboot:

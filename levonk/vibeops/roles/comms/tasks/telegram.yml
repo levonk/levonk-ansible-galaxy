@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.comms - Telegram
+
+- name: Install Telegram on Windows
+  ansible.windows.win_winget:
+    name: Telegram
+    id: Telegram.TelegramDesktop
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Telegram on Debian-based systems
+  ansible.builtin.apt:
+    name: telegram-desktop
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install Telegram on macOS
+  community.general.homebrew_cask:
+    name: telegram
+    state: present
+  when: ansible_os_family == 'Darwin'

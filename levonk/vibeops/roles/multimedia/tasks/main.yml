@@ -1,0 +1,60 @@
+---
+# tasks file for levonk.vibeops.multimedia
+
+# Command-line tools
+- name: Install CAVA
+  ansible.builtin.include_tasks: cava.yml
+  when: multimedia_install_cava | default(false)
+
+- name: Install FFmpeg
+  ansible.builtin.include_tasks: ffmpeg.yml
+  when: multimedia_install_ffmpeg | default(false)
+
+# Graphical tools
+- name: Install paint.net
+  ansible.builtin.include_tasks: paint_dot_net.yml
+  when:
+    - multimedia_install_paint_dot_net | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install ImageMagick
+  ansible.builtin.include_tasks: imagemagick.yml
+  when:
+    - multimedia_install_imagemagick | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install CapCut
+  ansible.builtin.include_tasks: capcut.yml
+  when:
+    - multimedia_install_capcut | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install VLC
+  ansible.builtin.include_tasks: vlc.yml
+  when:
+    - multimedia_install_vlc | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Kap
+  ansible.builtin.include_tasks: kap.yml
+  when:
+    - multimedia_install_kap | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Audacity
+  ansible.builtin.include_tasks: audacity.yml
+  when:
+    - multimedia_install_audacity | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install OBS Studio
+  ansible.builtin.include_tasks: obs_studio.yml
+  when:
+    - multimedia_install_obs_studio | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install GIMP
+  ansible.builtin.include_tasks: gimp.yml
+  when:
+    - multimedia_install_gimp | default(false)
+    - "'graphical' in ansible_run_tags"

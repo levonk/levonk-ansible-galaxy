@@ -1,0 +1,14 @@
+---
+# tasks file for levonk.vibeops.knowledge
+
+- name: Install Obsidian
+  ansible.builtin.include_tasks: obsidian.yml
+  when:
+    - knowledge_install_obsidian | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Microsoft Copilot
+  ansible.builtin.include_tasks: microsoft_copilot.yml
+  when:
+    - knowledge_install_microsoft_copilot | default(false)
+    - "'graphical' in ansible_run_tags"

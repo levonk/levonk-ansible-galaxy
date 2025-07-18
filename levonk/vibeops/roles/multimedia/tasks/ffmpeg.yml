@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.multimedia - FFmpeg
+
+- name: Install FFmpeg on Windows
+  ansible.windows.win_winget:
+    name: FFmpeg
+    id: Gyan.FFmpeg
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install FFmpeg on macOS
+  community.general.homebrew:
+    name: ffmpeg
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install FFmpeg on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: ffmpeg
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'

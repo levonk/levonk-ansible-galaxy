@@ -1,0 +1,17 @@
+---
+# tasks file for levonk.vibeops.multimedia - CapCut
+
+- name: Install CapCut on Windows
+  ansible.windows.win_winget:
+    name: CapCut
+    id: ByteDance.CapCut
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install CapCut on macOS
+  community.general.homebrew_cask:
+    name: capcut
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+# Note: CapCut is not officially available for Debian-based Linux systems.

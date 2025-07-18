@@ -1,0 +1,48 @@
+---
+# tasks file for levonk.vibeops.devops - Docker Desktop
+
+- name: Install Docker Desktop on Windows
+  ansible.windows.win_winget:
+    name: Docker.DockerDesktop
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Docker Desktop on macOS
+  community.general.homebrew_cask:
+    name: docker
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install Docker Desktop on Debian-based systems
+  when: ansible_os_family == 'Debian'
+  become: true
+  block:
+    - name: Ensure dependencies are installed
+      ansible.builtin.apt:
+        name: ["ca-certificates", "curl"]
+        state: present
+
+    - name: Ensure /etc/apt/keyrings directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Docker GPG apt Key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: true
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker Desktop
+      ansible.builtin.apt:
+        name: docker-desktop
+        state: present
+        update_cache: true

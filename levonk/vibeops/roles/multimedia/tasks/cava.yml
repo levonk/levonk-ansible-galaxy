@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.multimedia - CAVA
+
+- name: Install CAVA on Windows
+  ansible.windows.win_winget:
+    name: CAVA
+    id: ksae.CAVA
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install CAVA on macOS
+  community.general.homebrew:
+    name: cava
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install CAVA on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: cava
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'

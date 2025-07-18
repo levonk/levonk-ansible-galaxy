@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: "Include install_gui_conditionally"
+      ansible.builtin.include_role:
+        name: "install_gui_conditionally"

@@ -1,0 +1,24 @@
+---
+# tasks file for levonk.vibeops.tools - Raycast
+
+- name: Install Raycast on macOS
+  when: ansible_os_family == "Darwin"
+  block:
+    - name: Install Raycast via Homebrew Cask
+      community.general.homebrew_cask:
+        name: raycast
+        state: present
+
+    - name: Install Raycast extension for Homebrew
+      ansible.builtin.command: brew install raycast/extensions/raycast-brew
+      changed_when: false # The command itself doesn't report change status well
+
+- name: Install Raycast on Debian-based systems
+  when: ansible_os_family == "Debian"
+  block:
+    - name: Download Raycast AppImage for Linux
+      ansible.builtin.get_url:
+        url: https://github.com/ByteAtATime/raycast-linux/releases/download/v0.1.0-alpha/raycast-linux.AppImage
+        dest: /usr/local/bin/raycast
+        mode: '0755'
+      become: true

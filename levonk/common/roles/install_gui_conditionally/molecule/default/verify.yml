@@ -1,0 +1,16 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if graphical target is the default
+      ansible.builtin.command: systemctl get-default
+      register: current_systemd_default
+      changed_when: false
+
+    - name: Assert that the default target is graphical
+      ansible.builtin.assert:
+        that:
+          - "'graphical.target' in current_systemd_default.stdout"
+        fail_msg: "The default systemd target was not set to graphical.target"
+        success_msg: "The default systemd target is correctly set to graphical.target"

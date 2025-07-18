@@ -1,0 +1,27 @@
+---
+# tasks file for levonk.vibeops.multimedia - Audacity
+
+- name: Install Audacity on Windows
+  ansible.windows.win_winget:
+    name: Audacity
+    id: Audacity.Audacity
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Audacity on macOS
+  community.general.homebrew_cask:
+    name: audacity
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install Audacity on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: audacity
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+
+- name: Note about OpenVINO plugins
+  ansible.builtin.debug:
+    msg: "Audacity has been installed. The OpenVINO AI plugins require a separate, manual installation from the official source."

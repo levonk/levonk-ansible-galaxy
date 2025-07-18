@@ -1,0 +1,20 @@
+---
+# defaults file for levonk.vibeops.multimedia
+
+# Set to true to install the corresponding multimedia tool.
+# Graphical tools also require the 'graphical' tag to be specified.
+
+# Command-line tools
+multimedia_install_cava: false
+multimedia_install_ffmpeg: false
+
+# Graphical tools
+multimedia_install_paint_dot_net: false
+multimedia_install_imagemagick: false
+multimedia_install_capcut: false
+multimedia_install_vlc: false
+multimedia_install_kap: false
+multimedia_install_audacity: false
+multimedia_install_obs_studio: false
+multimedia_install_gimp: false
+

@@ -22,4 +22,10 @@ This repository contains a collection of Ansible roles for managing and provisio
 | [syscheck](./levonk/base_system/roles/syscheck/README.md)                                             | Performs asynchronous system integrity checks (sfc, fsck, etc.).    |
 | [reboot_manager](./levonk/base_system/roles/reboot_manager/README.md)                                 | Handles system reboots when signaled by the `reboot_required` fact. |
 
+### levonk.common
+
+| Role                                                                                                              | Description                                                                                                |
+| ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| [install_gui_conditionally](./levonk/common/roles/install_gui_conditionally/README.md)                            | Installs a graphical user interface (GUI) if the system is headless and the `graphical` tag is specified.  |
+
 

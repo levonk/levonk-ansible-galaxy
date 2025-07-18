@@ -1,33 +1,41 @@
 # Ansible Role: levonk.vibeops.devops
 
-Installs essential DevOps tools (Vagrant, Packer) on Windows, Debian/Ubuntu, and macOS systems.
+Installs essential DevOps tools (Vagrant, Packer, Docker Desktop, gitkeeper) on Windows, Debian/Ubuntu, and macOS systems.
 
 ## Description
 
-This role automates the installation of HashiCorp Vagrant and Packer. It is designed to be cross-platform, using the most appropriate package manager for each supported operating system (`chocolatey` for Windows, `apt` for Debian, and `homebrew` for macOS).
+This role automates the installation of HashiCorp Vagrant, Packer, Docker Desktop, and the gitkeeper CLI tool. It is designed to be cross-platform, using the most appropriate package manager or build tool for each supported operating system.
 
 ## Requirements
 
-- **Windows**: Chocolatey package manager must be installed and accessible in the system's PATH.
+- **Windows**: Chocolatey and Winget package managers must be installed.
 - **Debian/Ubuntu**: `apt` package manager.
 - **macOS**: Homebrew package manager must be installed.
+- For `gitkeeper`, a working **Go** development environment is required (e.g., via the `levonk.dev_setup.dev-go` role).
 
 ## Role Variables
 
-This role does not require any variables to be set. Its behavior is controlled via tags.
+Installation of some tools is controlled by boolean variables.
+
+- `devops_install_gitkeeper`: Set to `true` to install the gitkeeper CLI tool.
+
+## Tags
+
+The role's behavior is also controlled via tags.
 
 - **`vagrant`**: Run only the tasks required to install Vagrant.
 - **`packer`**: Run only the tasks required to install Packer.
+- **`graphical`**: Run tasks that require a graphical environment, such as installing Docker Desktop.
 
-If no tags are specified, the role will install both applications.
+If no tags are specified, the role will install both Vagrant and Packer, but not graphical applications or tools controlled by variables.
 
 ## Dependencies
 
-None.
+- The `gitkeeper` task requires a Go environment.
 
 ## Example Playbook
 
-Here is an example of how to use this role in a playbook to install both tools:
+To install both Vagrant and Packer:
 
 ```yaml
 ---
@@ -37,15 +45,16 @@ Here is an example of how to use this role in a playbook to install both tools:
     - role: levonk.vibeops.devops
 ```
 
-To install only Vagrant, you can use tags:
+To install gitkeeper:
 
 ```yaml
 ---
 - hosts: workstations
   become: yes
+  vars:
+    devops_install_gitkeeper: true
   roles:
     - role: levonk.vibeops.devops
-      tags: ["vagrant"]
 ```
 
 ## License

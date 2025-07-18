@@ -1,11 +1,38 @@
 ---
 # tasks file for levonk.vibeops.tools
 
-- name: Install Ditto clipboard manager (if graphical is enabled)
-  ansible.windows.win_chocolatey:
-    name: ditto
-    state: present
+- name: Install OS-specific clipboard managers
+  ansible.builtin.include_tasks: clipboard_managers.yml
+  when: "'graphical' in ansible_run_tags"
+
+- name: Install OS-specific terminal applications
+  ansible.builtin.include_tasks: terminals.yml
+  when: "'graphical' in ansible_run_tags"
+
+- name: Install Raycast launcher
+  ansible.builtin.include_tasks: raycast.yml
+  when: "'graphical' in ansible_run_tags"
+
+- name: Install 7-Zip
+  ansible.builtin.include_tasks: 7zip.yml
   when:
-    - ansible_facts['os_family'] == 'Windows'
-    - graphical | default(false)
-  become: yes
+    - tools_install_7zip | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Sublime Text
+  ansible.builtin.include_tasks: sublime_text.yml
+  when:
+    - tools_install_sublime_text | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Espanso
+  ansible.builtin.include_tasks: espanso.yml
+  when:
+    - tools_install_espanso | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Speech Tools
+  ansible.builtin.include_tasks: speech.yml
+  when:
+    - tools_install_speech_tools | default(false)
+    - "'graphical' in ansible_run_tags"

@@ -1,0 +1,25 @@
+---
+# Debian-specific GUI installation tasks
+
+- name: Check if graphical target is already the default
+  ansible.builtin.command: systemctl get-default
+  register: current_systemd_default
+  changed_when: false
+  failed_when: false
+
+- name: Set fact for GUI presence
+  ansible.builtin.set_fact:
+    gui_present: "{{ 'graphical.target' in current_systemd_default.stdout }}"
+
+- name: Install GNOME desktop environment
+  ansible.builtin.apt:
+    name: task-gnome-desktop
+    state: present
+    update_cache: true
+  when: not gui_present
+  become: true
+
+- name: Set default target to graphical
+  ansible.builtin.command: systemctl set-default graphical.target
+  when: not gui_present
+  become: true

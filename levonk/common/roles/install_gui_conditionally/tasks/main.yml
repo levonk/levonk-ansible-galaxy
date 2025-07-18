@@ -1,0 +1,22 @@
+---
+# tasks file for install_gui_conditionally
+
+- name: Conditionally install GUI based on OS family
+  tags:
+    - graphical
+  when: "'graphical' in ansible_run_tags"
+  block:
+    - name: Include Debian GUI tasks
+      ansible.builtin.include_tasks:
+        file: Debian.yml
+      when: ansible_os_family == "Debian"
+
+    - name: Include Windows GUI tasks
+      ansible.builtin.include_tasks:
+        file: Windows.yml
+      when: ansible_os_family == "Windows"
+
+    - name: Include macOS GUI tasks
+      ansible.builtin.include_tasks:
+        file: Darwin.yml
+      when: ansible_os_family == "Darwin"

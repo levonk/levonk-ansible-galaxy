@@ -1,0 +1,4 @@
+---
+- hosts: all
+  roles:
+    - role: levonk.common.install_gui_conditionally

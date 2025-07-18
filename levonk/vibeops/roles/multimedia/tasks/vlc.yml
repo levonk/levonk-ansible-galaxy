@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.multimedia - VLC
+
+- name: Install VLC on Windows
+  ansible.windows.win_winget:
+    name: VLC
+    id: VideoLAN.VLC
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install VLC on macOS
+  community.general.homebrew_cask:
+    name: vlc
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install VLC on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: vlc
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'

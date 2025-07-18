@@ -38,6 +38,8 @@ jobs:
             path: levonk/base_system/roles/syscheck
           - name: reboot_manager
             path: levonk/base_system/roles/reboot_manager
+          - name: install_gui_conditionally
+            path: levonk/common/roles/install_gui_conditionally
 
     steps:
       - name: Check out the codebase

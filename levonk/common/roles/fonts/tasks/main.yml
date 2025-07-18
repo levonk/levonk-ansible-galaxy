@@ -1,0 +1,54 @@
+---
+# tasks file for levonk.common.fonts
+
+- name: Install Nerd Fonts on macOS
+  community.general.homebrew_cask:
+    name: font-firacode-nerd-font
+    state: present
+    tap: homebrew/cask-fonts
+  when: ansible_os_family == 'Darwin'
+
+- name: Install Nerd Fonts on Windows
+  ansible.windows.win_winget:
+    name: FiraCodeNerdFont
+    id: Ryanoasis.FiraCodeNerdFont
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Nerd Fonts on Debian-based systems
+  when: ansible_os_family == 'Debian'
+  block:
+    - name: Ensure dependencies are installed
+      become: true
+      ansible.builtin.apt:
+        name: ["unzip", "fontconfig"]
+        state: present
+        update_cache: true
+
+    - name: Get latest FiraCode Nerd Font release
+      ansible.builtin.uri:
+        url: "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest"
+        return_content: true
+      register: nerd_font_latest_release
+
+    - name: Find FiraCode.zip asset URL
+      ansible.builtin.set_fact:
+        firacode_zip_url: "{{ (nerd_font_latest_release.json.assets | selectattr('name', 'equalto', 'FiraCode.zip') | list | first).browser_download_url }}"
+
+    - name: Create fonts directory
+      ansible.builtin.file:
+        path: "~/.local/share/fonts"
+        state: directory
+        mode: '0755'
+
+    - name: Download and unzip FiraCode Nerd Font
+      ansible.builtin.unarchive:
+        src: "{{ firacode_zip_url }}"
+        dest: "~/.local/share/fonts"
+        remote_src: true
+      when: firacode_zip_url is defined
+
+    - name: Rebuild font cache
+      ansible.builtin.command:
+        cmd: fc-cache -fv
+      changed_when: false

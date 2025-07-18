@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.multimedia - GIMP
+
+- name: Install GIMP on Windows
+  ansible.windows.win_winget:
+    name: GIMP
+    id: GIMP.GIMP
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install GIMP on macOS
+  community.general.homebrew_cask:
+    name: gimp
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install GIMP on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: gimp
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'

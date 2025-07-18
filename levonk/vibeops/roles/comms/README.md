@@ -14,33 +14,15 @@ This role automates the installation of essential communication tools like Disco
 
 ## Role Variables
 
-The applications to be installed are defined in `defaults/main.yml`. You can override these variables in your playbook or inventory to customize the list of applications.
+Installation of each communication tool is controlled by a boolean variable in `defaults/main.yml`. By default, all are set to `false`. To install a specific tool, set its corresponding variable to `true` in your playbook or inventory.
 
-- `comms_apps_windows`: A list of applications to install on Windows, specified by their `winget` ID and name.
-
-  ```yaml
-  comms_apps_windows:
-    - id: Discord.Discord
-      name: Discord
-    - id: Telegram.TelegramDesktop
-      name: Telegram
-  ```
-
-- `comms_apps_debian`: A list of package names to install on Debian/Ubuntu systems.
-
-  ```yaml
-  comms_apps_debian:
-    - discord
-    - telegram-desktop
-  ```
-
-- `comms_apps_darwin`: A list of cask or formula names to install on macOS systems via Homebrew.
-
-  ```yaml
-  comms_apps_darwin:
-    - discord
-    - telegram
-  ```
+- `comms_install_discord`: Set to `true` to install Discord.
+- `comms_install_telegram`: Set to `true` to install Telegram.
+- `comms_install_signal`: Set to `true` to install Signal.
+- `comms_install_slack`: Set to `true` to install Slack.
+- `comms_install_zoom`: Set to `true` to install Zoom.
+- `comms_install_teams`: Set to `true` to install Microsoft Teams.
+- `comms_install_google_meet`: Set to `true` to install Google Meet.
 
 ## Dependencies
 
@@ -48,26 +30,15 @@ None.
 
 ## Example Playbook
 
-Here is an example of how to use this role in a playbook:
-
-```yaml
----
-- hosts: workstations
-  become: yes
-  roles:
-    - role: levonk.vibeops.comms
-```
-
-To customize the installed applications, you can define the variables in your playbook:
+To install Discord and Slack, define the variables in your playbook like this:
 
 ```yaml
 ---
 - hosts: workstations
   become: yes
   vars:
-    comms_apps_windows:
-      - id: SlackTechnologies.Slack
-        name: Slack
+    comms_install_discord: true
+    comms_install_slack: true
   roles:
     - role: levonk.vibeops.comms
 ```

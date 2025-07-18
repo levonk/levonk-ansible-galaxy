@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.tools - Clipboard Managers
+
+- name: Install Ditto clipboard manager (Windows)
+  ansible.windows.win_chocolatey:
+    name: ditto
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+
+- name: Install CopyQ on Debian-based systems
+  ansible.builtin.apt:
+    name: copyq
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+
+- name: Install CopyClip on macOS
+  community.general.homebrew_cask:
+    name: copyclip
+    state: present
+  when: ansible_os_family == "Darwin"

@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.comms - Signal
+
+- name: Install Signal on Windows
+  ansible.windows.win_winget:
+    name: Signal
+    id: OpenWhisperSystems.Signal
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Signal on Debian-based systems
+  ansible.builtin.apt:
+    name: signal-desktop
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install Signal on macOS
+  community.general.homebrew_cask:
+    name: signal
+    state: present
+  when: ansible_os_family == 'Darwin'

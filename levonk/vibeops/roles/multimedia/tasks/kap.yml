@@ -1,0 +1,10 @@
+---
+# tasks file for levonk.vibeops.multimedia - Kap
+
+- name: Install Kap on macOS
+  community.general.homebrew_cask:
+    name: kap
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+# Note: Kap is not available for Windows or Debian-based Linux systems.

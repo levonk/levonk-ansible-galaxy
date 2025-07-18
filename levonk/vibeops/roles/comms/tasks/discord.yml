@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.comms - Discord
+
+- name: Install Discord on Windows
+  ansible.windows.win_winget:
+    name: Discord
+    id: Discord.Discord
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Discord on Debian-based systems
+  ansible.builtin.apt:
+    name: discord
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install Discord on macOS
+  community.general.homebrew_cask:
+    name: discord
+    state: present
+  when: ansible_os_family == 'Darwin'

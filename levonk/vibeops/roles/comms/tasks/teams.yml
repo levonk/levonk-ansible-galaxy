@@ -1,0 +1,15 @@
+---
+# tasks file for levonk.vibeops.comms - Microsoft Teams
+
+- name: Install Microsoft Teams on Windows
+  ansible.windows.win_winget:
+    name: Microsoft Teams
+    id: Microsoft.Teams
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Microsoft Teams on macOS
+  community.general.homebrew_cask:
+    name: microsoft-teams
+    state: present
+  when: ansible_os_family == 'Darwin'

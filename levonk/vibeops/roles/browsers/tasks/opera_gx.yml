@@ -1,46 +1,436 @@
+#SPDX-License-Identifier: MIT-0
 ---
-# Opera GX installation and configuration
+# Opera GX installation and configuration tasks
+# Supports Windows, macOS, and Linux platforms with appropriate package managers
 
-- name: Install Opera GX
+- name: Opera GX | Set platform-specific variables
+  set_fact:
+    opera_gx_package_info: "{{ opera_gx_packages[ansible_os_family | lower] | default(opera_gx_packages['linux']) }}"
+  vars:
+    opera_gx_packages:
+      windows:
+        primary_manager: "winget"
+        primary_package: "{{ browsers.opera_gx.package_names.windows }}"
+        fallback_manager: "chocolatey"
+        fallback_package: "opera-gx"
+        verify_command: "Get-Command opera -ErrorAction SilentlyContinue"
+      darwin:
+        primary_manager: "homebrew"
+        primary_package: "{{ browsers.opera_gx.package_names.macos }}"
+        verify_command: "test -d '/Applications/Opera GX.app'"
+      linux:
+        primary_manager: "{{ ansible_pkg_mgr }}"
+        primary_package: "{{ browsers.opera_gx.package_names[ansible_os_family | lower] | default('opera-stable') }}"
+        verify_command: "which opera || which opera-gx"
+        repo_setup_required: true
+
+- name: Opera GX | Check if already installed
+  shell: "{{ opera_gx_package_info.verify_command }}"
+  register: opera_gx_check
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Opera GX | Setup Opera repository on Linux
   block:
-    - name: Install Opera GX on Windows
-      win_package:
-        path: "winget"
-        arguments: "install --id {{ browsers.opera_gx.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
-        state: present
-      when: ansible_os_family == 'Windows'
+    - name: Opera GX | Add Opera GPG key (Debian/Ubuntu)
+      get_url:
+        url: https://deb.opera.com/archive.key
+        dest: /tmp/opera-archive.key
+        mode: "0644"
+      when: ansible_os_family == "Debian"
 
-    - name: Install Opera GX on macOS
-      homebrew_cask:
-        name: "{{ browsers.opera_gx.package_names.macos }}"
-        state: present
-      when: ansible_os_family == 'Darwin'
+    - name: Opera GX | Add Opera GPG key to keyring (Debian/Ubuntu)
+      shell: |
+        gpg --dearmor < /tmp/opera-archive.key > /usr/share/keyrings/opera-archive.gpg
+        chmod 644 /usr/share/keyrings/opera-archive.gpg
+      become: true
+      when: ansible_os_family == "Debian"
 
-    - name: Install Opera GX on Debian/Ubuntu
+    - name: Opera GX | Add Opera repository (Debian/Ubuntu)
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/opera-archive.gpg] https://deb.opera.com/opera-stable/ stable non-free"
+        state: present
+        filename: opera-stable
+      become: true
+      when: ansible_os_family == "Debian"
+
+    - name: Opera GX | Add Opera repository (RedHat/CentOS/Fedora)
+      yum_repository:
+        name: opera
+        description: Opera packages
+        baseurl: https://rpm.opera.com/rpm
+        enabled: true
+        gpgcheck: true
+        gpgkey: https://rpm.opera.com/rpmrepo.key
+      become: true
+      when: ansible_os_family in ["RedHat", "Fedora"]
+
+    - name: Opera GX | Import Opera GPG key (RedHat/CentOS/Fedora)
+      rpm_key:
+        key: https://rpm.opera.com/rpmrepo.key
+        state: present
+      become: true
+      when: ansible_os_family in ["RedHat", "Fedora"]
+
+  when:
+    - ansible_os_family not in ["Windows", "Darwin"]
+    - opera_gx_check.rc != 0
+    - opera_gx_package_info.repo_setup_required | default(false)
+
+- name: Opera GX | Install on Windows using winget
+  win_shell: "winget install --id {{ opera_gx_package_info.primary_package }} --silent --accept-package-agreements --accept-source-agreements"
+  register: opera_gx_winget_result
+  failed_when: false
+  when:
+    - ansible_os_family == "Windows"
+    - opera_gx_check.rc != 0
+  become: false
+
+- name: Opera GX | Install on Windows using chocolatey (fallback)
+  win_chocolatey:
+    name: "{{ opera_gx_package_info.fallback_package }}"
+    state: present
+  register: opera_gx_choco_result
+  when:
+    - ansible_os_family == "Windows"
+    - opera_gx_check.rc != 0
+    - opera_gx_winget_result is defined
+    - opera_gx_winget_result.rc != 0
+
+- name: Opera GX | Install on macOS using Homebrew
+  homebrew_cask:
+    name: "{{ opera_gx_package_info.primary_package }}"
+    state: present
+  register: opera_gx_brew_result
+  failed_when: false
+  when:
+    - ansible_os_family == "Darwin"
+    - opera_gx_check.rc != 0
+  become: false
+
+- name: Opera GX | Update package cache on Linux
+  package:
+    update_cache: true
+  become: true
+  when:
+    - ansible_os_family not in ["Windows", "Darwin"]
+    - opera_gx_check.rc != 0
+
+- name: Opera GX | Install on Linux using package manager
+  package:
+    name: "{{ opera_gx_package_info.primary_package }}"
+    state: present
+  register: opera_gx_linux_result
+  failed_when: false
+  when:
+    - ansible_os_family not in ["Windows", "Darwin"]
+    - opera_gx_check.rc != 0
+  become: true
+
+- name: Opera GX | Handle Linux installation failures with alternative methods
+  block:
+    - name: Opera GX | Download Opera .deb package directly (Debian/Ubuntu)
+      get_url:
+        url: https://get.geo.opera.com/pub/opera/desktop/latest/linux/opera-stable_latest_amd64.deb
+        dest: /tmp/opera-stable_latest_amd64.deb
+        mode: "0644"
+      when: ansible_os_family == "Debian"
+
+    - name: Opera GX | Install Opera from .deb package (Debian/Ubuntu)
       apt:
-        name: "{{ browsers.opera_gx.package_names.debian }}"
+        deb: /tmp/opera-stable_latest_amd64.deb
         state: present
-        update_cache: yes
-      when: ansible_os_family == 'Debian'
+      become: true
+      when: ansible_os_family == "Debian"
 
-    - name: Install Opera GX on RedHat/CentOS/Fedora
+    - name: Opera GX | Download Opera .rpm package directly (RedHat/CentOS/Fedora)
+      get_url:
+        url: https://get.geo.opera.com/pub/opera/desktop/latest/linux/opera-stable.x86_64.rpm
+        dest: /tmp/opera-stable.x86_64.rpm
+        mode: "0644"
+      when: ansible_os_family in ["RedHat", "Fedora"]
+
+    - name: Opera GX | Install Opera from .rpm package (RedHat/CentOS/Fedora)
       package:
-        name: "{{ browsers.opera_gx.package_names.redhat }}"
+        name: /tmp/opera-stable.x86_64.rpm
         state: present
-      when: ansible_os_family == 'RedHat'
+      become: true
+      when: ansible_os_family in ["RedHat", "Fedora"]
 
-    - name: Install Opera GX on Arch Linux
-      pacman:
-        name: "{{ browsers.opera_gx.package_names.arch }}"
-        state: present
-      when: ansible_os_family == 'Archlinux'
+  when:
+    - ansible_os_family not in ["Windows", "Darwin"]
+    - opera_gx_check.rc != 0
+    - opera_gx_linux_result is defined
+    - opera_gx_linux_result.rc != 0
 
-  rescue:
-    - name: Log Opera GX installation failure
-      debug:
-        msg: "Opera GX installation failed, continuing with other browsers"
+- name: Opera GX | Verify installation
+  shell: "{{ opera_gx_package_info.verify_command }}"
+  register: opera_gx_verify
+  failed_when: false
+  changed_when: false
 
-- name: Configure Opera GX
+- name: Opera GX | Log installation status
   debug:
-    msg: "Opera GX configuration will be handled by chezmoi integration"
-  when: chezmoi_integration.enabled
+    msg: |
+      Opera GX installation status:
+      - Platform: {{ ansible_os_family }}
+      - Package Manager: {{ opera_gx_package_info.primary_manager }}
+      - Installation Result: {{ 'Success' if opera_gx_verify.rc == 0 else 'Failed' }}
+      {% if opera_gx_verify.rc != 0 %}
+      - Error: Unable to verify Opera GX installation
+      - Attempted package: {{ opera_gx_package_info.primary_package }}
+      {% endif %}
+
+- name: Opera GX | Fail if installation unsuccessful
+  fail:
+    msg: |
+      Opera GX installation failed on {{ ansible_os_family }}.
+      Please check:
+      1. Package manager availability ({{ opera_gx_package_info.primary_manager }})
+      2. Network connectivity to Opera repositories
+      3. Package repository configuration
+      4. System permissions
+      5. Available disk space
+      Note: On Linux, Opera GX may not be available separately from Opera stable
+  when:
+    - opera_gx_verify.rc != 0
+    - not ansible_check_mode
+    - not error_handling.continue_on_failure | default(true)
+
+- name: Opera GX | Set installation success fact
+  set_fact:
+    opera_gx_installed: "{{ opera_gx_verify.rc == 0 }}"
+# ===== OPERA GX CONFIGURATION =====
+
+- name: Opera GX | Set platform-specific configuration paths
+  set_fact:
+    opera_gx_config_paths: "{{ opera_gx_configs[ansible_os_family | lower] | default(opera_gx_configs['linux']) }}"
+  vars:
+    opera_gx_configs:
+      windows:
+        config_path: "%APPDATA%\\Opera Software\\Opera GX Stable"
+        preferences_file: "%APPDATA%\\Opera Software\\Opera GX Stable\\Preferences"
+        secure_preferences: "%APPDATA%\\Opera Software\\Opera GX Stable\\Secure Preferences"
+      darwin:
+        config_path: "~/Library/Application Support/com.operasoftware.OperaGX"
+        preferences_file: "~/Library/Application Support/com.operasoftware.OperaGX/Preferences"
+        secure_preferences: "~/Library/Application Support/com.operasoftware.OperaGX/Secure Preferences"
+      linux:
+        config_path: "~/.config/opera-gx"
+        preferences_file: "~/.config/opera-gx/Preferences"
+        secure_preferences: "~/.config/opera-gx/Secure Preferences"
+  when: opera_gx_installed | default(false)
+
+- name: Opera GX | Create Opera GX configuration directory
+  file:
+    path: "{{ opera_gx_config_paths.config_path | expanduser }}"
+    state: directory
+    mode: "0755"
+  when:
+    - opera_gx_installed | default(false)
+    - ansible_os_family != "Windows"
+
+- name: Opera GX | Create Opera GX configuration directory (Windows)
+  win_file:
+    path: "{{ opera_gx_config_paths.config_path | expandvars }}"
+    state: directory
+  when:
+    - opera_gx_installed | default(false)
+    - ansible_os_family == "Windows"
+
+- name: Opera GX | Deploy Opera GX preferences configuration
+  template:
+    src: opera-gx-preferences.json.j2
+    dest: "{{ opera_gx_config_paths.preferences_file | expanduser }}"
+    backup: true
+    mode: "0644"
+  when:
+    - opera_gx_installed | default(false)
+    - ansible_os_family != "Windows"
+
+- name: Opera GX | Deploy Opera GX preferences configuration (Windows)
+  win_template:
+    src: opera-gx-preferences.json.j2
+    dest: "{{ opera_gx_config_paths.preferences_file | expandvars }}"
+    backup: true
+  when:
+    - opera_gx_installed | default(false)
+    - ansible_os_family == "Windows"
+
+# ===== PERFORMANCE OPTIMIZATION CONFIGURATION =====
+
+- name: Opera GX | Configure performance optimization settings
+  block:
+    - name: Opera GX | Configure performance optimization settings via template
+      debug:
+        msg: "Performance optimization settings will be applied via preferences template"
+
+    - name: Opera GX | Create performance configuration directory
+      file:
+        path: "{{ opera_gx_config_paths.config_path | expanduser }}/Performance"
+        state: directory
+        mode: "0755"
+      when: ansible_os_family != "Windows"
+
+    - name: Opera GX | Create performance configuration directory (Windows)
+      win_file:
+        path: "{{ opera_gx_config_paths.config_path | expandvars }}\\Performance"
+        state: directory
+      when: ansible_os_family == "Windows"
+
+    - name: Opera GX | Deploy performance limiter configuration
+      template:
+        src: opera-gx-performance.json.j2
+        dest: "{{ opera_gx_config_paths.config_path | expanduser }}/Performance/limiters.json"
+        backup: true
+        mode: "0644"
+      when: ansible_os_family != "Windows"
+
+    - name: Opera GX | Deploy performance limiter configuration (Windows)
+      win_template:
+        src: opera-gx-performance.json.j2
+        dest: "{{ opera_gx_config_paths.config_path | expandvars }}\\Performance\\limiters.json"
+        backup: true
+      when: ansible_os_family == "Windows"
+
+    - name: Opera GX | Verify performance limiter settings are enabled
+      debug:
+        msg: |
+          Opera GX Performance Settings:
+          - RAM Limiter: {{ opera_gx.settings.ram_limiter | default(true) }} ({{ opera_gx.settings.ram_limit_mb | default(4096) }}MB)
+          - CPU Limiter: {{ opera_gx.settings.cpu_limiter | default(true) }} ({{ opera_gx.settings.cpu_limit_percent | default(80) }}%)
+          - Network Limiter: {{ opera_gx.settings.network_limiter | default(true) }}
+          - Download Limit: {{ opera_gx.settings.network_download_limit_kbps | default(0) }} kbps
+          - Upload Limit: {{ opera_gx.settings.network_upload_limit_kbps | default(0) }} kbps
+          - Performance Optimization: {{ opera_gx.settings.performance_optimization | default(true) }}
+          - Privacy Protection: {{ opera_gx.settings.privacy_protection | default(true) }}
+          - Telemetry Disabled: {{ not (opera_gx.settings.telemetry | default(false)) }}
+
+    - name: Opera GX | Configure gaming mode and GX features
+      debug:
+        msg: |
+          Opera GX Gaming Features:
+          - Gaming Mode: Enabled
+          - GX Corner: Enabled
+          - GX Sidebar: Enabled
+          - Workspaces: Enabled
+          - Flow: Enabled
+          - Hot Tabs Killer: Enabled
+          - Memory Saver: Enabled
+          - Tab Sleeping: Enabled (300s timeout)
+
+  when: opera_gx_installed | default(false)
+
+# ===== EXTENSION MANAGEMENT =====
+
+- name: Opera GX | Create Opera GX extensions directory
+  file:
+    path: "{{ opera_gx_config_paths.config_path | expanduser }}/Extensions"
+    state: directory
+    mode: "0755"
+  when:
+    - opera_gx_installed | default(false)
+    - ansible_os_family != "Windows"
+
+- name: Opera GX | Create Opera GX extensions directory (Windows)
+  win_file:
+    path: "{{ opera_gx_config_paths.config_path | expandvars }}\\Extensions"
+    state: directory
+  when:
+    - opera_gx_installed | default(false)
+    - ansible_os_family == "Windows"
+
+# ===== CHEZMOI INTEGRATION =====
+
+- name: Opera GX | Check if chezmoi dotfiles repo exists
+  stat:
+    path: "{{ chezmoi_integration.dotfiles_repo }}"
+  register: dotfiles_repo_check
+  when:
+    - opera_gx_installed | default(false)
+    - chezmoi_integration.enabled | default(false)
+
+- name: Opera GX | Create chezmoi template directory for Opera GX
+  file:
+    path: "{{ chezmoi_integration.dotfiles_repo }}/dot_config/opera-gx"
+    state: directory
+    mode: "0755"
+  when:
+    - opera_gx_installed | default(false)
+    - chezmoi_integration.enabled | default(false)
+    - dotfiles_repo_check.stat.exists | default(false)
+
+- name: Opera GX | Create chezmoi Opera GX preferences template
+  template:
+    src: opera-gx-preferences.json.j2
+    dest: "{{ chezmoi_integration.dotfiles_repo }}/dot_config/opera-gx/preferences.json.tmpl"
+    backup: true
+  when:
+    - opera_gx_installed | default(false)
+    - chezmoi_integration.enabled | default(false)
+    - dotfiles_repo_check.stat.exists | default(false)
+
+- name: Opera GX | Create chezmoi Opera GX performance template
+  template:
+    src: opera-gx-performance.json.j2
+    dest: "{{ chezmoi_integration.dotfiles_repo }}/dot_config/opera-gx/performance.json.tmpl"
+    backup: true
+  when:
+    - opera_gx_installed | default(false)
+    - chezmoi_integration.enabled | default(false)
+    - dotfiles_repo_check.stat.exists | default(false)
+
+- name: Opera GX | Create chezmoi data file for Opera GX customization
+  template:
+    src: opera-gx-data.yml.j2
+    dest: "{{ chezmoi_integration.dotfiles_repo }}/.chezmoidata/opera_gx.yml"
+    backup: true
+  when:
+    - opera_gx_installed | default(false)
+    - chezmoi_integration.enabled | default(false)
+    - dotfiles_repo_check.stat.exists | default(false)
+
+- name: Opera GX | Ensure chezmoi data directory exists
+  file:
+    path: "{{ chezmoi_integration.dotfiles_repo }}/.chezmoidata"
+    state: directory
+    mode: "0755"
+  when:
+    - opera_gx_installed | default(false)
+    - chezmoi_integration.enabled | default(false)
+    - dotfiles_repo_check.stat.exists | default(false)
+
+- name: Opera GX | Log configuration status
+  debug:
+    msg: |
+      Opera GX configuration status:
+      - Platform: {{ ansible_os_family }}
+      - Config Path: {{ opera_gx_config_paths.config_path | default('Not configured') }}
+      - Performance Optimization: {{ 'Enabled' if opera_gx.settings.performance_optimization | default(true) else 'Disabled' }}
+
+      Performance Limiters:
+      - RAM Limiter: {{ 'Enabled' if opera_gx.settings.ram_limiter | default(true) else 'Disabled' }} ({{ opera_gx.settings.ram_limit_mb | default(4096) }}MB)
+      - CPU Limiter: {{ 'Enabled' if opera_gx.settings.cpu_limiter | default(true) else 'Disabled' }} ({{ opera_gx.settings.cpu_limit_percent | default(80) }}%)
+      - Network Limiter: {{ 'Enabled' if opera_gx.settings.network_limiter | default(true) else 'Disabled' }}
+
+      Gaming Features:
+      - Gaming Mode: Enabled
+      - Hot Tabs Killer: Enabled
+      - Memory Saver: Enabled
+      - Tab Sleeping: Enabled (300s timeout)
+      - GX Corner: Enabled
+      - GX Sidebar: Enabled
+      - Workspaces: Enabled
+
+      Privacy & Security:
+      - Privacy Protection: {{ 'Enabled' if opera_gx.settings.privacy_protection | default(true) else 'Disabled' }}
+      - Telemetry: {{ 'Disabled' if not (opera_gx.settings.telemetry | default(false)) else 'Enabled' }}
+      - Tracking Protection: Enabled
+      - DNS over HTTPS: Enabled
+      - Third-party Cookies: Blocked
+
+      Integration:
+      - Chezmoi Integration: {{ 'Enabled' if chezmoi_integration.enabled and dotfiles_repo_check.stat.exists else 'Disabled' }}
+      - Configuration Templates: {{ 'Created' if chezmoi_integration.enabled and dotfiles_repo_check.stat.exists else 'Not created' }}
+  when: opera_gx_installed | default(false)

@@ -1,0 +1,15 @@
+---
+# tasks file for levonk.vibeops.comms - Google Meet
+
+- name: Install Google Meet on Windows
+  ansible.windows.win_winget:
+    name: Google Meet
+    id: Google.Meet
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Google Meet on macOS
+  community.general.homebrew_cask:
+    name: google-meet
+    state: present
+  when: ansible_os_family == 'Darwin'

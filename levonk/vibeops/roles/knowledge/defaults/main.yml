@@ -1,0 +1,8 @@
+---
+# defaults file for levonk.vibeops.knowledge
+
+# Set to true to install the corresponding knowledge management tool.
+# The 'graphical' tag must also be specified for these to run.
+
+knowledge_install_obsidian: false
+knowledge_install_microsoft_copilot: false

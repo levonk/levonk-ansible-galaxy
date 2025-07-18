@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.multimedia - ImageMagick
+
+- name: Install ImageMagick on Windows
+  ansible.windows.win_winget:
+    name: ImageMagick
+    id: ImageMagick.ImageMagick
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install ImageMagick on macOS
+  community.general.homebrew:
+    name: imagemagick
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install ImageMagick on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: imagemagick
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'

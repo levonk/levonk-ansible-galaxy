@@ -1,0 +1,9 @@
+---
+# tasks file for levonk.vibeops.multimedia - paint.net
+
+- name: Install paint.net on Windows
+  ansible.windows.win_winget:
+    name: paint.net
+    id: dotPDN.paint.net
+    state: present
+  when: ansible_os_family == 'Windows'

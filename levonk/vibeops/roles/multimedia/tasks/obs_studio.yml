@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.multimedia - OBS Studio
+
+- name: Install OBS Studio on Windows
+  ansible.windows.win_winget:
+    name: OBS Studio
+    id: OBSProject.OBSStudio
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install OBS Studio on macOS
+  community.general.homebrew_cask:
+    name: obs
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install OBS Studio on Debian-based systems
+  become: true
+  ansible.builtin.apt:
+    name: obs-studio
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'

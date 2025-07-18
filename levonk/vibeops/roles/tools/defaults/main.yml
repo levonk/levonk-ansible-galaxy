@@ -2,3 +2,10 @@
 # defaults file for levonk.vibeops.tools
 
 graphical: false
+
+# Set to true to install the corresponding utility tool.
+tools_install_7zip: false
+tools_install_sublime_text: false
+tools_install_espanso: false
+tools_install_speech_tools: false
+

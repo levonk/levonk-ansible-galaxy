@@ -1,5 +1,6 @@
 ---
-dependency: []
+dependencies:
+  - role: levonk.common.vet_script_installer
 galaxy_info:
   author: levonk
   description: Core OS configuration and package management

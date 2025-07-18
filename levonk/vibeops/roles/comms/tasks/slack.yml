@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.comms - Slack
+
+- name: Install Slack on Windows
+  ansible.windows.win_winget:
+    name: Slack
+    id: SlackTechnologies.Slack
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Slack on Debian-based systems
+  ansible.builtin.apt:
+    name: slack-desktop
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install Slack on macOS
+  community.general.homebrew_cask:
+    name: slack
+    state: present
+  when: ansible_os_family == 'Darwin'

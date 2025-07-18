@@ -1,0 +1,23 @@
+---
+# tasks file for levonk.vibeops.comms - Zoom
+
+- name: Install Zoom on Windows
+  ansible.windows.win_winget:
+    name: Zoom
+    id: Zoom.Zoom
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Install Zoom on Debian-based systems
+  ansible.builtin.apt:
+    name: zoom
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install Zoom on macOS
+  community.general.homebrew_cask:
+    name: zoom
+    state: present
+  when: ansible_os_family == 'Darwin'

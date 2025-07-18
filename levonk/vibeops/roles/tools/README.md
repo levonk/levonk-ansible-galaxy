@@ -4,21 +4,29 @@ This role installs a collection of general-purpose tools, with support for condi
 
 ## Description
 
-This role is designed to be a centralized place for installing common utilities. Currently, it supports the installation of:
+This role is designed to be a centralized place for installing common utilities. When the `graphical` tag is used, it can install OS-specific tools for an enhanced graphical environment:
 
--   **Ditto**: A clipboard manager for Windows.
-
-The installation of graphical tools is controlled by the `graphical` variable. By default, no graphical tools are installed.
+-   **Clipboard Managers**: Ditto (Windows), CopyQ (Debian), CopyClip (macOS).
+-   **Terminals**: Windows Terminal, Tilix (Debian), iTerm2 (macOS).
+-   **Launchers**: Raycast (macOS, Debian).
+-   **Utilities**: 7-Zip (Windows), Keka (macOS), p7zip-full (Debian).
+-   **Editors**: Sublime Text.
+-   **Text Expanders**: Espanso.
+-   **Speech and Voice Control**: Enables native OS features and installs tools like Simon, Whisper CLI, and Dragonfly.
 
 ## Requirements
 
--   For Windows, Chocolatey is required to install packages.
+-   For Windows, Chocolatey and Winget are required.
+-   For macOS, Homebrew is required.
 
 ## Role Variables
 
-| Variable    | Required | Default | Description                                                                 |
-|-------------|----------|---------|-----------------------------------------------------------------------------|
-| `graphical` | No       | `false` | When set to `true`, the role will install graphical tools like Ditto. |
+Installation of some tools is controlled by boolean variables. By default, all are set to `false`. To install a specific tool, set its corresponding variable to `true` and ensure the `graphical` tag is used.
+
+- `tools_install_7zip`: Set to `true` to install 7-Zip (or a compatible alternative).
+- `tools_install_sublime_text`: Set to `true` to install Sublime Text.
+- `tools_install_espanso`: Set to `true` to install Espanso.
+- `tools_install_speech_tools`: Set to `true` to enable/install speech recognition and voice control tools.
 
 ## Dependencies
 
@@ -26,15 +34,21 @@ None.
 
 ## Example Playbook
 
-To install tools, including graphical applications like Ditto, include the role in your playbook and set the `graphical` variable to `true`:
+To install a specific tool like Sublime Text, define the variable in your playbook and run Ansible with the `graphical` tag:
 
+**playbook.yml:**
 ```yaml
 ---
-- hosts: windows_hosts
+- hosts: all
+  vars:
+    tools_install_sublime_text: true
   roles:
     - role: levonk.vibeops.tools
-      vars:
-        graphical: true
+```
+
+**Command:**
+```bash
+ansible-playbook playbook.yml --tags graphical
 ```
 
 ## License

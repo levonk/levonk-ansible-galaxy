@@ -6,3 +6,11 @@
 
 - name: Install Vagrant
   include_tasks: vagrant.yml
+
+- name: Install Docker Desktop
+  include_tasks: docker_desktop.yml
+  when: "'graphical' in ansible_run_tags"
+
+- name: Install gitkeeper
+  include_tasks: gitkeeper.yml
+  when: devops_install_gitkeeper | default(false)
