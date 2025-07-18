@@ -1,0 +1,15 @@
+---
+- name: Verify
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check that Ditto is not installed by default
+      ansible.windows.win_chocolatey_feature:
+        name: ditto
+        state: disabled
+      register: ditto_status
+
+    - name: Fail if Ditto was installed when it should not have been
+      ansible.builtin.fail:
+        msg: "Ditto was found installed, but should not be in the default scenario."
+      when: ditto_status.enabled

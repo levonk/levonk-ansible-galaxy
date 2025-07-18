@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  tasks:
+    - name: Include the tools role with graphical enabled
+      ansible.builtin.include_role:
+        name: levonk.vibeops.tools
+      vars:
+        graphical: true

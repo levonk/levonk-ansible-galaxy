@@ -1,0 +1,15 @@
+---
+- name: Verify
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check that Ditto is installed when graphical is enabled
+      ansible.windows.win_chocolatey_feature:
+        name: ditto
+        state: enabled
+      register: ditto_status
+
+    - name: Fail if Ditto was not installed when it should have been
+      ansible.builtin.fail:
+        msg: "Ditto was not found installed, but should be in the graphical_enabled scenario."
+      when: not ditto_status.enabled
