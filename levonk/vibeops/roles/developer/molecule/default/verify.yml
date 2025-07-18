@@ -1,0 +1,48 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: true
+  tasks:
+    # Verifications for Windows
+    - name: Check for Long Filename Support setting
+      when: ansible_os_family == 'Windows'
+      ansible.windows.win_reg_stat:
+        path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+        name: LongPathsEnabled
+      register: long_path_reg
+
+    - name: Assert Long Filename Support is enabled
+      when: ansible_os_family == 'Windows'
+      assert:
+        that:
+          - long_path_reg.exists
+          - long_path_reg.value == 1
+
+    - name: Check for Sticky Keys setting
+      when: ansible_os_family == 'Windows'
+      ansible.windows.win_reg_stat:
+        path: HKCU:\Control Panel\Accessibility\StickyKeys
+        name: Flags
+      register: sticky_keys_reg
+
+    - name: Assert Sticky Keys is disabled
+      when: ansible_os_family == 'Windows'
+      assert:
+        that:
+          - sticky_keys_reg.exists
+          - sticky_keys_reg.value == '506'
+
+    # Verifications for all platforms
+    - name: Check if universal-ctags is installed
+      ansible.builtin.command:
+        cmd: ctags --version
+      register: ctags_check
+      changed_when: false
+      failed_when: ctags_check.rc != 0
+
+    - name: Check if super-linter is installed
+      ansible.builtin.command:
+        cmd: npx super-linter --version
+      register: linter_check
+      changed_when: false
+      failed_when: linter_check.rc != 0

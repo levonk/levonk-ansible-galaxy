@@ -1,0 +1,13 @@
+---
+# tasks file for installing super-linter
+
+- name: Install Super-Linter via npm
+  community.general.npm:
+    name: super-linter
+    global: yes
+    state: present
+  become: true
+  tags:
+    - developer
+    - tools
+    - linter

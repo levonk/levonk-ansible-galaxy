@@ -1,0 +1,26 @@
+---
+# tasks file for developer (Windows)
+
+- name: Enable long filename support
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem
+    name: LongPathsEnabled
+    data: 1
+    type: dword
+  become: true
+  become_method: runas
+  tags:
+    - developer
+    - settings
+    - windows
+
+- name: Disable Sticky Keys
+  ansible.windows.win_regedit:
+    path: HKCU:\Control Panel\Accessibility\StickyKeys
+    name: Flags
+    data: "506"
+    type: string
+  tags:
+    - developer
+    - settings
+    - windows

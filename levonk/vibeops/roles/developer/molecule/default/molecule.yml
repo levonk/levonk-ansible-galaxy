@@ -1,0 +1,24 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+platforms:
+  - name: instance-linux
+    image: "geerlingguy/docker-ubuntu2204-ansible:latest"
+    pre_build_image: true
+    privileged: true
+    volume_mounts:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:ro"
+
+  - name: instance-windows
+    image: "mcr.microsoft.com/windows/servercore:ltsc2022"
+    pre_build_image: true
+    platform: windows
+
+provisioner:
+  name: ansible
+  playbooks:
+    converge: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}/molecule/default/converge.yml"
+verifier:
+  name: ansible

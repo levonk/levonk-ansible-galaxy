@@ -1,0 +1,26 @@
+---
+# main.yml for developer role
+
+- name: Include OS-specific configuration tasks
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_os_family }}.yml"
+  when: ansible_os_family in ['Windows', 'Debian', 'Darwin']
+  tags:
+    - developer
+    - settings
+
+- name: Install Universal Ctags
+  ansible.builtin.include_tasks:
+    file: install_universal_ctags.yml
+  tags:
+    - developer
+    - tools
+    - ctags
+
+- name: Install Super Linter
+  ansible.builtin.include_tasks:
+    file: install_super_linter.yml
+  tags:
+    - developer
+    - tools
+    - linter

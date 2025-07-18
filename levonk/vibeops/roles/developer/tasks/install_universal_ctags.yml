@@ -1,0 +1,12 @@
+---
+# tasks file for installing universal-ctags
+
+- name: Install Universal Ctags
+  ansible.builtin.package:
+    name: universal-ctags
+    state: present
+  become: true
+  tags:
+    - developer
+    - tools
+    - ctags
