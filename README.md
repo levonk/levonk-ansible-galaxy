@@ -15,4 +15,11 @@ This repository contains a collection of Ansible roles for managing and provisio
 | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [devops](./levonk/vibeops/roles/devops/README.md)                                                   | Installs essential DevOps tools like Vagrant and Packer across multiple OS. |
 
+### levonk.base_system
+
+| Role                                                                                                | Description                                                         |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| [syscheck](./levonk/base_system/roles/syscheck/README.md)                                             | Performs asynchronous system integrity checks (sfc, fsck, etc.).    |
+| [reboot_manager](./levonk/base_system/roles/reboot_manager/README.md)                                 | Handles system reboots when signaled by the `reboot_required` fact. |
+
 

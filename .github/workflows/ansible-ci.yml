@@ -34,6 +34,10 @@ jobs:
             path: levonk/vibeops/roles/wsl_setup
           - name: devops
             path: levonk/vibeops/roles/devops
+          - name: syscheck
+            path: levonk/base_system/roles/syscheck
+          - name: reboot_manager
+            path: levonk/base_system/roles/reboot_manager
 
     steps:
       - name: Check out the codebase
