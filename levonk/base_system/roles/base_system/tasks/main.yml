@@ -8,12 +8,6 @@
     update_cache: yes
   when: ansible_facts['os_family'] == 'Debian'
 
-- name: Install Homebrew if not present
-  ansible.builtin.shell:
-    cmd: NONINTERACTIVE=true /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    creates: "/opt/homebrew/bin/brew"
-  when: ansible_facts['os_family'] == 'Darwin'
-
 - name: Install essential packages on macOS
   homebrew:
     name: "{{ base_system_packages }}"
