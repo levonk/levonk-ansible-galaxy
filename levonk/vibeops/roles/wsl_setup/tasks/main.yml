@@ -1,0 +1,27 @@
+---
+# tasks file for wsl_setup
+
+- name: Install WSL2 and Debian distribution on Windows
+  block:
+    - name: Enable Windows Subsystem for Linux and Virtual Machine Platform features
+      ansible.windows.win_feature:
+        name:
+          - Microsoft-Windows-Subsystem-Linux
+          - VirtualMachinePlatform
+        state: present
+      register: wsl_features_result
+
+    - name: Reboot if required to enable WSL features
+      ansible.windows.win_reboot:
+      when: wsl_features_result.reboot_required
+
+    - name: Set WSL2 as the default version
+      ansible.windows.win_shell: wsl --set-default-version 2
+      changed_when: false # This command does not provide reliable change status
+
+    - name: Install the specified WSL distribution
+      ansible.windows.win_shell: wsl --install -d {{ wsl_distribution }}
+      args:
+        creates: C:\Users\{{ ansible_user_id }}\AppData\Local\Microsoft\WindowsApps\{{ wsl_distribution }}.exe
+
+  when: ansible_facts['os_family'] == 'Windows'

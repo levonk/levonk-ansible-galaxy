@@ -1,0 +1,3 @@
+---
+# defaults file for wsl_setup
+wsl_distribution: Debian

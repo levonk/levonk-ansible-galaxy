@@ -30,6 +30,8 @@ jobs:
           #   path: levonk/vibeops/roles/dev-python
           - name: chezmoi
             path: levonk/user_setup/roles/chezmoi
+          - name: wsl_setup
+            path: levonk/vibeops/roles/wsl_setup
 
     steps:
       - name: Check out the codebase

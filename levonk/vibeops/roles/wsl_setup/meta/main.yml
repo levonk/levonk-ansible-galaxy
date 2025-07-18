@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Brillarc, LLC
+  description: Installs WSL2 and a specified Linux distribution on Windows.
+  company: Brillarc, LLC
+  license: Copyright (c) 2025, Brillarc, LLC
+
+  min_ansible_version: '2.9'
+
+  platforms:
+    - name: Windows
+      versions:
+        - all
+
+  galaxy_tags:
+    - wsl
+    - wsl2
+    - debian
+    - windows
+
+dependencies: []

@@ -1,0 +1,28 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if WSL distributions are installed
+      ansible.windows.win_shell: wsl --list --quiet
+      register: wsl_list_result
+      changed_when: false
+
+    - name: Assert that the Debian distribution is installed
+      ansible.builtin.assert:
+        that:
+          - "wsl_distribution in wsl_list_result.stdout"
+        fail_msg: "The '{{ wsl_distribution }}' distribution was not found."
+        success_msg: "The '{{ wsl_distribution }}' distribution is correctly installed."
+
+    - name: Check WSL status
+      ansible.windows.win_shell: wsl --status
+      register: wsl_status_result
+      changed_when: false
+
+    - name: Assert that the default version is 2
+      ansible.builtin.assert:
+        that:
+          - "'Default Version: 2' in wsl_status_result.stdout"
+        fail_msg: "WSL default version is not set to 2."
+        success_msg: "WSL default version is correctly set to 2."
