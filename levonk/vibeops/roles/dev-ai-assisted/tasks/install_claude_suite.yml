@@ -1,20 +1,22 @@
 ---
-- name: "Install Claude Suite VS Code Extensions"
-  community.general.vscode_extension:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - Anthropic.claude-code
-    - Anthropic.claude-taskmaster
-    - RooCode.roocode-boomerang
-  become: false
-  when: ansible_facts['os_family'] != "Windows"
+# tasks file for installing Claude AI Suite tools
 
-- name: "Install Claude Suite VS Code Extensions (Windows)"
-  ansible.windows.win_command: "code --install-extension {{ item }}"
-  loop:
-    - Anthropic.claude-code
-    - Anthropic.claude-taskmaster
-    - RooCode.roocode-boomerang
-  changed_when: false
-  when: ansible_facts['os_family'] == "Windows"
+- name: "Install @anthropic-ai/claude-code globally via npm"
+  community.general.npm:
+    name: "@anthropic-ai/claude-code"
+    global: yes
+    state: present
+  become: true
+  tags:
+    - claude
+    - claude-install
+
+- name: "Inform user about Claude Code usage"
+  ansible.builtin.debug:
+    msg:
+      - "Claude Code has been installed globally via npm."
+      - "To use it, you must first configure it with your API key by running: claude setup"
+      - "After setup, you can run the tool from your project directory with: claude"
+  tags:
+    - claude
+    - claude-install
