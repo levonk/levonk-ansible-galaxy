@@ -1,0 +1,205 @@
+---
+# Browser role default variables
+# These can be overridden in group_vars, host_vars, or playbook variables
+
+# Enable/disable browser installation
+browsers_enabled: true
+
+# List of browsers to install (can be overridden to install subset)
+browsers_to_install:
+  - firefox_dev
+  - chrome
+  - chromium
+  - edge
+  - opera_gx
+  - brave
+  - dia
+  - browser_os
+
+# Browser configuration definitions
+browsers:
+  firefox_dev:
+    name: "Firefox Developer Edition"
+    package_names:
+      windows: "Mozilla.Firefox.DeveloperEdition"
+      macos: "firefox-developer-edition"
+      debian: "firefox-dev"
+      redhat: "firefox-dev"
+      arch: "firefox-developer-edition"
+    config_method: "preferences_file"
+    config_path: "~/.mozilla/firefox/profiles.ini"
+    extensions:
+      - "react-devtools"
+      - "vue-devtools"
+      - "ublock-origin"
+    settings:
+      theme: "dark"
+      new_window_behavior: "tab"
+      password_manager: false
+      telemetry: false
+      tracking_protection: true
+
+  chrome:
+    name: "Google Chrome"
+    package_names:
+      windows: "Google.Chrome"
+      macos: "google-chrome"
+      debian: "google-chrome-stable"
+      redhat: "google-chrome-stable"
+      arch: "google-chrome"
+    config_method: "enterprise_policy"
+    policy_path: "/etc/opt/chrome/policies/managed/"
+    extensions:
+      - "react-devtools"
+      - "vue-devtools"
+      - "ublock-origin"
+    settings:
+      theme: "dark"
+      new_window_behavior: "tab"
+      password_manager: false
+      telemetry: false
+
+  chromium:
+    name: "Chromium"
+    package_names:
+      windows: "Chromium.Chromium"
+      macos: "chromium"
+      debian: "chromium-browser"
+      redhat: "chromium"
+      arch: "chromium"
+    config_method: "preferences_file"
+    config_path: "~/.config/chromium/Default/Preferences"
+    extensions:
+      - "react-devtools"
+      - "vue-devtools"
+      - "ublock-origin"
+    settings:
+      theme: "dark"
+      new_window_behavior: "tab"
+      password_manager: false
+      telemetry: false
+
+  edge:
+    name: "Microsoft Edge"
+    package_names:
+      windows: "Microsoft.Edge"
+      macos: "microsoft-edge"
+      debian: "microsoft-edge-stable"
+      redhat: "microsoft-edge-stable"
+      arch: "microsoft-edge-stable-bin"
+    config_method: "enterprise_policy"
+    policy_path: "/etc/opt/edge/policies/managed/"
+    settings:
+      theme: "dark"
+      new_window_behavior: "tab"
+      password_manager: false
+      telemetry: false
+
+  opera_gx:
+    name: "Opera GX"
+    package_names:
+      windows: "Opera.OperaGX"
+      macos: "opera-gx"
+      debian: "opera-stable"
+      redhat: "opera-stable"
+      arch: "opera-gx"
+    config_method: "preferences_file"
+    config_path: "~/.config/opera-gx/Preferences"
+    settings:
+      theme: "dark"
+      performance_mode: true
+      ram_limiter: true
+      cpu_limiter: true
+      network_limiter: false
+      telemetry: false
+
+  brave:
+    name: "Brave Browser"
+    package_names:
+      windows: "Brave.Brave"
+      macos: "brave-browser"
+      debian: "brave-browser"
+      redhat: "brave-browser"
+      arch: "brave-bin"
+    config_method: "preferences_file"
+    config_path: "~/.config/BraveSoftware/Brave-Browser/Default/Preferences"
+    settings:
+      theme: "dark"
+      shields_enabled: true
+      privacy_search: true
+      telemetry: false
+      tracking_protection: true
+
+  dia:
+    name: "Dia"
+    package_names:
+      windows: "Dia.Dia"
+      macos: "dia"
+      debian: "dia"
+      redhat: "dia"
+      arch: "dia"
+    config_method: "file_based"
+    settings:
+      developer_mode: true
+
+  browser_os:
+    name: "BrowserOS"
+    package_names:
+      windows: "BrowserOS.BrowserOS"
+      macos: "browser-os"
+      debian: "browser-os"
+      redhat: "browser-os"
+      arch: "browser-os"
+    config_method: "web_based"
+    settings:
+      cloud_sync: true
+
+# Package manager configuration
+package_managers:
+  windows:
+    primary: "winget"
+    fallback: "chocolatey"
+    commands:
+      winget: "winget install --id {{ package_id }} --silent --accept-package-agreements --accept-source-agreements"
+      chocolatey: "choco install {{ package_name }} -y"
+
+  macos:
+    primary: "homebrew"
+    commands:
+      homebrew: "brew install --cask {{ package_name }}"
+
+  linux:
+    debian:
+      primary: "apt"
+      commands:
+        apt: "apt-get install -y {{ package_name }}"
+    redhat:
+      primary: "dnf"
+      fallback: "yum"
+      commands:
+        dnf: "dnf install -y {{ package_name }}"
+        yum: "yum install -y {{ package_name }}"
+    arch:
+      primary: "pacman"
+      fallback: "yay"
+      commands:
+        pacman: "pacman -S --noconfirm {{ package_name }}"
+        yay: "yay -S --noconfirm {{ package_name }}"
+
+# Chezmoi integration settings
+chezmoi_integration:
+  enabled: true
+  dotfiles_repo: "D:\\p\\gh\\lrepo52\\mrepo\\proj\\homenet\\deployment-operations\\3rdparty\\gh\\levonk\\dotfiles"
+  config_templates:
+    firefox: "dot_config/firefox/user.js.tmpl"
+    chrome: "dot_config/google-chrome/policies.json.tmpl"
+    chromium: "dot_config/chromium/preferences.json.tmpl"
+    edge: "dot_config/microsoft-edge/policies.json.tmpl"
+    opera_gx: "dot_config/opera-gx/preferences.json.tmpl"
+    brave: "dot_config/brave/preferences.json.tmpl"
+
+# Error handling settings
+error_handling:
+  continue_on_failure: true
+  log_failures: true
+  provide_manual_instructions: true

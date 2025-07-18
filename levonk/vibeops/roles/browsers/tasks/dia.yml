@@ -1,0 +1,46 @@
+---
+# Dia installation and configuration
+
+- name: Install Dia
+  block:
+    - name: Install Dia on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.dia.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install Dia on macOS
+      homebrew:
+        name: "{{ browsers.dia.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install Dia on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.dia.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Dia on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.dia.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Dia on Arch Linux
+      pacman:
+        name: "{{ browsers.dia.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log Dia installation failure
+      debug:
+        msg: "Dia installation failed, continuing with other browsers"
+
+- name: Configure Dia
+  debug:
+    msg: "Dia configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

@@ -1,0 +1,46 @@
+---
+# Opera GX installation and configuration
+
+- name: Install Opera GX
+  block:
+    - name: Install Opera GX on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.opera_gx.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install Opera GX on macOS
+      homebrew_cask:
+        name: "{{ browsers.opera_gx.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install Opera GX on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.opera_gx.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Opera GX on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.opera_gx.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Opera GX on Arch Linux
+      pacman:
+        name: "{{ browsers.opera_gx.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log Opera GX installation failure
+      debug:
+        msg: "Opera GX installation failed, continuing with other browsers"
+
+- name: Configure Opera GX
+  debug:
+    msg: "Opera GX configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

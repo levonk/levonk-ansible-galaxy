@@ -1,0 +1,44 @@
+// Firefox Developer Edition preferences
+// This file is managed by Ansible - do not edit manually
+
+// Theme settings
+user_pref("devtools.theme", "{% if browsers.firefox_dev.settings.theme == 'dark' %}dark{% else %}light{% endif %}");
+user_pref("browser.theme.content-theme", {% if browsers.firefox_dev.settings.theme == 'dark' %}1{% else %}0{% endif %});
+user_pref("browser.theme.toolbar-theme", {% if browsers.firefox_dev.settings.theme == 'dark' %}1{% else %}0{% endif %});
+
+// New window behavior
+user_pref("browser.link.open_newwindow", {% if browsers.firefox_dev.settings.new_window_behavior == 'tab' %}3{% else %}2{% endif %});
+user_pref("browser.link.open_newwindow.restriction", 0);
+
+// Password manager
+user_pref("signon.rememberSignons", {{ browsers.firefox_dev.settings.password_manager | lower }});
+user_pref("signon.autofillForms", {{ browsers.firefox_dev.settings.password_manager | lower }});
+
+// Telemetry and data collection
+user_pref("datareporting.healthreport.uploadEnabled", {{ browsers.firefox_dev.settings.telemetry | lower }});
+user_pref("datareporting.policy.dataSubmissionEnabled", {{ browsers.firefox_dev.settings.telemetry | lower }});
+user_pref("toolkit.telemetry.enabled", {{ browsers.firefox_dev.settings.telemetry | lower }});
+user_pref("toolkit.telemetry.unified", {{ browsers.firefox_dev.settings.telemetry | lower }});
+
+// Tracking protection
+user_pref("privacy.trackingprotection.enabled", {{ browsers.firefox_dev.settings.tracking_protection | lower }});
+user_pref("privacy.trackingprotection.socialtracking.enabled", {{ browsers.firefox_dev.settings.tracking_protection | lower }});
+
+// Developer tools
+user_pref("devtools.debugger.remote-enabled", true);
+user_pref("devtools.chrome.enabled", true);
+user_pref("devtools.debugger.prompt-connection", false);
+
+// Performance
+user_pref("browser.sessionstore.restore_on_demand", true);
+user_pref("browser.sessionstore.restore_tabs_lazily", true);
+
+// Privacy
+user_pref("privacy.donottrackheader.enabled", true);
+user_pref("privacy.donottrackheader.value", 1);
+user_pref("geo.enabled", false);
+user_pref("media.navigator.enabled", false);
+
+// Search
+user_pref("browser.search.defaultenginename", "DuckDuckGo");
+user_pref("browser.search.selectedEngine", "DuckDuckGo");

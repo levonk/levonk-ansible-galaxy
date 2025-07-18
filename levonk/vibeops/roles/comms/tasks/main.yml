@@ -1,0 +1,12 @@
+---
+# tasks file for levonk.vibeops.comms
+
+- name: "Include OS-specific tasks"
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_os_family }}.yml"
+  when: ansible_os_family in ['Windows', 'Debian', 'Darwin']
+
+- name: "Fail if OS is not supported"
+  ansible.builtin.fail:
+    msg: "The '{{ ansible_os_family }}' operating system is not supported by this role."
+  when: ansible_os_family not in ['Windows', 'Debian', 'Darwin']

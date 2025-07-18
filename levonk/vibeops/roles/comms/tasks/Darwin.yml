@@ -1,0 +1,7 @@
+---
+# tasks file for levonk.vibeops.comms on macOS
+
+- name: "Install communication apps on macOS"
+  community.general.homebrew:
+    name: "{{ comms_apps_darwin }}"
+    state: present

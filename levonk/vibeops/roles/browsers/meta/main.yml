@@ -1,0 +1,38 @@
+---
+dependencies:
+  - role: levonk.base_system.base_system
+  - role: levonk.user_setup.local_user
+  - role: levonk.user_setup.chezmoi
+
+galaxy_info:
+  author: levonk
+  description: Browser installation and configuration for development environments
+  company: ""
+  license: AGPL-3.0-only
+  min_ansible_version: "2.9"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+    - name: Windows
+      versions:
+        - all
+    - name: MacOSX
+      versions:
+        - all
+  galaxy_tags:
+    - browsers
+    - firefox
+    - chrome
+    - development
+    - vibeops
+    - cross-platform

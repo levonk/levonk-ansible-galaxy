@@ -1,0 +1,46 @@
+---
+# Google Chrome installation and configuration
+
+- name: Install Google Chrome
+  block:
+    - name: Install Google Chrome on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.chrome.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install Google Chrome on macOS
+      homebrew_cask:
+        name: "{{ browsers.chrome.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install Google Chrome on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.chrome.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Google Chrome on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.chrome.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Google Chrome on Arch Linux
+      pacman:
+        name: "{{ browsers.chrome.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log Chrome installation failure
+      debug:
+        msg: "Google Chrome installation failed, continuing with other browsers"
+
+- name: Configure Google Chrome
+  debug:
+    msg: "Google Chrome configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

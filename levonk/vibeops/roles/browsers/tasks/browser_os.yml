@@ -1,0 +1,46 @@
+---
+# BrowserOS installation and configuration
+
+- name: Install BrowserOS
+  block:
+    - name: Install BrowserOS on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.browser_os.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install BrowserOS on macOS
+      homebrew_cask:
+        name: "{{ browsers.browser_os.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install BrowserOS on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.browser_os.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install BrowserOS on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.browser_os.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install BrowserOS on Arch Linux
+      pacman:
+        name: "{{ browsers.browser_os.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log BrowserOS installation failure
+      debug:
+        msg: "BrowserOS installation failed, continuing with other browsers"
+
+- name: Configure BrowserOS
+  debug:
+    msg: "BrowserOS configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

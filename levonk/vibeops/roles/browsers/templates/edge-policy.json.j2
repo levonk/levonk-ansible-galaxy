@@ -1,0 +1,17 @@
+{
+  "DefaultBrowserSettingEnabled": false,
+  "FavoritesBarEnabled": true,
+  "PasswordManagerEnabled": {{ browsers.edge.settings.password_manager | lower }},
+  "MetricsReportingEnabled": {{ browsers.edge.settings.telemetry | lower }},
+  "SmartScreenEnabled": true,
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "DefaultSearchProviderEnabled": true,
+  "DefaultSearchProviderName": "DuckDuckGo",
+  "DefaultSearchProviderSearchURL": "https://duckduckgo.com/?q={searchTerms}",
+  "BrowserThemeColor": "{% if browsers.edge.settings.theme == 'dark' %}dark{% else %}light{% endif %}",
+  "NewTabPageLocation": "edge://newtab/",
+  "RestoreOnStartup": 1,
+  "HomepageLocation": "edge://newtab/",
+  "ShowHomeButton": true
+}

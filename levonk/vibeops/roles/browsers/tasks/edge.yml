@@ -1,0 +1,46 @@
+---
+# Microsoft Edge installation and configuration
+
+- name: Install Microsoft Edge
+  block:
+    - name: Install Microsoft Edge on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.edge.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install Microsoft Edge on macOS
+      homebrew_cask:
+        name: "{{ browsers.edge.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install Microsoft Edge on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.edge.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Microsoft Edge on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.edge.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Microsoft Edge on Arch Linux
+      pacman:
+        name: "{{ browsers.edge.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log Edge installation failure
+      debug:
+        msg: "Microsoft Edge installation failed, continuing with other browsers"
+
+- name: Configure Microsoft Edge
+  debug:
+    msg: "Microsoft Edge configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

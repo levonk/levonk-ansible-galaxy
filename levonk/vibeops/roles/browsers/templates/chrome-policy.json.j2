@@ -1,0 +1,22 @@
+{
+  "DefaultBrowserSettingEnabled": false,
+  "BookmarkBarEnabled": true,
+  "PasswordManagerEnabled": {{ browsers.chrome.settings.password_manager | lower }},
+  "MetricsReportingEnabled": {{ browsers.chrome.settings.telemetry | lower }},
+  "SafeBrowsingEnabled": true,
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "DefaultSearchProviderEnabled": true,
+  "DefaultSearchProviderName": "DuckDuckGo",
+  "DefaultSearchProviderSearchURL": "https://duckduckgo.com/?q={searchTerms}",
+  "ExtensionInstallForcelist": [
+{% for extension in browsers.chrome.extensions %}
+    "{{ extension }}"{% if not loop.last %},{% endif %}
+{% endfor %}
+  ],
+  "BrowserThemeColor": "{% if browsers.chrome.settings.theme == 'dark' %}dark{% else %}light{% endif %}",
+  "NewTabPageLocation": "chrome://newtab/",
+  "RestoreOnStartup": 1,
+  "HomepageLocation": "chrome://newtab/",
+  "ShowHomeButton": true
+}

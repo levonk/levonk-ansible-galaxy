@@ -1,0 +1,46 @@
+---
+# Brave Browser installation and configuration
+
+- name: Install Brave Browser
+  block:
+    - name: Install Brave Browser on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.brave.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install Brave Browser on macOS
+      homebrew_cask:
+        name: "{{ browsers.brave.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install Brave Browser on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.brave.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Brave Browser on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.brave.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Brave Browser on Arch Linux
+      pacman:
+        name: "{{ browsers.brave.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log Brave installation failure
+      debug:
+        msg: "Brave Browser installation failed, continuing with other browsers"
+
+- name: Configure Brave Browser
+  debug:
+    msg: "Brave Browser configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

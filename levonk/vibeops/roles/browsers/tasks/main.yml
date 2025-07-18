@@ -1,0 +1,63 @@
+---
+# Main task orchestration for browser installation and configuration
+# This role requires graphical-user tag since all browsers need GUI environment
+
+- name: Check if graphical-user tag is present
+  fail:
+    msg: "Browser installation requires graphical-user tag since all browsers need GUI environment. Please run with --tags graphical-user,browsers"
+  when:
+    - "'graphical-user' not in ansible_run_tags"
+    - ansible_run_tags != ['all']
+  tags: always
+
+- name: Detect if graphical environment is available
+  block:
+    - name: Check for graphical environment on Linux
+      command: echo $DISPLAY
+      register: display_check
+      failed_when: false
+      changed_when: false
+      when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+
+    - name: Check for graphical environment on Windows
+      win_shell: Get-Process explorer -ErrorAction SilentlyContinue
+      register: explorer_check
+      failed_when: false
+      changed_when: false
+      when: ansible_os_family == 'Windows'
+
+    - name: Check for graphical environment on macOS
+      command: ps aux | grep -v grep | grep WindowServer
+      register: windowserver_check
+      failed_when: false
+      changed_when: false
+      when: ansible_os_family == 'Darwin'
+
+- name: Set graphical environment availability
+  set_fact:
+    gui_available: >-
+      {{
+        not (
+          (ansible_os_family in ['Debian', 'RedHat', 'Archlinux'] and (display_check.stdout == "" or display_check.rc != 0)) or
+          (ansible_os_family == 'Windows' and explorer_check.rc != 0) or
+          (ansible_os_family == 'Darwin' and windowserver_check.rc != 0)
+        )
+      }}
+
+- name: Skip browser installation if no GUI available
+  debug:
+    msg: "Skipping browser installation - no graphical environment detected"
+  when: not gui_available
+
+- name: Install browsers
+  include_tasks: "{{ item }}.yml"
+  loop: "{{ browsers_to_install }}"
+  when: browsers_enabled and gui_available
+  tags:
+    - browsers
+    - "{{ item }}"
+
+- name: Display installation summary
+  debug:
+    msg: "Browser installation completed. Installed: {{ browsers_to_install | join(', ') }}"
+  when: browsers_enabled and gui_available

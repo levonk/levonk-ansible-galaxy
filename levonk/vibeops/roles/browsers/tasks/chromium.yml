@@ -1,0 +1,46 @@
+---
+# Chromium installation and configuration
+
+- name: Install Chromium
+  block:
+    - name: Install Chromium on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.chromium.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install Chromium on macOS
+      homebrew_cask:
+        name: "{{ browsers.chromium.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Install Chromium on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.chromium.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install Chromium on RedHat/CentOS/Fedora
+      package:
+        name: "{{ browsers.chromium.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install Chromium on Arch Linux
+      pacman:
+        name: "{{ browsers.chromium.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log Chromium installation failure
+      debug:
+        msg: "Chromium installation failed, continuing with other browsers"
+
+- name: Configure Chromium
+  debug:
+    msg: "Chromium configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled
