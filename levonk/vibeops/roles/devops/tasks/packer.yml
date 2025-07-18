@@ -1,0 +1,57 @@
+---
+# tasks file for installing Packer
+
+- name: Block for Debian-based systems
+  tags:
+    - devops
+    - packer
+  block:
+    - name: Install prerequisites for HashiCorp repository
+      apt:
+        name:
+          - gpg
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Add HashiCorp GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: Ensure HashiCorp repository is configured for Packer
+      apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+
+    - name: Install Packer on Debian
+      apt:
+        name: packer
+        state: present
+        update_cache: yes
+  when: ansible_os_family == 'Debian'
+
+- name: Block for macOS (Darwin)
+  tags:
+    - devops
+    - packer
+  block:
+    - name: Ensure hashicorp/tap is tapped for Packer
+      community.general.homebrew_tap:
+        name: hashicorp/tap
+        state: present
+
+    - name: Install Packer on macOS
+      community.general.homebrew:
+        name: packer
+        state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install Packer on Windows
+  tags:
+    - devops
+    - packer
+  win_chocolatey:
+    name: packer
+    state: present
+  when: ansible_os_family == 'Windows'

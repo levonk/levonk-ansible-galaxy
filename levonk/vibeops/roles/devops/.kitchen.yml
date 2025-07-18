@@ -1,0 +1,23 @@
+---
+driver:
+  name: vagrant
+
+provisioner:
+  name: ansible_playbook
+  roles_path: ../
+  hosts: all
+  ansible_verbose: true
+  require_ansible_repo: false
+  require_chef_for_busser: false
+
+platforms:
+  - name: debian-11
+    driver:
+      box: debian/bullseye64
+
+suites:
+  - name: default
+    provisioner:
+      playbook: test/integration/default/test.yml
+    verifier:
+      name: ansible

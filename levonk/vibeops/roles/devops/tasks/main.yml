@@ -1,0 +1,8 @@
+---
+# tasks file for devops role
+
+- name: Install Packer
+  include_tasks: packer.yml
+
+- name: Install Vagrant
+  include_tasks: vagrant.yml

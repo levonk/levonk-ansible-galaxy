@@ -1,0 +1,24 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Verify Packer installation
+      command: "packer --version"
+      changed_when: false
+      register: packer_version
+
+    - name: Display Packer version
+      debug:
+        msg: "Packer version: {{ packer_version.stdout }}"
+
+    - name: Verify Vagrant installation
+      command: "vagrant --version"
+      changed_when: false
+      register: vagrant_version
+
+    - name: Display Vagrant version
+      debug:
+        msg: "Vagrant version: {{ vagrant_version.stdout }}"

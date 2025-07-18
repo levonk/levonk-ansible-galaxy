@@ -32,6 +32,8 @@ jobs:
             path: levonk/user_setup/roles/chezmoi
           - name: wsl_setup
             path: levonk/vibeops/roles/wsl_setup
+          - name: devops
+            path: levonk/vibeops/roles/devops
 
     steps:
       - name: Check out the codebase

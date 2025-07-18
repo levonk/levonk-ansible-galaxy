@@ -1,0 +1,6 @@
+---
+- name: Test devops role
+  hosts: all
+  become: true
+  roles:
+    - role: devops
