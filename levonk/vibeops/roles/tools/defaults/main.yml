@@ -9,3 +9,22 @@ tools_install_sublime_text: false
 tools_install_espanso: false
 tools_install_speech_tools: false
 
+# macOS-specific tools (default: true for better macOS experience)
+tools_install_alttab: true
+tools_install_stats: true
+tools_install_hidden: true
+tools_install_itsycal: true
+tools_install_timeout: true
+tools_install_keepingyouawake: true
+tools_install_keka: true
+
+# Windows-specific tools (default: true for better Windows experience)
+tools_install_powertoys: true
+tools_install_winget: true
+tools_install_windows_terminal: true
+tools_install_everything: true
+tools_install_autohotkey: true
+tools_install_sysinternals: true
+tools_install_sharex: true
+tools_install_notepadplusplus: true
+

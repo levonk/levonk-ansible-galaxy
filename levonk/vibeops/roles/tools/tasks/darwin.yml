@@ -1,0 +1,108 @@
+---
+# macOS-specific tools installation tasks
+
+- name: Install AltTab - Windows alt-tab on macOS
+  community.general.homebrew_cask:
+    name: alt-tab
+    state: present
+  when: tools_install_alttab | default(true)
+  tags:
+    - tools
+    - darwin
+    - alttab
+    - window_management
+
+- name: Install Stats - System monitor for macOS
+  community.general.homebrew_cask:
+    name: stats
+    state: present
+  when: tools_install_stats | default(true)
+  tags:
+    - tools
+    - darwin
+    - stats
+    - system_monitor
+
+- name: Install Hidden - Hide menu bar items
+  community.general.homebrew_cask:
+    name: hidden-bar
+    state: present
+  when: tools_install_hidden | default(true)
+  tags:
+    - tools
+    - darwin
+    - hidden
+    - menu_bar
+
+- name: Install Itsycal - Menu bar calendar
+  community.general.homebrew_cask:
+    name: itsycal
+    state: present
+  when: tools_install_itsycal | default(true)
+  tags:
+    - tools
+    - darwin
+    - itsycal
+    - calendar
+
+- name: Install Time Out - Break reminder
+  community.general.homebrew_cask:
+    name: time-out
+    state: present
+  when: tools_install_timeout | default(true)
+  tags:
+    - tools
+    - darwin
+    - timeout
+    - break_reminder
+
+- name: Install KeepingYouAwake - Prevent sleep
+  community.general.homebrew_cask:
+    name: keepingyouawake
+    state: present
+  when: tools_install_keepingyouawake | default(true)
+  tags:
+    - tools
+    - darwin
+    - keepingyouawake
+    - sleep_prevention
+
+- name: Install Keka - File archiver
+  community.general.homebrew_cask:
+    name: keka
+    state: present
+  when: tools_install_keka | default(true)
+  tags:
+    - tools
+    - darwin
+    - keka
+    - archiver
+
+- name: Display macOS tools installation summary
+  debug:
+    msg: |
+      macOS productivity tools installed:
+      {% if tools_install_alttab | default(true) %}
+      - AltTab: Windows-style alt-tab switcher
+      {% endif %}
+      {% if tools_install_stats | default(true) %}
+      - Stats: System monitor in menu bar
+      {% endif %}
+      {% if tools_install_hidden | default(true) %}
+      - Hidden: Hide/show menu bar items
+      {% endif %}
+      {% if tools_install_itsycal | default(true) %}
+      - Itsycal: Menu bar calendar
+      {% endif %}
+      {% if tools_install_timeout | default(true) %}
+      - Time Out: Break reminder tool
+      {% endif %}
+      {% if tools_install_keepingyouawake | default(true) %}
+      - KeepingYouAwake: Prevent system sleep
+      {% endif %}
+      {% if tools_install_keka | default(true) %}
+      - Keka: File archiver and compressor
+      {% endif %}
+  tags:
+    - tools
+    - darwin

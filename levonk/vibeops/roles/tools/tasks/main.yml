@@ -1,6 +1,18 @@
 ---
 # tasks file for levonk.vibeops.tools
 
+- name: Install macOS-specific tools
+  ansible.builtin.include_tasks: darwin.yml
+  when:
+    - ansible_os_family == 'Darwin'
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Windows-specific tools
+  ansible.builtin.include_tasks: windows.yml
+  when:
+    - ansible_os_family == 'Windows'
+    - "'graphical' in ansible_run_tags"
+
 - name: Install OS-specific clipboard managers
   ansible.builtin.include_tasks: clipboard_managers.yml
   when: "'graphical' in ansible_run_tags"

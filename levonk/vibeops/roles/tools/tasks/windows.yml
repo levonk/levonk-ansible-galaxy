@@ -1,0 +1,121 @@
+---
+# Windows-specific tools installation tasks
+
+- name: Install PowerToys - Windows system utilities
+  win_chocolatey:
+    name: powertoys
+    state: present
+  when: tools_install_powertoys | default(true)
+  tags:
+    - tools
+    - windows
+    - powertoys
+    - system_utilities
+
+- name: Install WinGet - Windows package manager
+  win_chocolatey:
+    name: winget
+    state: present
+  when: tools_install_winget | default(true)
+  tags:
+    - tools
+    - windows
+    - winget
+    - package_manager
+
+- name: Install Windows Terminal
+  win_chocolatey:
+    name: microsoft-windows-terminal
+    state: present
+  when: tools_install_windows_terminal | default(true)
+  tags:
+    - tools
+    - windows
+    - terminal
+
+- name: Install Everything - File search
+  win_chocolatey:
+    name: everything
+    state: present
+  when: tools_install_everything | default(true)
+  tags:
+    - tools
+    - windows
+    - everything
+    - file_search
+
+- name: Install AutoHotkey - Automation scripting
+  win_chocolatey:
+    name: autohotkey
+    state: present
+  when: tools_install_autohotkey | default(true)
+  tags:
+    - tools
+    - windows
+    - autohotkey
+    - automation
+
+- name: Install Sysinternals Suite
+  win_chocolatey:
+    name: sysinternals
+    state: present
+  when: tools_install_sysinternals | default(true)
+  tags:
+    - tools
+    - windows
+    - sysinternals
+    - system_tools
+
+- name: Install ShareX - Screenshot and screen recording
+  win_chocolatey:
+    name: sharex
+    state: present
+  when: tools_install_sharex | default(true)
+  tags:
+    - tools
+    - windows
+    - sharex
+    - screenshot
+
+- name: Install Notepad++ - Text editor
+  win_chocolatey:
+    name: notepadplusplus
+    state: present
+  when: tools_install_notepadplusplus | default(true)
+  tags:
+    - tools
+    - windows
+    - notepadplusplus
+    - text_editor
+
+- name: Display Windows tools installation summary
+  debug:
+    msg: |
+      Windows productivity tools installed:
+      {% if tools_install_powertoys | default(true) %}
+      - PowerToys: Windows system utilities and enhancements
+      {% endif %}
+      {% if tools_install_winget | default(true) %}
+      - WinGet: Windows package manager
+      {% endif %}
+      {% if tools_install_windows_terminal | default(true) %}
+      - Windows Terminal: Modern terminal application
+      {% endif %}
+      {% if tools_install_everything | default(true) %}
+      - Everything: Instant file and folder search
+      {% endif %}
+      {% if tools_install_autohotkey | default(true) %}
+      - AutoHotkey: Automation and scripting tool
+      {% endif %}
+      {% if tools_install_sysinternals | default(true) %}
+      - Sysinternals Suite: Advanced system utilities
+      {% endif %}
+      {% if tools_install_sharex | default(true) %}
+      - ShareX: Screenshot and screen recording tool
+      {% endif %}
+      {% if tools_install_notepadplusplus | default(true) %}
+      - Notepad++: Advanced text editor
+      {% endif %}
+  tags:
+    - tools
+    - windows
