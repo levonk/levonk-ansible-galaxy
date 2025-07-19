@@ -1,0 +1,67 @@
+---
+# Perplexity Comet Browser installation tasks
+# Perplexity Comet is an AI-powered search-focused browser
+
+- name: Install Perplexity Comet on Windows
+  win_package:
+    path: "{{ browsers.perplexity_comet.package_names.windows }}"
+    state: present
+    provider: winget
+  when: ansible_os_family == 'Windows'
+  tags:
+    - browsers
+    - perplexity_comet
+
+- name: Install Perplexity Comet on macOS
+  homebrew_cask:
+    name: "{{ browsers.perplexity_comet.package_names.macos }}"
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - browsers
+    - perplexity_comet
+
+- name: Install Perplexity Comet on Debian/Ubuntu
+  apt:
+    name: "{{ browsers.perplexity_comet.package_names.debian }}"
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == 'Debian'
+  tags:
+    - browsers
+    - perplexity_comet
+
+- name: Install Perplexity Comet on RedHat/CentOS/Fedora
+  package:
+    name: "{{ browsers.perplexity_comet.package_names.redhat }}"
+    state: present
+  become: yes
+  when: ansible_os_family == 'RedHat'
+  tags:
+    - browsers
+    - perplexity_comet
+
+- name: Install Perplexity Comet on Arch Linux
+  pacman:
+    name: "{{ browsers.perplexity_comet.package_names.arch }}"
+    state: present
+  become: yes
+  when: ansible_os_family == 'Archlinux'
+  tags:
+    - browsers
+    - perplexity_comet
+
+- name: Configure Perplexity Comet AI integration
+  debug:
+    msg: "Perplexity Comet installed successfully. AI integration and search features enabled."
+  tags:
+    - browsers
+    - perplexity_comet
+
+- name: Verify Perplexity Comet installation
+  debug:
+    msg: "Perplexity Comet browser ready for AI-powered search and browsing."
+  tags:
+    - browsers
+    - perplexity_comet

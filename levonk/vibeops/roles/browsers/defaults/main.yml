@@ -15,6 +15,9 @@ browsers_to_install:
   - brave
   - dia
   - browser_os
+  - ladybird
+  - opera_neon
+  - perplexity_comet
 
 # Browser configuration definitions
 browsers:
@@ -153,6 +156,50 @@ browsers:
     config_method: "web_based"
     settings:
       cloud_sync: true
+
+  ladybird:
+    name: "Ladybird Browser"
+    package_names:
+      windows: "SerenityOS.Ladybird"
+      macos: "ladybird"
+      debian: "ladybird"
+      redhat: "ladybird"
+      arch: "ladybird-git"
+    config_method: "file_based"
+    settings:
+      developer_mode: true
+      privacy_focused: true
+      javascript_enabled: true
+
+  opera_neon:
+    name: "Opera Neon"
+    package_names:
+      windows: "Opera.OperaNeon"
+      macos: "opera-neon"
+      debian: "opera-neon"
+      redhat: "opera-neon"
+      arch: "opera-neon"
+    config_method: "preferences_file"
+    config_path: "~/.config/opera-neon/Preferences"
+    settings:
+      theme: "dark"
+      experimental_features: true
+      visual_tabs: true
+      telemetry: false
+
+  perplexity_comet:
+    name: "Perplexity Comet"
+    package_names:
+      windows: "Perplexity.Comet"
+      macos: "perplexity-comet"
+      debian: "perplexity-comet"
+      redhat: "perplexity-comet"
+      arch: "perplexity-comet"
+    config_method: "web_based"
+    settings:
+      ai_integration: true
+      search_focused: true
+      privacy_mode: true
 
 # Package manager configuration
 package_managers:

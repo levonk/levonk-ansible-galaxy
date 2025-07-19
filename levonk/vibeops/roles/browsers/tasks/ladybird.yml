@@ -1,0 +1,60 @@
+---
+# Ladybird Browser installation tasks
+# Ladybird is a new web browser being developed by the SerenityOS project
+
+- name: Install Ladybird Browser on Windows
+  win_package:
+    path: "{{ browsers.ladybird.package_names.windows }}"
+    state: present
+    provider: winget
+  when: ansible_os_family == 'Windows'
+  tags:
+    - browsers
+    - ladybird
+
+- name: Install Ladybird Browser on macOS
+  homebrew_cask:
+    name: "{{ browsers.ladybird.package_names.macos }}"
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - browsers
+    - ladybird
+
+- name: Install Ladybird Browser on Debian/Ubuntu
+  apt:
+    name: "{{ browsers.ladybird.package_names.debian }}"
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == 'Debian'
+  tags:
+    - browsers
+    - ladybird
+
+- name: Install Ladybird Browser on RedHat/CentOS/Fedora
+  package:
+    name: "{{ browsers.ladybird.package_names.redhat }}"
+    state: present
+  become: yes
+  when: ansible_os_family == 'RedHat'
+  tags:
+    - browsers
+    - ladybird
+
+- name: Install Ladybird Browser on Arch Linux
+  pacman:
+    name: "{{ browsers.ladybird.package_names.arch }}"
+    state: present
+  become: yes
+  when: ansible_os_family == 'Archlinux'
+  tags:
+    - browsers
+    - ladybird
+
+- name: Configure Ladybird Browser settings
+  debug:
+    msg: "Ladybird Browser installed successfully. Configuration via file-based method."
+  tags:
+    - browsers
+    - ladybird

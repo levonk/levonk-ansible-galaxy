@@ -1,0 +1,71 @@
+---
+# Opera Neon Browser installation tasks
+# Opera Neon is an experimental concept browser by Opera
+
+- name: Install Opera Neon on Windows
+  win_package:
+    path: "{{ browsers.opera_neon.package_names.windows }}"
+    state: present
+    provider: winget
+  when: ansible_os_family == 'Windows'
+  tags:
+    - browsers
+    - opera_neon
+
+- name: Install Opera Neon on macOS
+  homebrew_cask:
+    name: "{{ browsers.opera_neon.package_names.macos }}"
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - browsers
+    - opera_neon
+
+- name: Install Opera Neon on Debian/Ubuntu
+  apt:
+    name: "{{ browsers.opera_neon.package_names.debian }}"
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == 'Debian'
+  tags:
+    - browsers
+    - opera_neon
+
+- name: Install Opera Neon on RedHat/CentOS/Fedora
+  package:
+    name: "{{ browsers.opera_neon.package_names.redhat }}"
+    state: present
+  become: yes
+  when: ansible_os_family == 'RedHat'
+  tags:
+    - browsers
+    - opera_neon
+
+- name: Install Opera Neon on Arch Linux
+  pacman:
+    name: "{{ browsers.opera_neon.package_names.arch }}"
+    state: present
+  become: yes
+  when: ansible_os_family == 'Archlinux'
+  tags:
+    - browsers
+    - opera_neon
+
+- name: Configure Opera Neon preferences
+  template:
+    src: opera_neon_preferences.json.j2
+    dest: "{{ browsers.opera_neon.config_path }}"
+    mode: '0644'
+  when: browsers.opera_neon.config_path is defined
+  tags:
+    - browsers
+    - opera_neon
+    - config
+
+- name: Display Opera Neon installation status
+  debug:
+    msg: "Opera Neon installed successfully with experimental features enabled."
+  tags:
+    - browsers
+    - opera_neon
