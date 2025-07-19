@@ -4,6 +4,27 @@ This role provides fundamental system setup and configuration across platforms, 
 
 ## Features
 
+### JetBrains Mono Nerd Font (All OS)
+
+Installs the latest patched, full JetBrains Mono Nerd Font from the official Nerd Fonts website for all users on Windows, macOS, and Linux. Ensures consistent developer experience and full glyph support in terminals and editors.
+
+- **Feature defined in:** `docs/requirements/gherkin/jetbrains-mono-nerd-font.feature`
+- **Tags:** `font`, `nerd-font`, `jetbrains`, `base_system`, `all_os`
+- **Testing:** Molecule scenario should verify font presence and configuration for all OSes.
+- **Idempotency:** Font install is safe to run repeatedly; does not duplicate or corrupt fonts.
+- **Security:** No insecure script execution; relies on official releases.
+- **Configuration:** Attempts to set as default in terminals/editors where possible (see TODO in code).
+
+### Default Shell for New Users (Debian/Ubuntu)
+
+New users created via `adduser` will have `/usr/bin/zsh` as their default shell, providing a modern interactive shell experience by default. Existing users' shells are not modified.
+
+- **Feature defined in:** `docs/requirements/gherkin/default-shell-zsh.feature`
+- **Configuration:** Sets `DSHELL=/usr/bin/zsh` in `/etc/adduser.conf`
+- **Tags:** `shell`, `zsh`, `base_system`, `useradd`
+- **Testing:** Molecule scenario verifies zsh install, config, and user shell assignment.
+- **Idempotency:** Task is safe to run repeatedly and does not affect current users.
+
 ### Windows Package Manager Installation
 
 Automatically installs WinGet (Windows Package Manager) on Windows systems to provide modern package management capabilities.

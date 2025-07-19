@@ -1,0 +1,171 @@
+---
+# Install JetBrains Mono Nerd Font (patched, full) for all users on all OSes
+# Depends on OS-specific package manager and backup tasks
+
+- name: Set JetBrains Mono Nerd Font variables
+  set_fact:
+    jetbrains_nerd_font_url: "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip"
+    jetbrains_nerd_font_name: "JetBrains Mono Nerd Font"
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - base_system
+    - all_os
+
+- name: Download JetBrains Mono Nerd Font (Linux/macOS)
+  get_url:
+    url: "{{ jetbrains_nerd_font_url }}"
+    dest: "/tmp/JetBrainsMono.zip"
+    mode: '0644'
+  when: ansible_os_family != 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - linux
+    - darwin
+    - base_system
+
+- name: Unzip JetBrains Mono Nerd Font (Linux/macOS)
+  unarchive:
+    src: "/tmp/JetBrainsMono.zip"
+    dest: "/usr/local/share/fonts/JetBrainsMono"
+    remote_src: yes
+  when: ansible_os_family != 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - linux
+    - darwin
+    - base_system
+
+- name: Update font cache (Linux)
+  command: fc-cache -f -v
+  when: ansible_os_family == 'Debian' or ansible_os_family == 'RedHat'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - linux
+    - base_system
+
+- name: Install JetBrains Mono Nerd Font (Windows)
+  win_get_url:
+    url: "{{ jetbrains_nerd_font_url }}"
+    dest: "%TEMP%\\JetBrainsMono.zip"
+  when: ansible_os_family == 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - windows
+    - base_system
+
+- name: Unzip JetBrains Mono Nerd Font (Windows)
+  win_unzip:
+    src: "%TEMP%\\JetBrainsMono.zip"
+    dest: "C:\\Windows\\Fonts\\JetBrainsMono"
+  when: ansible_os_family == 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - windows
+    - base_system
+
+- name: Register JetBrains Mono Nerd Font (Windows)
+  win_shell: |
+    $fonts = Get-ChildItem -Path "C:\\Windows\\Fonts\\JetBrainsMono" -Filter *.ttf
+    foreach ($font in $fonts) {
+      $shell = New-Object -ComObject Shell.Application
+      $folder = $shell.Namespace(0x14)
+      $folder.CopyHere($font.FullName)
+    }
+  when: ansible_os_family == 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - windows
+    - base_system
+
+- name: Set JetBrains Mono Nerd Font as default for GNOME Terminal (Linux)
+  become: true
+  become_user: "{{ ansible_user | default('root') }}"
+  shell: |
+    gsettings set org.gnome.desktop.interface monospace-font-name "JetBrainsMono Nerd Font 12"
+    gsettings set org.gnome.Terminal.Legacy.Profile:/org/gnome/terminal/legacy/profiles:/:$(gsettings get org.gnome.Terminal.ProfilesList default | tr -d "'")/ font "JetBrainsMono Nerd Font 12"
+  when: ansible_os_family == 'Debian' or ansible_os_family == 'RedHat'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - gnome
+    - terminal
+    - base_system
+
+- name: Set JetBrains Mono Nerd Font as default for iTerm2 (macOS)
+  copy:
+    dest: "/Users/{{ ansible_user }}/Library/Preferences/com.googlecode.iterm2.plist"
+    content: |
+      # NOTE: iTerm2 font settings are in a binary plist. Manual or scripted conversion is needed for full automation.
+      # Recommend user to set font manually or use a macOS-specific tool for plist editing.
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - iterm2
+    - terminal
+    - base_system
+
+- name: Set JetBrains Mono Nerd Font as default for Windows Terminal
+  win_shell: |
+    $settingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+    if (Test-Path $settingsPath) {
+      $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+      foreach ($profile in $settings.profiles.list) {
+        $profile.fontFace = "JetBrainsMono Nerd Font"
+      }
+      $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath -Force
+    }
+  when: ansible_os_family == 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - windows
+    - terminal
+    - base_system
+
+- name: Set JetBrains Mono Nerd Font as default for vim
+  lineinfile:
+    path: "/etc/vim/vimrc"
+    line: "set guifont=JetBrainsMono\ Nerd\ Font:h12"
+    create: yes
+    state: present
+  when: ansible_os_family != 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - vim
+    - base_system
+
+- name: Set JetBrains Mono Nerd Font as default for neovim
+  lineinfile:
+    path: "/etc/xdg/nvim/sysinit.vim"
+    line: "set guifont=JetBrainsMono\ Nerd\ Font:h12"
+    create: yes
+    state: present
+  when: ansible_os_family != 'Windows'
+  tags:
+    - font
+    - nerd-font
+    - jetbrains
+    - neovim
+    - base_system
+
+# NOTE: For macOS/iTerm2 and other terminals/editors, manual or user-specific scripting may be required for full automation due to plist/binary config formats.

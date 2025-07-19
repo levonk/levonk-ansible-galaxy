@@ -12,3 +12,6 @@
 - name: Include Windows tasks
   include_tasks: windows.yml
   when: ansible_facts['os_family'] == 'Windows'
+
+- name: Install JetBrains Mono Nerd Font (all OS)
+  include_tasks: fonts.yml
