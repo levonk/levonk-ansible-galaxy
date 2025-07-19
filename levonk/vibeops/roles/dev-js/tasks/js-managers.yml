@@ -1,0 +1,64 @@
+---
+- name: Install fnm (Fast Node Manager) on Linux/macOS
+  ansible.builtin.shell: |
+    curl -fsSL https://fnm.vercel.app/install | bash
+  args:
+    creates: ~/.fnm/fnm
+  when:
+    - dev_js_install_fnm | default(true)
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+- name: Install fnm (Fast Node Manager) on Windows (Scoop)
+  win_shell: scoop install fnm
+  when:
+    - dev_js_install_fnm | default(true)
+    - ansible_facts['os_family'] == 'Windows'
+    - lookup('ansible.builtin.env', 'SCOOP') != ''
+
+- name: Install fnm (Fast Node Manager) on Windows (Chocolatey fallback)
+  ansible.windows.win_chocolatey:
+    name: fnm
+    state: present
+  when:
+    - dev_js_install_fnm | default(true)
+    - ansible_facts['os_family'] == 'Windows'
+    - lookup('ansible.builtin.env', 'SCOOP') == ''
+
+- name: Install pnpm globally
+  ansible.builtin.shell: npm install -g pnpm
+  args:
+    creates: /usr/local/bin/pnpm
+  when:
+    - dev_js_install_pnpm | default(true)
+    - ansible_facts['os_family'] != 'Windows'
+
+- name: Install pnpm globally (Windows)
+  win_shell: npm install -g pnpm
+  args:
+    creates: C:\\Program Files\\nodejs\\pnpm.cmd
+  when:
+    - dev_js_install_pnpm | default(true)
+    - ansible_facts['os_family'] == 'Windows'
+
+- name: Enable corepack for yarn/pnpm (Node >=16.10)
+  ansible.builtin.shell: corepack enable
+yarn
+  when:
+    - dev_js_install_yarn | default(true)
+    - ansible_facts['os_family'] != 'Windows'
+
+- name: Install yarn globally (fallback)
+  ansible.builtin.shell: npm install -g yarn
+  args:
+    creates: /usr/local/bin/yarn
+  when:
+    - dev_js_install_yarn | default(true)
+    - ansible_facts['os_family'] != 'Windows'
+
+- name: Install yarn globally (Windows)
+  win_shell: npm install -g yarn
+  args:
+    creates: C:\\Program Files\\nodejs\\yarn.cmd
+  when:
+    - dev_js_install_yarn | default(true)
+    - ansible_facts['os_family'] == 'Windows'

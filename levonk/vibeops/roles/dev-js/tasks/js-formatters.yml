@@ -1,0 +1,16 @@
+---
+- name: Install Prettier globally (Linux/macOS)
+  ansible.builtin.shell: npm install -g prettier
+  args:
+    creates: /usr/local/bin/prettier
+  when:
+    - dev_js_install_prettier | default(true)
+    - ansible_facts['os_family'] != 'Windows'
+
+- name: Install Prettier globally (Windows)
+  win_shell: npm install -g prettier
+  args:
+    creates: C:\\Program Files\\nodejs\\prettier.cmd
+  when:
+    - dev_js_install_prettier | default(true)
+    - ansible_facts['os_family'] == 'Windows'

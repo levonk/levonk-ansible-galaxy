@@ -1,0 +1,16 @@
+---
+- name: Install ESLint globally (Linux/macOS)
+  ansible.builtin.shell: npm install -g eslint
+  args:
+    creates: /usr/local/bin/eslint
+  when:
+    - dev_js_install_eslint | default(true)
+    - ansible_facts['os_family'] != 'Windows'
+
+- name: Install ESLint globally (Windows)
+  win_shell: npm install -g eslint
+  args:
+    creates: C:\\Program Files\\nodejs\\eslint.cmd
+  when:
+    - dev_js_install_eslint | default(true)
+    - ansible_facts['os_family'] == 'Windows'

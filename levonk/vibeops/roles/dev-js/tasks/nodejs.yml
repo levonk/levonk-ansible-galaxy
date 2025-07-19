@@ -1,0 +1,24 @@
+---
+- name: Ensure Node.js is installed (Linux)
+  ansible.builtin.package:
+    name: nodejs
+    state: present
+  when:
+    - dev_js_install_nodejs | default(true)
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Ensure npm is installed (Linux)
+  ansible.builtin.package:
+    name: npm
+    state: present
+  when:
+    - dev_js_install_nodejs | default(true)
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Ensure Node.js is installed (Windows)
+  ansible.windows.win_chocolatey:
+    name: nodejs
+    state: present
+  when:
+    - dev_js_install_nodejs | default(true)
+    - ansible_facts['os_family'] == 'Windows'

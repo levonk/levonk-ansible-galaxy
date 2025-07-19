@@ -1,0 +1,11 @@
+---
+# JS Dev role tool toggles (all default to true)
+dev_js_install_nodejs: true
+dev_js_install_fnm: true
+dev_js_install_pnpm: true
+dev_js_install_yarn: true
+dev_js_install_typescript: true
+dev_js_install_eslint: true
+dev_js_install_prettier: true
+dev_js_install_vite: true
+dev_js_install_create_react_app: true

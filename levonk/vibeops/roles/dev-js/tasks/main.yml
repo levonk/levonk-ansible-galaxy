@@ -1,18 +1,15 @@
 ---
-- name: Ensure Node.js is installed (Linux)
-  ansible.builtin.package:
-    name: nodejs
-    state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+- name: Include Node.js and npm installation
+  ansible.builtin.import_tasks: nodejs.yml
 
-- name: Ensure npm is installed (Linux)
-  ansible.builtin.package:
-    name: npm
-    state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+- name: Include JavaScript managers (fnm, pnpm, yarn)
+  ansible.builtin.import_tasks: js-managers.yml
 
-- name: Ensure Node.js is installed (Windows)
-  ansible.windows.win_chocolatey:
-    name: nodejs
-    state: present
-  when: ansible_facts['os_family'] == 'Windows'
+- name: Include JavaScript linters (eslint)
+  ansible.builtin.import_tasks: js-linters.yml
+
+- name: Include JavaScript formatters (prettier)
+  ansible.builtin.import_tasks: js-formatters.yml
+
+- name: Include JavaScript build tools (vite, CRA, typescript)
+  ansible.builtin.import_tasks: js-build-tools.yml
