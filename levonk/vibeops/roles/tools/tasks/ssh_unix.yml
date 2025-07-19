@@ -18,3 +18,36 @@
     name: openssh
     state: present
   when: ansible_os_family == 'Darwin'
+
+# Change SSH server port to 7722
+- name: Set SSHD to listen on port 7722 (Debian/RedHat/Arch)
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port '
+    line: 'Port 7722'
+    state: present
+    backup: yes
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+  notify: Restart sshd
+
+- name: Set SSHD to listen on port 7722 (macOS)
+  ansible.builtin.lineinfile:
+    path: /opt/homebrew/etc/ssh/sshd_config
+    regexp: '^#?Port '
+    line: 'Port 7722'
+    state: present
+    backup: yes
+  when: ansible_os_family == 'Darwin'
+  notify: Restart sshd
+
+# Open port 7722/tcp in the system firewall for SSH access
+- name: Open SSH port in firewall (7722/tcp)
+  ansible.builtin.include_role:
+    name: levonk.common.open_firewall_port
+  vars:
+    open_firewall_port_port: 7722
+    open_firewall_port_proto: tcp
+    open_firewall_port_service: "ssh"
+  tags:
+    - firewall
+    - ssh
