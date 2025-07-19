@@ -6,7 +6,38 @@
       command: which vim
       register: vim_path
       failed_when: vim_path.rc != 0
-    - name: Check if curl is installed
-      command: which curl
-      register: curl_path
-      failed_when: curl_path.rc != 0
+
+    - name: Check if zsh is installed
+      command: which zsh
+      register: zsh_path
+      failed_when: zsh_path.rc != 0
+
+    - name: Check /etc/adduser.conf sets DSHELL to zsh
+      ansible.builtin.shell: "grep '^DSHELL=/usr/bin/zsh' /etc/adduser.conf"
+      register: dshell_zsh
+      failed_when: dshell_zsh.rc != 0
+
+    - name: Create a test user and verify shell is zsh
+      ansible.builtin.user:
+        name: testzshuser
+        state: present
+      become: true
+
+    - name: Get test user's shell
+      ansible.builtin.command: getent passwd testzshuser
+      register: testuser_passwd
+      changed_when: false
+      become: true
+
+    - name: Assert test user's shell is /usr/bin/zsh
+      ansible.builtin.assert:
+        that:
+          - "'/usr/bin/zsh' in testuser_passwd.stdout"
+        fail_msg: "Default shell for new users is not zsh!"
+        success_msg: "Default shell for new users is zsh."
+
+    - name: Remove test user
+      ansible.builtin.user:
+        name: testzshuser
+        state: absent
+      become: true

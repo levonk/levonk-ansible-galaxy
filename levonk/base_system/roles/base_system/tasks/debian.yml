@@ -4,3 +4,26 @@
     name: "{{ base_system_packages }}"
     state: present
     update_cache: yes
+
+- name: Ensure zsh is installed
+  apt:
+    name: zsh
+    state: present
+  tags:
+    - shell
+    - zsh
+    - base_system
+
+- name: Set default shell for new users to zsh
+  lineinfile:
+    path: /etc/adduser.conf
+    regexp: '^DSHELL='
+    line: 'DSHELL=/usr/bin/zsh'
+    state: present
+    create: no
+    backup: yes
+  tags:
+    - shell
+    - zsh
+    - base_system
+    - useradd

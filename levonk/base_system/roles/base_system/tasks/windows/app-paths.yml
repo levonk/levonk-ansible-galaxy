@@ -1,0 +1,47 @@
+# Windows application paths configuration (duplicated from 0010-base-system)
+- name: Configure Windows default app installation paths
+  block:
+    - name: Ensure target directories exist
+      win_file:
+        path: '{{ item }}'
+        state: directory
+      loop:
+        - C:\apps\WinAp
+        - C:\apps\WinApX86
+      tags: ['windows', 'directories']
+
+    - name: Set default 64-bit app installation path
+      win_regedit:
+        path: HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion
+        name: ProgramFilesDir
+        data: 'C:\\apps\\WinAp'
+        type: string
+        state: present
+      tags: ['windows', 'registry']
+
+    - name: Set default 32-bit app installation path
+      win_regedit:
+        path: HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion
+        name: 'ProgramFilesDir (x86)'
+        data: 'C:\\apps\\WinApX86'
+        type: string
+        state: present
+      tags: ['windows', 'registry']
+
+    - name: Set default MSIX app installation path
+      win_regedit:
+        path: HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Appx
+        name: PackageRoot
+        data: 'C:\\apps\\WinAp\\WindowsApps'
+        type: string
+        state: present
+      tags: ['windows', 'registry', 'store']
+
+    - name: Set default Windows Store app installation path
+      win_shell: |
+        Set-ItemProperty -Path "HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Appx" -Name "PackageRoot" -Value "C:\\apps\\WinAp\\WindowsApps"
+        Set-ItemProperty -Path "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppHost" -Name "DownloadPath" -Value "C:\\apps\\WinAp\\WindowsApps"
+        Set-ItemProperty -Path "HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppHost" -Name "LocalPath" -Value "C:\\apps\\WinAp\\WindowsApps"
+      tags: ['windows', 'registry', 'store']
+  when: ansible_os_family == 'Windows'
+  tags: ['windows', 'apps', 'paths']

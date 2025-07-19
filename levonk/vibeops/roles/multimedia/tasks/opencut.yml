@@ -1,0 +1,103 @@
+---
+# Install OpenCut (https://github.com/OpenCut-app/OpenCut) for all supported OSes
+
+- name: Set OpenCut GitHub release URL
+  set_fact:
+    opencut_github_api: "https://api.github.com/repos/OpenCut-app/OpenCut/releases/latest"
+  tags:
+    - multimedia
+    - opencut
+    - video
+    - editor
+    - all_os
+
+- name: Get latest OpenCut release info
+  uri:
+    url: "{{ opencut_github_api }}"
+    return_content: yes
+  register: opencut_release
+  tags:
+    - multimedia
+    - opencut
+    - video
+    - editor
+    - all_os
+
+- name: Set OpenCut asset URLs
+  set_fact:
+    opencut_assets: "{{ opencut_release.json.assets }}"
+    opencut_linux_url: "{{ opencut_assets | selectattr('name', 'search', 'AppImage') | map(attribute='browser_download_url') | list | first }}"
+    opencut_mac_url: "{{ opencut_assets | selectattr('name', 'search', 'mac') | map(attribute='browser_download_url') | list | first }}"
+    opencut_win_url: "{{ opencut_assets | selectattr('name', 'search', 'setup.exe') | map(attribute='browser_download_url') | list | first }}"
+  tags:
+    - multimedia
+    - opencut
+    - video
+    - editor
+    - all_os
+
+- name: Download and install OpenCut (Linux)
+  block:
+    - name: Download OpenCut AppImage
+      get_url:
+        url: "{{ opencut_linux_url }}"
+        dest: "/usr/local/bin/OpenCut.AppImage"
+        mode: '0755'
+      when: ansible_os_family != 'Windows' and ansible_os_family != 'Darwin'
+    - name: Create OpenCut desktop entry (Linux)
+      copy:
+        dest: "/usr/share/applications/opencut.desktop"
+        content: |
+          [Desktop Entry]
+          Name=OpenCut
+          Exec=/usr/local/bin/OpenCut.AppImage
+          Icon=video-editor
+          Type=Application
+          Categories=AudioVideo;Video;Editor;
+      when: ansible_os_family != 'Windows' and ansible_os_family != 'Darwin'
+  tags:
+    - multimedia
+    - opencut
+    - video
+    - editor
+    - linux
+
+- name: Download and install OpenCut (macOS)
+  block:
+    - name: Download OpenCut for macOS
+      get_url:
+        url: "{{ opencut_mac_url }}"
+        dest: "/tmp/OpenCut-mac.zip"
+        mode: '0644'
+      when: ansible_os_family == 'Darwin'
+    - name: Unarchive OpenCut for macOS
+      unarchive:
+        src: "/tmp/OpenCut-mac.zip"
+        dest: "/Applications"
+        remote_src: yes
+      when: ansible_os_family == 'Darwin'
+  tags:
+    - multimedia
+    - opencut
+    - video
+    - editor
+    - darwin
+
+- name: Download and install OpenCut (Windows)
+  block:
+    - name: Download OpenCut installer (Windows)
+      win_get_url:
+        url: "{{ opencut_win_url }}"
+        dest: "%TEMP%\\OpenCut-setup.exe"
+      when: ansible_os_family == 'Windows'
+    - name: Install OpenCut (Windows)
+      win_package:
+        path: "%TEMP%\\OpenCut-setup.exe"
+        state: present
+      when: ansible_os_family == 'Windows'
+  tags:
+    - multimedia
+    - opencut
+    - video
+    - editor
+    - windows

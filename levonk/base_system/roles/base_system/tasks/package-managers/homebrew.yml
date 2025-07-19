@@ -1,0 +1,57 @@
+# Homebrew package manager configuration (macOS)
+- name: Check if Homebrew is installed
+  stat:
+    path: /opt/homebrew/bin/brew
+  register: homebrew_stat
+  tags: ['packages', 'homebrew', 'macos']
+
+- name: Install Homebrew using vetted installer
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    vet_script_url: "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+    vet_script_dest: "/tmp/homebrew-install.sh"
+    vet_script_args: ""
+  when: not homebrew_stat.stat.exists
+  tags: ['packages', 'homebrew', 'macos']
+
+- name: Add Homebrew to PATH for the current shell
+  shell: |
+    echo 'eval "$('/opt/homebrew/bin/brew' shellenv)"' >> ~/.zshrc
+    eval "$('/opt/homebrew/bin/brew' shellenv)"
+  args:
+    executable: /bin/zsh
+  when:
+    - ansible_os_family == 'Darwin'
+    - ansible_user_shell is search('zsh')
+  tags: ['packages', 'homebrew', 'macos']
+
+- name: Add Homebrew to PATH for bash
+  shell: |
+    echo 'eval "$('/opt/homebrew/bin/brew' shellenv)"' >> ~/.bash_profile
+    eval "$('/opt/homebrew/bin/brew' shellenv)"
+  args:
+    executable: /bin/bash
+  when:
+    - ansible_os_family == 'Darwin'
+    - ansible_user_shell is search('bash')
+  tags: ['packages', 'homebrew', 'macos']
+
+- name: Update Homebrew
+  homebrew:
+    update_homebrew: yes
+  when: ansible_os_family == 'Darwin'
+  tags: ['packages', 'homebrew', 'macos']
+
+- name: Install Homebrew packages
+  homebrew:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ homebrew_packages | default([]) }}"
+  when:
+    - ansible_os_family == 'Darwin'
+    - homebrew_packages is defined
+  tags: ['packages', 'homebrew', 'macos']
+
+# Security: Homebrew install script is vetted before execution using levonk.common.vet_script_installer.
+# All macOS package management and essential package installation is handled here.

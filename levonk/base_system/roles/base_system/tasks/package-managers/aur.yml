@@ -1,0 +1,136 @@
+# AUR (Arch User Repository) package manager setup
+# Uses yay as the AUR helper
+
+- name: Check if running on Arch Linux
+  stat:
+    path: /etc/arch-release
+  register: arch_release
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Install base-devel and git (required for AUR)
+  pacman:
+    name:
+      - base-devel
+      - git
+    state: present
+    update_cache: yes
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Create build user for AUR packages
+  user:
+    name: builduser
+    create_home: yes
+    home: /home/builduser
+    shell: /bin/bash
+    system: yes
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Configure sudo for build user (no password for pacman)
+  lineinfile:
+    path: /etc/sudoers.d/10-builduser
+    line: 'builduser ALL=(ALL) NOPASSWD: /usr/bin/pacman'
+    validate: 'visudo -cf %s'
+    create: yes
+    mode: '0440'
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Clone yay AUR helper
+  git:
+    repo: https://aur.archlinux.org/yay.git
+    dest: /tmp/yay
+    force: yes
+  when: arch_release.stat.exists
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Build and install yay
+  command: >
+    chown -R builduser:builduser /tmp/yay &&
+    su - builduser -c 'cd /tmp/yay && makepkg -si --noconfirm'
+  args:
+    creates: /usr/bin/yay
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Clean up yay build files
+  file:
+    path: /tmp/yay
+    state: absent
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager']
+
+- name: Configure yay
+  ini_file:
+    path: /etc/yay.conf
+    section: options
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    mode: '0644'
+  with_items:
+    - { option: 'CleanMethod', value: 'KeepCurrent' }
+    - { option: 'BottomUp', value: 'False' }
+    - { option: 'DevelSuffixes', value: '-git -cvs -svn -bzr -darcs -always' }
+    - { option: 'EditMenu', value: 'False' }
+    - { option: 'CombinedUpgrade', value: 'True' }
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager', 'configuration']
+
+- name: Update yay and AUR packages
+  command: yay -Syu --noconfirm --noprovides --answerdiff=None --answerclean All --removemake --cleanafter
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager', 'update']
+
+- name: Install AUR packages (if any defined)
+  command: "yay -S --noconfirm --needed {{ aur_packages | join(' ') }}"
+  when:
+    - arch_release.stat.exists
+    - aur_packages is defined and aur_packages | length > 0
+  become: true
+  tags: ['aur', 'arch', 'package-manager', 'install']
+
+- name: Clean package cache
+  command: yay -Scc --noconfirm
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'package-manager', 'clean']
+
+- name: Create AUR documentation
+  copy:
+    dest: /usr/local/share/doc/aur-usage.txt
+    content: |
+      AUR (Arch User Repository) Usage Guide
+      ===================================
+
+      yay - AUR Helper
+      ---------------
+      yay is installed as the AUR helper. It provides a pacman-like interface
+      for installing packages from the AUR.
+
+      Common Commands:
+      - Search for packages: yay -Ss <package>
+      - Install package: yay -S <package>
+      - Update all packages: yay -Syu
+      - Remove package: yay -Rns <package>
+      - Query installed packages: yay -Qs <package>
+      - Clean cache: yay -Scc
+
+      Configuration:
+      - Main config: /etc/yay.conf
+      - User config: ~/.config/yay/config.json
+
+      Security Notes:
+      - Always review PKGBUILDs before installing
+      - Use --noconfirm with caution
+      - Keep your system updated regularly
+  when: arch_release.stat.exists
+  become: true
+  tags: ['aur', 'arch', 'documentation']

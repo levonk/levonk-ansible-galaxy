@@ -1,0 +1,6 @@
+---
+dependency:
+  name: galaxy
+  # Add dependencies here if needed
+
+allow_duplicates: false

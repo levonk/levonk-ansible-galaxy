@@ -1,0 +1,13 @@
+---
+- name: Verify knowledge role installation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if role core files exist
+      stat:
+        path: /etc/knowledge
+      register: knowledge_dir
+    - name: Assert knowledge dir exists
+      assert:
+        that:
+          - knowledge_dir.stat.exists

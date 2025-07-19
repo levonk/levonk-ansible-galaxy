@@ -1,0 +1,15 @@
+# /private/etc/ntp.conf - managed by Ansible
+# See https://www.ntp.org/documentation.html
+
+# Specify NTP servers
+{% for server in ntp_servers | default(['time.google.com', 'time.cloudflare.com', 'pool.ntp.org']) %}
+server {{ server }}
+{% endfor %}
+
+# Drift file
+driftfile /var/db/ntp.drift
+
+# Access control (optional, restrict as needed)
+restrict default kod nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict ::1

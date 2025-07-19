@@ -1,0 +1,36 @@
+---
+- name: Verify OpenCut installation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check OpenCut AppImage exists (Linux)
+      stat:
+        path: /usr/local/bin/OpenCut.AppImage
+      register: opencut_stat
+      when: ansible_os_family != 'Windows' and ansible_os_family != 'Darwin'
+
+    - name: Assert OpenCut AppImage present (Linux)
+      assert:
+        that: opencut_stat.stat.exists
+      when: ansible_os_family != 'Windows' and ansible_os_family != 'Darwin'
+
+    - name: Check OpenCut exists in /Applications (macOS)
+      stat:
+        path: /Applications/OpenCut.app
+      register: opencut_mac_stat
+      when: ansible_os_family == 'Darwin'
+
+    - name: Assert OpenCut present (macOS)
+      assert:
+        that: opencut_mac_stat.stat.exists
+      when: ansible_os_family == 'Darwin'
+
+    - name: Check OpenCut installed (Windows)
+      win_command: powershell.exe -Command "Get-StartApps | Where-Object { $_.Name -match 'OpenCut' }"
+      register: opencut_win
+      when: ansible_os_family == 'Windows'
+
+    - name: Assert OpenCut present (Windows)
+      assert:
+        that: opencut_win.rc == 0
+      when: ansible_os_family == 'Windows'

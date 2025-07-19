@@ -1,0 +1,28 @@
+# Install base system packages (placeholder, customize as needed)
+- name: Install base system packages (Debian)
+  apt:
+    name: "{{ base_system_packages | default([]) }}"
+    state: present
+  when: ansible_os_family == 'Debian' and base_system_packages is defined and base_system_packages|length > 0
+  tags: ['packages', 'base', 'debian']
+
+- name: Install base system packages (RedHat)
+  yum:
+    name: "{{ base_system_packages | default([]) }}"
+    state: present
+  when: ansible_os_family == 'RedHat' and base_system_packages is defined and base_system_packages|length > 0
+  tags: ['packages', 'base', 'redhat']
+
+- name: Install base system packages (macOS)
+  homebrew:
+    name: "{{ base_system_packages | default([]) }}"
+    state: present
+  when: ansible_os_family == 'Darwin' and base_system_packages is defined and base_system_packages|length > 0
+  tags: ['packages', 'base', 'macos']
+
+- name: Install base system packages (Windows)
+  win_chocolatey:
+    name: "{{ base_system_packages | default([]) }}"
+    state: present
+  when: ansible_os_family == 'Windows' and base_system_packages is defined and base_system_packages|length > 0
+  tags: ['packages', 'base', 'windows']

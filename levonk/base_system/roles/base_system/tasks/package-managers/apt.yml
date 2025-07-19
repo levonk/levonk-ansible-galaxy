@@ -1,0 +1,8 @@
+# APT package manager configuration (Debian/Ubuntu)
+- name: Update APT cache
+  apt:
+    update_cache: yes
+  when: 
+    - ansible_os_family == 'Debian'
+    - apt_update_cache | bool
+  tags: ['packages', 'apt', 'debian', 'ubuntu']

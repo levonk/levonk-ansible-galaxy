@@ -1,17 +1,56 @@
 ---
 # tasks file for base_system
 
-- name: Include Debian/Ubuntu tasks
-  include_tasks: debian.yml
-  when: ansible_facts['os_family'] == 'Debian'
+# System configuration
+# System configuration
+- name: Set system hostname
+  import_tasks: system/hostname.yml
+  tags: ['system', 'hostname']
 
-- name: Include macOS tasks
-  include_tasks: macos.yml
-  when: ansible_facts['os_family'] == 'Darwin'
+- name: Set system timezone and sync time
+  import_tasks: system/timezone.yml
+  tags: ['system', 'timezone']
+
+# Package manager configuration
+- name: Configure APT (Debian/Ubuntu)
+  import_tasks: package-managers/apt.yml
+  when: ansible_os_family == 'Debian'
+  tags: ['packages', 'apt']
+
+- name: Configure YUM (RHEL/CentOS/Fedora)
+  import_tasks: package-managers/yum.yml
+  when: ansible_os_family == 'RedHat'
+  tags: ['packages', 'yum']
+
+- name: Configure Homebrew (macOS)
+  import_tasks: package-managers/homebrew.yml
+  when: ansible_os_family == 'Darwin'
+  tags: ['packages', 'homebrew', 'macos']
+
+- name: Configure Chocolatey (Windows)
+  import_tasks: package-managers/chocolatey.yml
+  when: ansible_os_family == 'Windows'
+  tags: ['packages', 'chocolatey', 'windows']
+
+- name: Configure AUR (Arch Linux)
+  import_tasks: package-managers/aur.yml
+  when: ansible_distribution == 'Archlinux'
+  tags: ['packages', 'aur', 'arch']
+
+# OS-specific tasks
+- name: Include Debian/Ubuntu tasks
+  import_tasks: debian.yml
+  when: ansible_os_family == 'Debian'
+
+# macOS tasks now handled by package-managers/homebrew.yml and base_packages.yml
 
 - name: Include Windows tasks
-  include_tasks: windows.yml
-  when: ansible_facts['os_family'] == 'Windows'
+  import_tasks: windows.yml
+  when: ansible_os_family == 'Windows'
+
+- name: Install base system packages
+  import_tasks: base_packages.yml
+  tags: ['packages', 'base']
 
 - name: Install JetBrains Mono Nerd Font (all OS)
-  include_tasks: fonts.yml
+  import_tasks: fonts.yml

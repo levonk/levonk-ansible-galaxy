@@ -1,0 +1,34 @@
+# Chocolatey package manager configuration (Windows)
+- name: Install Chocolatey
+  win_powershell: |
+    Set-ExecutionPolicy Bypass -Scope Process -Force;
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+  become: yes
+  when: 
+    - ansible_os_family == 'Windows' 
+    - not chocolatey_is_installed | bool
+  tags: ['packages', 'chocolatey', 'windows']
+
+- name: Set chocolatey_is_installed fact
+  set_fact:
+    chocolatey_is_installed: true
+  when: 
+    - ansible_os_family == 'Windows' 
+    - not chocolatey_is_installed | bool
+  tags: ['packages', 'chocolatey', 'windows']
+
+- name: Ensure Chocolatey is in the PATH
+  win_path:
+    elements: "C:\\ProgramData\\chocolatey\\bin"
+  become: yes
+  when: ansible_os_family == 'Windows'
+  tags: ['packages', 'chocolatey', 'windows']
+
+- name: Update Chocolatey cache
+  win_shell: choco upgrade chocolatey -y
+  become: yes
+  when: 
+    - ansible_os_family == 'Windows' 
+    - chocolatey_update_cache | bool
+  tags: ['packages', 'chocolatey', 'windows']

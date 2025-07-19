@@ -1,0 +1,8 @@
+# YUM package manager configuration (RHEL/CentOS/Fedora)
+- name: Update YUM cache
+  yum:
+    update_cache: yes
+  when: 
+    - ansible_os_family == 'RedHat'
+    - yum_update_cache | bool
+  tags: ['packages', 'yum', 'rhel', 'centos', 'fedora']

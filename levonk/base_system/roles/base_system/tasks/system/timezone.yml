@@ -1,0 +1,105 @@
+# Time and timezone configuration
+- name: Set timezone (Linux/Windows)
+  timezone:
+    name: "{{ timezone }}"
+  when: ansible_os_family != 'Darwin'
+  tags: ['system', 'timezone']
+
+- name: Set timezone (macOS)
+  command: systemsetup -settimezone "{{ timezone }}"
+  when: ansible_os_family == 'Darwin'
+  tags: ['system', 'timezone', 'macos']
+
+# Time Synchronization Configuration
+# Use time.google.com or AWS's 169.254.169.123 for NTP servers as they support "Leap Smear"
+# Leap Smear is a feature that allows the system to adjust the time more gradually, 
+# which helps prevent clock skew and system instability.
+# Other choices are: time.cloudflare.com, time.windows.com, time.apple.com, pool.ntp.org
+- name: Install NTP package (Debian/Ubuntu)
+  apt:
+    name: ntp
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+  tags: ['system', 'ntp', 'linux']
+
+- name: Install NTP package (RHEL/CentOS)
+  yum:
+    name: ntp
+    state: present
+  when: ansible_os_family == 'RedHat'
+  tags: ['system', 'ntp', 'linux']
+
+- name: Configure NTP on macOS
+  command: systemsetup -setusingnetworktime on
+  when: ansible_os_family == 'Darwin'
+  tags: ['system', 'ntp', 'macos']
+
+- name: Set NTP server on macOS
+  command: systemsetup -setnetworktimeserver time.google.com
+  when: ansible_os_family == 'Darwin'
+  tags: ['system', 'ntp', 'macos']
+
+- name: Enable NTP daemon on macOS
+  command: launchctl load -w /System/Library/LaunchDaemons/org.ntp.ntpd.plist
+  when: ansible_os_family == 'Darwin'
+  tags: ['system', 'ntp', 'macos']
+
+- name: Configure NTP servers (Linux)
+  template:
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: yes
+  when: ansible_os_family in ['Debian', 'RedHat']
+  notify: restart ntp
+  tags: ['system', 'ntp', 'linux']
+
+- name: Configure NTP servers (macOS)
+  template:
+    src: macos-ntp.conf.j2
+    dest: /private/etc/ntp.conf
+    owner: root
+    group: wheel
+    mode: '0644'
+    backup: yes
+  when: ansible_os_family == 'Darwin'
+  notify: restart ntpd on macOS
+  tags: ['system', 'ntp', 'macos']
+
+- name: Ensure NTP service is enabled and running (systemd)
+  systemd:
+    name: ntp
+    enabled: yes
+    state: started
+    daemon_reload: yes
+  when: ansible_service_mgr == 'systemd' and ansible_os_family in ['Debian', 'RedHat']
+  tags: ['system', 'ntp', 'linux']
+
+- name: Ensure NTP service is enabled and running (sysvinit)
+  service:
+    name: ntp
+    enabled: yes
+    state: started
+  when: ansible_service_mgr == 'service' and ansible_os_family in ['Debian', 'RedHat']
+  tags: ['system', 'ntp', 'linux']
+
+# Windows Time Configuration
+- name: Configure Windows Time service
+  win_service:
+    name: w32time
+    start_mode: auto
+    state: started
+  when: ansible_os_family == 'Windows'
+  tags: ['system', 'ntp', 'windows']
+
+- name: Configure Windows NTP client
+  win_shell: |
+    w32tm /config /syncfromflags:manual /manualpeerlist:"time.google.com,0x8 time.windows.com,0x8"
+    w32tm /config /reliable:yes
+    w32tm /config /update
+    w32tm /resync /force
+  when: ansible_os_family == 'Windows'
+  tags: ['system', 'ntp', 'windows']

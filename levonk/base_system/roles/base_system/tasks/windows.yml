@@ -46,6 +46,13 @@
     - winget
     - package_manager
 
+# Configure default Windows application install paths
+- import_tasks: windows/app-paths.yml
+  tags:
+    - windows
+    - apps
+    - paths
+
 - name: Install essential packages on Windows
   win_chocolatey:
     name: "{{ base_system_packages }}"
