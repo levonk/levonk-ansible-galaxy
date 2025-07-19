@@ -1,0 +1,6 @@
+---
+# defaults file for harden_baseline
+
+# Cloudflare WARP configuration
+harden_baseline_install_warp_cli: true
+harden_baseline_install_warp_gui: false  # Requires graphical tag

@@ -14,6 +14,10 @@ This role applies a minimal set of baseline security hardening configurations to
 -   **Configuration Auditing with etckeeper**:
     -   Installs and configures `etckeeper` on Linux systems.
     -   Initializes a `git` repository in `/etc` to track changes to configuration files, providing a complete audit trail.
+-   **Cloudflare WARP VPN**:
+    -   Installs Cloudflare WARP CLI for secure DNS and VPN connectivity.
+    -   Optionally installs WARP GUI (requires `graphical` tag).
+    -   Automatically registers and connects WARP client on Linux systems.
 
 ## Requirements
 
@@ -24,9 +28,11 @@ This role applies a minimal set of baseline security hardening configurations to
 
 ## Role Variables
 
-| Variable                  | Default | Description                                             |
-| ------------------------- | ------- | ------------------------------------------------------- |
-| `etckeeper_commit_changes` | `true`  | Whether to automatically commit changes after a run. |
+| Variable                           | Default | Description                                             |
+| ---------------------------------- | ------- | ------------------------------------------------------- |
+| `etckeeper_commit_changes`         | `true`  | Whether to automatically commit changes after a run.   |
+| `harden_baseline_install_warp_cli` | `true`  | Whether to install Cloudflare WARP CLI.                |
+| `harden_baseline_install_warp_gui` | `false` | Whether to install WARP GUI (requires `graphical` tag). |
 
 ## Dependencies
 
@@ -39,6 +45,19 @@ This role has no external Ansible role dependencies.
   become: yes
   roles:
     - role: levonk.hardened.harden_baseline
+```
+
+To install with WARP GUI (requires graphical environment):
+
+```yaml
+- hosts: workstations
+  become: yes
+  vars:
+    harden_baseline_install_warp_gui: true
+  roles:
+    - role: levonk.hardened.harden_baseline
+  tags:
+    - graphical
 ```
 
 ## License

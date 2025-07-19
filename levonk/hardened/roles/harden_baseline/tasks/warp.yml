@@ -1,0 +1,153 @@
+---
+# Cloudflare WARP client installation and configuration
+# https://developers.cloudflare.com/warp-client/
+
+- name: Block for Debian-based systems
+  tags:
+    - security
+    - networking
+    - warp
+  block:
+    - name: Install prerequisites for WARP
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    - name: Add Cloudflare GPG key
+      apt_key:
+        url: https://pkg.cloudflareclient.com/pubkey.gpg
+        state: present
+
+    - name: Add Cloudflare WARP repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://pkg.cloudflareclient.com/ {{ ansible_distribution_release }} main"
+        state: present
+        filename: cloudflare-warp
+
+    - name: Install Cloudflare WARP CLI
+      apt:
+        name: cloudflare-warp
+        state: present
+        update_cache: yes
+
+    - name: Ensure WARP service is enabled and started
+      service:
+        name: warp-svc
+        state: started
+        enabled: yes
+
+    - name: Check if WARP is already registered
+      command: warp-cli --accept-tos status
+      register: warp_status
+      changed_when: false
+      failed_when: warp_status.rc != 0 and 'Missing registration' not in warp_status.stderr
+
+    - name: Register WARP client (if not already registered)
+      command: warp-cli --accept-tos register
+      when: '"Missing registration" in warp_status.stderr'
+
+    - name: Enable WARP mode (if registered)
+      command: warp-cli --accept-tos set-mode warp
+      when: '"Missing registration" not in warp_status.stderr'
+
+    - name: Connect to WARP
+      command: warp-cli --accept-tos connect
+  when: 
+    - ansible_os_family == 'Debian'
+    - harden_baseline_install_warp_cli | default(true)
+
+- name: Block for Windows systems
+  tags:
+    - security
+    - networking
+    - warp
+  block:
+    - name: Install Cloudflare WARP on Windows
+      win_chocolatey:
+        name: cloudflare-warp
+        state: present
+
+    - name: Verify WARP CLI installation on Windows
+      win_command: warp-cli --version
+      register: warp_version_windows
+      changed_when: false
+      failed_when: warp_version_windows.rc != 0
+
+    - name: Display WARP version on Windows
+      debug:
+        msg: "WARP CLI installed: {{ warp_version_windows.stdout }}"
+  when: 
+    - ansible_os_family == 'Windows'
+    - harden_baseline_install_warp_cli | default(true)
+
+- name: Block for macOS systems
+  tags:
+    - security
+    - networking
+    - warp
+  block:
+    - name: Install Cloudflare WARP on macOS
+      community.general.homebrew_cask:
+        name: cloudflare-warp
+        state: present
+
+    - name: Verify WARP CLI installation on macOS
+      command: warp-cli --version
+      register: warp_version_macos
+      changed_when: false
+      failed_when: warp_version_macos.rc != 0
+
+    - name: Display WARP version on macOS
+      debug:
+        msg: "WARP CLI installed: {{ warp_version_macos.stdout }}"
+  when: 
+    - ansible_os_family == 'Darwin'
+    - harden_baseline_install_warp_cli | default(true)
+
+# GUI installation (requires graphical tag)
+- name: Install WARP GUI on Windows
+  win_package:
+    path: "Cloudflare.cloudflare-warp"
+    state: present
+    provider: winget
+  when:
+    - ansible_os_family == 'Windows'
+    - harden_baseline_install_warp_gui | default(false)
+    - "'graphical' in ansible_run_tags"
+  tags:
+    - security
+    - networking
+    - warp
+    - graphical
+
+- name: Install WARP GUI on macOS (already included with cask)
+  debug:
+    msg: "WARP GUI is included with the macOS cask installation"
+  when:
+    - ansible_os_family == 'Darwin'
+    - harden_baseline_install_warp_gui | default(false)
+    - "'graphical' in ansible_run_tags"
+  tags:
+    - security
+    - networking
+    - warp
+    - graphical
+
+- name: Install WARP GUI on Linux (if available)
+  debug:
+    msg: "WARP GUI for Linux is not officially available. CLI version installed."
+  when:
+    - ansible_os_family in ['Debian', 'RedHat']
+    - harden_baseline_install_warp_gui | default(false)
+    - "'graphical' in ansible_run_tags"
+  tags:
+    - security
+    - networking
+    - warp
+    - graphical

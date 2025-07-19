@@ -12,3 +12,7 @@
 - name: Include Windows baseline tasks
   import_tasks: windows.yml
   when: ansible_facts['os_family'] == 'Windows'
+
+- name: Install Cloudflare WARP
+  import_tasks: warp.yml
+  when: harden_baseline_install_warp_cli | default(true) or harden_baseline_install_warp_gui | default(false)
