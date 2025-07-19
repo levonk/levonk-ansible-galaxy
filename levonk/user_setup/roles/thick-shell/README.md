@@ -1,6 +1,6 @@
 # Ansible Role: levonk.user_setup.thick-shell
 
-Installs and configures various shell environments (Zsh, Bash, Fish) and advanced terminal tools like tmux, Zellij, Mosh, and fzf.
+Installs and configures various shell environments (Zsh, Bash, Fish) and advanced terminal tools like tmux, Zellij, Mosh, fzf, and modern CLI utilities.
 
 ## Description
 
@@ -19,6 +19,13 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   **Mosh**: A remote terminal application that allows roaming and supports intermittent connectivity.
 -   **fzf**: A command-line fuzzy finder with shell integration for history search and file navigation.
 
+### Modern CLI Tools
+
+-   **direnv**: Auto-load .envrc files per directory — great for managing secrets and environment variables.
+-   **ripgrep**: Blazing-fast search tool that pairs beautifully with fzf.
+-   **bat**: Syntax-highlighted cat replacement with Git integration.
+-   **fd**: A simpler, faster alternative to find.
+
 **Note**: On Windows, these tools are intended for use within the Windows Subsystem for Linux (WSL). The role will not install them on the native Windows host but will display a message advising to install them within WSL.
 
 ## Requirements
@@ -35,6 +42,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   `thick_shell_install_zellij`: Set to `true` to install Zellij.
 -   `thick_shell_install_mosh`: Set to `true` to install Mosh.
 -   `thick_shell_install_fzf`: Set to `true` to install fzf fuzzy finder.
+-   `thick_shell_install_modern_cli_tools`: Set to `true` to install modern CLI tools (direnv, ripgrep, bat, fd).
 
 ## Dependencies
 
@@ -43,7 +51,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 
 ## Example Playbook
 
-To install the default Zsh stack along with tmux, Zellij, and fzf:
+To install the default Zsh stack along with all advanced tools:
 
 ```yaml
 ---
@@ -53,6 +61,7 @@ To install the default Zsh stack along with tmux, Zellij, and fzf:
     thick_shell_install_tmux: true
     thick_shell_install_zellij: true
     thick_shell_install_fzf: true
+    thick_shell_install_modern_cli_tools: true
   roles:
     - role: levonk.user_setup.thick-shell
 ```

@@ -35,3 +35,7 @@
 - name: Install fzf fuzzy finder
   include_tasks: fzf.yml
   when: thick_shell_install_fzf | default(false)
+
+- name: Install modern CLI tools
+  include_tasks: modern_cli_tools.yml
+  when: thick_shell_install_modern_cli_tools | default(false)
