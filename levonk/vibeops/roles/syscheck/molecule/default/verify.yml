@@ -1,0 +1,13 @@
+---
+- name: Verify syscheck role installation
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check if syscheck core file exists
+      stat:
+        path: /etc/syscheck
+      register: syscheck_dir
+    - name: Assert syscheck dir exists
+      assert:
+        that:
+          - syscheck_dir.stat.exists
