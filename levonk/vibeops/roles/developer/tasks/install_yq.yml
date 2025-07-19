@@ -1,0 +1,62 @@
+---
+# tasks file for levonk.vibeops.developer - Install yq YAML processor
+
+- name: Install yq on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: yq
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - developer
+    - tools
+    - yq
+    - yaml
+
+- name: Install yq on Debian-based systems
+  ansible.builtin.apt:
+    name: yq
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - developer
+    - tools
+    - yq
+    - yaml
+
+- name: Install yq on macOS via Homebrew
+  community.general.homebrew:
+    name: yq
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - developer
+    - tools
+    - yq
+    - yaml
+
+- name: Verify yq installation
+  ansible.builtin.command:
+    cmd: yq --version
+  register: yq_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - developer
+    - tools
+    - yq
+    - yaml
+    - verify
+
+- name: Display yq version
+  ansible.builtin.debug:
+    msg: "yq version: {{ yq_version.stdout }}"
+  when: yq_version.rc == 0
+  tags:
+    - developer
+    - tools
+    - yq
+    - yaml
+    - verify

@@ -24,3 +24,19 @@
     - developer
     - tools
     - linter
+
+- name: Install yq YAML processor
+  ansible.builtin.include_tasks:
+    file: install_yq.yml
+  tags:
+    - developer
+    - tools
+    - yq
+
+- name: Install yamlfmt YAML formatter
+  ansible.builtin.include_tasks:
+    file: install_yamlfmt.yml
+  tags:
+    - developer
+    - tools
+    - yamlfmt

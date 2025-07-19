@@ -1,0 +1,103 @@
+---
+# tasks file for levonk.vibeops.developer - Install yamlfmt YAML formatter
+
+- name: Check if Go is installed
+  ansible.builtin.command:
+    cmd: go version
+  register: go_version_check
+  changed_when: false
+  failed_when: false
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+    - prerequisites
+
+- name: Fail if Go is not installed
+  ansible.builtin.fail:
+    msg: "Go is required to install yamlfmt. Please install Go first using the dev-go role."
+  when: go_version_check.rc != 0
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+    - prerequisites
+
+- name: Install yamlfmt via go install (Windows)
+  ansible.builtin.command:
+    cmd: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+  environment:
+    GOOS: windows
+    GOARCH: amd64
+  when: ansible_os_family == 'Windows'
+  become: false
+  register: yamlfmt_install_windows
+  changed_when: yamlfmt_install_windows.rc == 0
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+
+- name: Install yamlfmt via go install (Debian/Ubuntu)
+  ansible.builtin.command:
+    cmd: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+  when: ansible_os_family == "Debian"
+  become: false
+  register: yamlfmt_install_debian
+  changed_when: yamlfmt_install_debian.rc == 0
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+
+- name: Install yamlfmt via go install (macOS)
+  ansible.builtin.command:
+    cmd: go install github.com/google/yamlfmt/cmd/yamlfmt@latest
+  when: ansible_os_family == "Darwin"
+  become: false
+  register: yamlfmt_install_darwin
+  changed_when: yamlfmt_install_darwin.rc == 0
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+
+- name: Verify yamlfmt installation
+  ansible.builtin.command:
+    cmd: yamlfmt -version
+  register: yamlfmt_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+    - verify
+
+- name: Display yamlfmt version
+  ansible.builtin.debug:
+    msg: "yamlfmt version: {{ yamlfmt_version.stdout }}"
+  when: yamlfmt_version.rc == 0
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+    - verify
+
+- name: Warn if yamlfmt installation failed
+  ansible.builtin.debug:
+    msg: "Warning: yamlfmt installation verification failed. Check that Go's bin directory is in your PATH."
+  when: yamlfmt_version.rc != 0
+  tags:
+    - developer
+    - tools
+    - yamlfmt
+    - yaml
+    - verify
