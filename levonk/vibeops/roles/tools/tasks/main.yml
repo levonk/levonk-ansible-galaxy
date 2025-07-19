@@ -1,6 +1,14 @@
 ---
 # tasks file for levonk.vibeops.tools
 
+- name: Ensure SSH client/server present (Linux/macOS)
+  ansible.builtin.include_tasks: ssh_unix.yml
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+
+- name: Ensure SSH client/server present (Windows)
+  ansible.builtin.include_tasks: ssh_windows.yml
+  when: ansible_os_family == 'Windows'
+
 - name: Install macOS-specific tools
   ansible.builtin.include_tasks: darwin.yml
   when:

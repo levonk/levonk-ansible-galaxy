@@ -1,0 +1,20 @@
+---
+# Install OpenSSH client and server on Linux/macOS
+
+- name: Ensure OpenSSH client is installed (Linux)
+  ansible.builtin.package:
+    name: openssh-client
+    state: present
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+
+- name: Ensure OpenSSH server is installed (Linux)
+  ansible.builtin.package:
+    name: openssh-server
+    state: present
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+
+- name: Ensure OpenSSH is installed (macOS)
+  ansible.builtin.homebrew:
+    name: openssh
+    state: present
+  when: ansible_os_family == 'Darwin'

@@ -1,0 +1,24 @@
+---
+# Ensure SSH client and server are installed on Windows
+
+- name: Ensure OpenSSH Client is installed (Windows 10+)
+  ansible.windows.win_feature:
+    name: OpenSSH.Client
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Ensure OpenSSH Server is installed (Windows 10+)
+  ansible.windows.win_feature:
+    name: OpenSSH.Server
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Fallback: Install Win32-OpenSSH via Chocolatey if needed
+  block:
+    - name: Install Win32-OpenSSH via Chocolatey
+      ansible.builtin.win_chocolatey:
+        name: openssh
+        state: present
+  when:
+    - ansible_os_family == 'Windows'
+    - ansible_distribution_major_version is version('10', '<')
