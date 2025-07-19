@@ -1,0 +1,132 @@
+---
+# tasks file for levonk.user_setup.thick-shell - fzf fuzzy finder
+
+- name: Install fzf on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: fzf
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+
+- name: Install fzf on Debian-based systems
+  ansible.builtin.apt:
+    name: fzf
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+
+- name: Install fzf on macOS via Homebrew
+  community.general.homebrew:
+    name: fzf
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+
+- name: Verify fzf installation
+  ansible.builtin.command:
+    cmd: fzf --version
+  register: fzf_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+    - verify
+
+- name: Display fzf version
+  ansible.builtin.debug:
+    msg: "fzf version: {{ fzf_version.stdout }}"
+  when: fzf_version.rc == 0
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+    - verify
+
+- name: Install fzf shell integration (bash)
+  ansible.builtin.shell: |
+    if command -v fzf >/dev/null 2>&1; then
+      if [ -f /usr/share/doc/fzf/examples/key-bindings.bash ]; then
+        echo 'source /usr/share/doc/fzf/examples/key-bindings.bash' >> ~/.bashrc
+        echo 'source /usr/share/doc/fzf/examples/completion.bash' >> ~/.bashrc
+      elif [ -f /usr/local/opt/fzf/shell/key-bindings.bash ]; then
+        echo 'source /usr/local/opt/fzf/shell/key-bindings.bash' >> ~/.bashrc
+        echo 'source /usr/local/opt/fzf/shell/completion.bash' >> ~/.bashrc
+      fi
+    fi
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'bash' in thick_shells"
+    - fzf_version.rc == 0
+  become: false
+  changed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+    - integration
+
+- name: Install fzf shell integration (zsh)
+  ansible.builtin.shell: |
+    if command -v fzf >/dev/null 2>&1; then
+      if [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ]; then
+        echo 'source /usr/share/doc/fzf/examples/key-bindings.zsh' >> ~/.zshrc
+        echo 'source /usr/share/doc/fzf/examples/completion.zsh' >> ~/.zshrc
+      elif [ -f /usr/local/opt/fzf/shell/key-bindings.zsh ]; then
+        echo 'source /usr/local/opt/fzf/shell/key-bindings.zsh' >> ~/.zshrc
+        echo 'source /usr/local/opt/fzf/shell/completion.zsh' >> ~/.zshrc
+      fi
+    fi
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'zsh' in thick_shells"
+    - fzf_version.rc == 0
+  become: false
+  changed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+    - integration
+
+- name: Install fzf shell integration (fish)
+  ansible.builtin.shell: |
+    if command -v fzf >/dev/null 2>&1; then
+      if [ -f /usr/share/fish/vendor_functions.d/fzf_key_bindings.fish ]; then
+        echo "fzf integration already available for fish"
+      elif [ -f /usr/local/opt/fzf/shell/key_bindings.fish ]; then
+        echo "fzf integration already available for fish"
+      fi
+    fi
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'fish' in thick_shells"
+    - fzf_version.rc == 0
+  become: false
+  changed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - fzf
+    - fuzzy-finder
+    - integration

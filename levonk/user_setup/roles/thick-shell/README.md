@@ -1,6 +1,6 @@
 # Ansible Role: levonk.user_setup.thick-shell
 
-Installs and configures various shell environments (Zsh, Bash, Fish) and advanced terminal tools like tmux, Zellij, and Mosh.
+Installs and configures various shell environments (Zsh, Bash, Fish) and advanced terminal tools like tmux, Zellij, Mosh, and fzf.
 
 ## Description
 
@@ -17,6 +17,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   **tmux**: A popular terminal multiplexer.
 -   **Zellij**: A modern, Rust-based terminal workspace and multiplexer.
 -   **Mosh**: A remote terminal application that allows roaming and supports intermittent connectivity.
+-   **fzf**: A command-line fuzzy finder with shell integration for history search and file navigation.
 
 **Note**: On Windows, these tools are intended for use within the Windows Subsystem for Linux (WSL). The role will not install them on the native Windows host but will display a message advising to install them within WSL.
 
@@ -33,6 +34,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   `thick_shell_install_tmux`: Set to `true` to install tmux.
 -   `thick_shell_install_zellij`: Set to `true` to install Zellij.
 -   `thick_shell_install_mosh`: Set to `true` to install Mosh.
+-   `thick_shell_install_fzf`: Set to `true` to install fzf fuzzy finder.
 
 ## Dependencies
 
@@ -41,7 +43,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 
 ## Example Playbook
 
-To install the default Zsh stack along with tmux and Zellij:
+To install the default Zsh stack along with tmux, Zellij, and fzf:
 
 ```yaml
 ---
@@ -50,6 +52,7 @@ To install the default Zsh stack along with tmux and Zellij:
   vars:
     thick_shell_install_tmux: true
     thick_shell_install_zellij: true
+    thick_shell_install_fzf: true
   roles:
     - role: levonk.user_setup.thick-shell
 ```

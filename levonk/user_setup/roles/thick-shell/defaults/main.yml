@@ -6,4 +6,5 @@ shell_stack: zsh
 thick_shell_install_tmux: false
 thick_shell_install_zellij: false
 thick_shell_install_mosh: false
+thick_shell_install_fzf: false
 

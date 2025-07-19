@@ -31,3 +31,7 @@
 - name: Install mosh
   include_tasks: mosh.yml
   when: thick_shell_install_mosh | default(false)
+
+- name: Install fzf fuzzy finder
+  include_tasks: fzf.yml
+  when: thick_shell_install_fzf | default(false)
