@@ -1,0 +1,53 @@
+---
+# Open a firewall port for a local service, if a firewall is installed and enabled
+# Supports UFW (Debian/Ubuntu), firewalld (RedHat), pf (macOS), Windows Defender Firewall
+
+- name: Open port in UFW (Debian/Ubuntu)
+  community.general.ufw:
+    rule: allow
+    port: "{{ open_firewall_port_port }}"
+    proto: "{{ open_firewall_port_proto | default('tcp') }}"
+    comment: "Allow {{ open_firewall_port_service | default('local service') }}"
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_facts.packages['ufw'] is defined
+    - ansible_facts.services['ufw.service'].state == 'running'
+
+- name: Open port in firewalld (RedHat/Fedora/CentOS)
+  ansible.posix.firewalld:
+    port: "{{ open_firewall_port_port }}/{{ open_firewall_port_proto | default('tcp') }}"
+    permanent: true
+    state: enabled
+    immediate: true
+    zone: public
+  when:
+    - ansible_os_family == 'RedHat'
+    - ansible_facts.packages['firewalld'] is defined
+    - ansible_facts.services['firewalld.service'].state == 'running'
+
+- name: Open port in pf (macOS)
+  ansible.builtin.lineinfile:
+    path: /etc/pf.conf
+    line: "pass in proto {{ open_firewall_port_proto | default('tcp') }} to any port {{ open_firewall_port_port }} # Allow {{ open_firewall_port_service | default('local service') }}"
+    create: yes
+  when:
+    - ansible_os_family == 'Darwin'
+    - ansible_facts.services['pfctl'].state == 'running'
+
+- name: Reload pf rules (macOS)
+  ansible.builtin.command: pfctl -f /etc/pf.conf
+  when:
+    - ansible_os_family == 'Darwin'
+    - ansible_facts.services['pfctl'].state == 'running'
+
+- name: Open port in Windows Defender Firewall
+  ansible.windows.win_firewall_rule:
+    name: "Allow {{ open_firewall_port_service | default('local service') }}"
+    localport: "{{ open_firewall_port_port }}"
+    protocol: "{{ open_firewall_port_proto | default('TCP') | upper }}"
+    action: allow
+    direction: in
+    enabled: yes
+    profiles: any
+  when:
+    - ansible_os_family == 'Windows'
