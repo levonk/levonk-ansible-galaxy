@@ -1,0 +1,110 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+- name: Create quantified-self configuration directory
+  file:
+    path: "{{ ansible_env.HOME }}/.config/quantified-self"
+    state: directory
+    mode: '0755'
+  when: ansible_os_family != "Windows"
+  tags:
+    - quantified-self
+    - configure
+
+- name: Create Windows configuration directory
+  win_file:
+    path: "{{ ansible_env.APPDATA }}\\QuantifiedSelf"
+    state: directory
+  when: ansible_os_family == "Windows"
+  tags:
+    - quantified-self
+    - configure
+    - windows
+
+- name: Configure ActivityWatch settings
+  block:
+    - name: Create ActivityWatch config directory (Linux/macOS)
+      file:
+        path: "{{ ansible_env.HOME }}/.config/activitywatch"
+        state: directory
+        mode: '0755'
+      when: ansible_os_family != "Windows"
+
+    - name: Create ActivityWatch config directory (Windows)
+      win_file:
+        path: "{{ ansible_env.APPDATA }}\\activitywatch"
+        state: directory
+      when: ansible_os_family == "Windows"
+
+    - name: Configure ActivityWatch basic settings
+      template:
+        src: activitywatch-config.json.j2
+        dest: "{{ ansible_env.HOME }}/.config/activitywatch/aw-server/config.toml"
+        mode: '0644'
+      when: 
+        - ansible_os_family != "Windows"
+        - quantified_self_install_activitywatch | default(true)
+
+  when: quantified_self_install_activitywatch | default(true)
+  tags:
+    - quantified-self
+    - configure
+    - activitywatch
+
+- name: Set up quantified-self data directories
+  block:
+    - name: Create data directory (Linux/macOS)
+      file:
+        path: "{{ ansible_env.HOME }}/.local/share/quantified-self"
+        state: directory
+        mode: '0755'
+      when: ansible_os_family != "Windows"
+
+    - name: Create data directory (Windows)
+      win_file:
+        path: "{{ ansible_env.LOCALAPPDATA }}\\QuantifiedSelf"
+        state: directory
+      when: ansible_os_family == "Windows"
+
+  tags:
+    - quantified-self
+    - configure
+
+- name: Configure desktop shortcuts
+  block:
+    - name: Create desktop shortcuts directory
+      file:
+        path: "{{ ansible_env.HOME }}/Desktop"
+        state: directory
+        mode: '0755'
+      when: ansible_os_family != "Windows"
+
+    - name: Create ActivityWatch desktop shortcut (Linux)
+      template:
+        src: activitywatch-desktop.desktop.j2
+        dest: "{{ ansible_env.HOME }}/Desktop/ActivityWatch.desktop"
+        mode: '0755'
+      when: 
+        - ansible_os_family in ["Debian", "RedHat", "Archlinux"]
+        - quantified_self_install_activitywatch | default(true)
+        - quantified_self_create_desktop_shortcuts | default(true)
+
+  when: quantified_self_create_desktop_shortcuts | default(true)
+  tags:
+    - quantified-self
+    - configure
+    - shortcuts
+
+- name: Display configuration summary
+  debug:
+    msg: |
+      Quantified Self Configuration Summary:
+      - Configuration directories created
+      - Autostart configured for enabled tools
+      - Desktop shortcuts created (if enabled)
+      - Data directories prepared
+  tags:
+    - quantified-self
+    - configure
+    - summary

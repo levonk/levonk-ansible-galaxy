@@ -1,0 +1,134 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+- name: Install ActivityWatch on Windows
+  block:
+    - name: Install ActivityWatch via Chocolatey
+      chocolatey.chocolatey.win_chocolatey:
+        name: activitywatch
+        state: present
+      register: activitywatch_choco_result
+      failed_when: false
+
+    - name: Install ActivityWatch via WinGet (fallback)
+      community.windows.win_winget:
+        name: ActivityWatch.ActivityWatch
+        state: present
+      when: activitywatch_choco_result is failed
+      register: activitywatch_winget_result
+
+    - name: Verify ActivityWatch installation on Windows
+      win_stat:
+        path: "{{ ansible_env.LOCALAPPDATA }}\\Programs\\ActivityWatch\\aw-qt.exe"
+      register: activitywatch_windows_check
+      failed_when: not activitywatch_windows_check.stat.exists
+
+  when: ansible_os_family == "Windows"
+  tags:
+    - quantified-self
+    - activitywatch
+    - windows
+
+- name: Install ActivityWatch on macOS
+  block:
+    - name: Install ActivityWatch via Homebrew
+      community.general.homebrew_cask:
+        name: activitywatch
+        state: present
+      register: activitywatch_brew_result
+
+    - name: Verify ActivityWatch installation on macOS
+      stat:
+        path: "/Applications/ActivityWatch.app"
+      register: activitywatch_macos_check
+      failed_when: not activitywatch_macos_check.stat.exists
+
+  when: ansible_os_family == "Darwin"
+  tags:
+    - quantified-self
+    - activitywatch
+    - macos
+
+- name: Install ActivityWatch on Linux
+  block:
+    - name: Download ActivityWatch AppImage
+      get_url:
+        url: "https://github.com/ActivityWatch/activitywatch/releases/latest/download/activitywatch-v{{ quantified_self_activitywatch_version | default('0.12.2') }}-linux-x86_64.zip"
+        dest: "/tmp/activitywatch.zip"
+        mode: '0644'
+      register: activitywatch_download
+
+    - name: Create ActivityWatch directory
+      file:
+        path: "{{ ansible_env.HOME }}/.local/share/activitywatch"
+        state: directory
+        mode: '0755'
+
+    - name: Extract ActivityWatch
+      unarchive:
+        src: "/tmp/activitywatch.zip"
+        dest: "{{ ansible_env.HOME }}/.local/share/activitywatch"
+        remote_src: yes
+        creates: "{{ ansible_env.HOME }}/.local/share/activitywatch/aw-qt"
+
+    - name: Make ActivityWatch executable
+      file:
+        path: "{{ ansible_env.HOME }}/.local/share/activitywatch/aw-qt"
+        mode: '0755'
+
+    - name: Create ActivityWatch desktop entry
+      template:
+        src: activitywatch.desktop.j2
+        dest: "{{ ansible_env.HOME }}/.local/share/applications/activitywatch.desktop"
+        mode: '0644'
+      when: quantified_self_create_desktop_shortcuts | default(true)
+
+    - name: Create ActivityWatch symlink
+      file:
+        src: "{{ ansible_env.HOME }}/.local/share/activitywatch/aw-qt"
+        dest: "{{ ansible_env.HOME }}/.local/bin/activitywatch"
+        state: link
+      failed_when: false
+
+  when: ansible_os_family in ["Debian", "RedHat", "Archlinux"]
+  tags:
+    - quantified-self
+    - activitywatch
+    - linux
+
+- name: Configure ActivityWatch autostart
+  block:
+    - name: Configure ActivityWatch autostart on Windows
+      win_shell: |
+        $startup = [Environment]::GetFolderPath("Startup")
+        $target = "$env:LOCALAPPDATA\Programs\ActivityWatch\aw-qt.exe"
+        $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut("$startup\ActivityWatch.lnk")
+        $shortcut.TargetPath = $target
+        $shortcut.Save()
+      when: ansible_os_family == "Windows" and quantified_self_activitywatch_autostart | default(true)
+
+    - name: Configure ActivityWatch autostart on macOS
+      shell: |
+        osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/ActivityWatch.app", hidden:false}'
+      when: ansible_os_family == "Darwin" and quantified_self_activitywatch_autostart | default(true)
+
+    - name: Configure ActivityWatch autostart on Linux
+      template:
+        src: activitywatch-autostart.desktop.j2
+        dest: "{{ ansible_env.HOME }}/.config/autostart/activitywatch.desktop"
+        mode: '0644'
+      when: ansible_os_family in ["Debian", "RedHat", "Archlinux"] and quantified_self_activitywatch_autostart | default(true)
+
+  when: quantified_self_configure_startup | default(true)
+  tags:
+    - quantified-self
+    - activitywatch
+    - autostart
+
+- name: Display ActivityWatch installation status
+  debug:
+    msg: "ActivityWatch has been successfully installed and configured for autostart"
+  tags:
+    - quantified-self
+    - activitywatch

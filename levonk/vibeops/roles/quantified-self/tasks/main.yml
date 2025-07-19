@@ -1,0 +1,49 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+- name: Include OS-specific variables
+  include_vars: "{{ ansible_os_family }}.yml"
+  failed_when: false
+  tags:
+    - quantified-self
+    - variables
+
+- name: Install ActivityWatch
+  include_tasks: install_activitywatch.yml
+  when: quantified_self_install_activitywatch | default(true)
+  tags:
+    - quantified-self
+    - activitywatch
+
+- name: Install Rize
+  include_tasks: install_rize.yml
+  when: quantified_self_install_rize | default(false)
+  tags:
+    - quantified-self
+    - rize
+
+- name: Install Fathom
+  include_tasks: install_fathom.yml
+  when: quantified_self_install_fathom | default(false)
+  tags:
+    - quantified-self
+    - fathom
+
+- name: Configure quantified-self tools
+  include_tasks: configure.yml
+  when: quantified_self_configure_startup | default(true)
+  tags:
+    - quantified-self
+    - configure
+
+- name: Display installation summary
+  debug:
+    msg: |
+      Quantified Self Tools Installation Summary:
+      - ActivityWatch: {{ 'Installed' if quantified_self_install_activitywatch else 'Skipped' }}
+      - Rize: {{ 'Installed' if quantified_self_install_rize else 'Skipped' }}
+      - Fathom: {{ 'Installed' if quantified_self_install_fathom else 'Skipped' }}
+  tags:
+    - quantified-self
+    - summary

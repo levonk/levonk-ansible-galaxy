@@ -1,0 +1,31 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+# Quantified Self Tools Installation Configuration
+
+# ActivityWatch - Open source automated time tracker
+quantified_self_install_activitywatch: true
+quantified_self_activitywatch_autostart: true
+quantified_self_activitywatch_version: "latest"
+
+# Rize - Commercial computer activity tracker
+quantified_self_install_rize: false  # Commercial software, opt-in
+quantified_self_rize_autostart: true
+
+# Fathom - Meeting recorder
+quantified_self_install_fathom: false  # Commercial software, opt-in
+quantified_self_fathom_autostart: true
+
+# General configuration
+quantified_self_create_desktop_shortcuts: true
+quantified_self_configure_startup: true
+
+# Package manager preferences (auto-detected by default)
+quantified_self_prefer_winget: true  # Windows
+quantified_self_prefer_homebrew: true  # macOS
+quantified_self_prefer_apt: true  # Debian/Ubuntu
+
+# Service configuration
+quantified_self_enable_services: true
+quantified_self_start_services: true

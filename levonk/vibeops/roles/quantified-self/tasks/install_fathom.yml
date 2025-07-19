@@ -1,0 +1,165 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+- name: Install Fathom on Windows
+  block:
+    - name: Install Fathom via WinGet
+      community.windows.win_winget:
+        name: Fathom.Fathom
+        state: present
+      register: fathom_winget_result
+      failed_when: false
+
+    - name: Alternative Fathom installation via Chocolatey
+      chocolatey.chocolatey.win_chocolatey:
+        name: fathom
+        state: present
+      when: fathom_winget_result is failed
+      register: fathom_choco_result
+      failed_when: false
+
+    - name: Verify Fathom installation on Windows
+      win_stat:
+        path: "{{ ansible_env.LOCALAPPDATA }}\\Programs\\Fathom\\Fathom.exe"
+      register: fathom_windows_check
+      failed_when: false
+
+    - name: Alternative Fathom installation path check on Windows
+      win_stat:
+        path: "{{ ansible_env.PROGRAMFILES }}\\Fathom\\Fathom.exe"
+      register: fathom_windows_check_alt
+      when: not fathom_windows_check.stat.exists
+      failed_when: false
+
+    - name: Display Fathom installation notice on Windows
+      debug:
+        msg: |
+          Fathom installation attempted. If not found via package managers,
+          please download manually from https://fathom.video
+      when: 
+        - not fathom_windows_check.stat.exists
+        - not fathom_windows_check_alt.stat.exists
+
+  when: ansible_os_family == "Windows"
+  tags:
+    - quantified-self
+    - fathom
+    - windows
+
+- name: Install Fathom on macOS
+  block:
+    - name: Install Fathom via Homebrew
+      community.general.homebrew_cask:
+        name: fathom
+        state: present
+      register: fathom_brew_result
+      failed_when: false
+
+    - name: Verify Fathom installation on macOS
+      stat:
+        path: "/Applications/Fathom.app"
+      register: fathom_macos_check
+      failed_when: false
+
+    - name: Display Fathom installation notice on macOS
+      debug:
+        msg: |
+          Fathom installation attempted. If not available via Homebrew,
+          please download manually from https://fathom.video
+      when: not fathom_macos_check.stat.exists
+
+  when: ansible_os_family == "Darwin"
+  tags:
+    - quantified-self
+    - fathom
+    - macos
+
+- name: Install Fathom on Linux
+  block:
+    - name: Check for Fathom AppImage availability
+      uri:
+        url: "https://api.github.com/repos/fathom-video/fathom/releases/latest"
+        method: GET
+        return_content: yes
+      register: fathom_release_info
+      failed_when: false
+
+    - name: Download Fathom AppImage (if available)
+      get_url:
+        url: "{{ fathom_release_info.json.assets | selectattr('name', 'match', '.*\\.AppImage$') | map(attribute='browser_download_url') | first }}"
+        dest: "{{ ansible_env.HOME }}/.local/bin/fathom.AppImage"
+        mode: '0755'
+      when: 
+        - fathom_release_info is succeeded
+        - fathom_release_info.json.assets | selectattr('name', 'match', '.*\\.AppImage$') | list | length > 0
+      register: fathom_appimage_download
+      failed_when: false
+
+    - name: Create Fathom desktop entry
+      template:
+        src: fathom.desktop.j2
+        dest: "{{ ansible_env.HOME }}/.local/share/applications/fathom.desktop"
+        mode: '0644'
+      when: 
+        - fathom_appimage_download is succeeded
+        - quantified_self_create_desktop_shortcuts | default(true)
+
+    - name: Display Fathom Linux installation notice
+      debug:
+        msg: |
+          Fathom installation attempted for Linux. If AppImage not available,
+          please check https://fathom.video for Linux installation options.
+
+  when: ansible_os_family in ["Debian", "RedHat", "Archlinux"]
+  tags:
+    - quantified-self
+    - fathom
+    - linux
+
+- name: Configure Fathom autostart
+  block:
+    - name: Configure Fathom autostart on Windows
+      win_shell: |
+        $startup = [Environment]::GetFolderPath("Startup")
+        $target = if (Test-Path "$env:LOCALAPPDATA\Programs\Fathom\Fathom.exe") {
+          "$env:LOCALAPPDATA\Programs\Fathom\Fathom.exe"
+        } else {
+          "$env:PROGRAMFILES\Fathom\Fathom.exe"
+        }
+        if (Test-Path $target) {
+          $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut("$startup\Fathom.lnk")
+          $shortcut.TargetPath = $target
+          $shortcut.Save()
+        }
+      when: ansible_os_family == "Windows" and quantified_self_fathom_autostart | default(true)
+
+    - name: Configure Fathom autostart on macOS
+      shell: |
+        if [ -d "/Applications/Fathom.app" ]; then
+          osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Fathom.app", hidden:false}'
+        fi
+      when: ansible_os_family == "Darwin" and quantified_self_fathom_autostart | default(true)
+
+    - name: Configure Fathom autostart on Linux
+      template:
+        src: fathom-autostart.desktop.j2
+        dest: "{{ ansible_env.HOME }}/.config/autostart/fathom.desktop"
+        mode: '0644'
+      when: 
+        - ansible_os_family in ["Debian", "RedHat", "Archlinux"] 
+        - quantified_self_fathom_autostart | default(true)
+        - fathom_appimage_download is succeeded
+
+  when: quantified_self_configure_startup | default(true)
+  tags:
+    - quantified-self
+    - fathom
+    - autostart
+
+- name: Display Fathom installation status
+  debug:
+    msg: "Fathom installation completed. Check above messages for any manual installation requirements."
+  tags:
+    - quantified-self
+    - fathom

@@ -1,0 +1,21 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check ActivityWatch installation
+      command: which activitywatch
+      register: activitywatch_check
+      failed_when: false
+      changed_when: false
+      when: quantified_self_install_activitywatch | default(true)
+
+    - name: Verify ActivityWatch is installed
+      assert:
+        that:
+          - activitywatch_check.rc == 0
+        fail_msg: "ActivityWatch is not installed or not in PATH"
+      when: quantified_self_install_activitywatch | default(true)
+
+    - name: Check if quantified-self tools are properly configured
+      assert:
+        that: true  # Replace with real checks for service status

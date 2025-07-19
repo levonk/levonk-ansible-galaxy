@@ -1,0 +1,65 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+galaxy_info:
+  role_name: quantified-self
+  namespace: levonk.vibeops
+  author: levonk
+  description: Install and configure quantified self tools (ActivityWatch, Rize, Fathom)
+  company: Brillarc, LLC
+  license: AGPL-3.0-only
+  min_ansible_version: "2.12"
+  
+  platforms:
+    - name: Windows
+      versions:
+        - "10"
+        - "11"
+    - name: MacOSX
+      versions:
+        - "10.14"
+        - "10.15"
+        - "11"
+        - "12"
+        - "13"
+        - "14"
+    - name: Ubuntu
+      versions:
+        - "18.04"
+        - "20.04"
+        - "22.04"
+        - "24.04"
+    - name: Debian
+      versions:
+        - "10"
+        - "11"
+        - "12"
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: ArchLinux
+      versions:
+        - all
+
+  galaxy_tags:
+    - quantified-self
+    - productivity
+    - time-tracking
+    - analytics
+    - activitywatch
+    - rize
+    - fathom
+    - automation
+    - monitoring
+    - personal-analytics
+
+dependencies:
+  - role: levonk.base_system
+    when: ansible_os_family in ["Windows", "Darwin", "Debian", "RedHat"]
+
+collections:
+  - community.general
+  - chocolatey.chocolatey
+  - community.windows

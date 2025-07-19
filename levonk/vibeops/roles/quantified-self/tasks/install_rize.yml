@@ -1,0 +1,111 @@
+---
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+
+- name: Install Rize on Windows
+  block:
+    - name: Install Rize via WinGet
+      community.windows.win_winget:
+        name: Rize.Rize
+        state: present
+      register: rize_winget_result
+
+    - name: Verify Rize installation on Windows
+      win_stat:
+        path: "{{ ansible_env.LOCALAPPDATA }}\\Programs\\Rize\\Rize.exe"
+      register: rize_windows_check
+      failed_when: false
+
+    - name: Alternative Rize installation path check on Windows
+      win_stat:
+        path: "{{ ansible_env.PROGRAMFILES }}\\Rize\\Rize.exe"
+      register: rize_windows_check_alt
+      when: not rize_windows_check.stat.exists
+      failed_when: false
+
+    - name: Fail if Rize not found on Windows
+      fail:
+        msg: "Rize installation could not be verified on Windows"
+      when: 
+        - not rize_windows_check.stat.exists
+        - not rize_windows_check_alt.stat.exists
+
+  when: ansible_os_family == "Windows"
+  tags:
+    - quantified-self
+    - rize
+    - windows
+
+- name: Install Rize on macOS
+  block:
+    - name: Install Rize via Homebrew
+      community.general.homebrew_cask:
+        name: rize
+        state: present
+      register: rize_brew_result
+
+    - name: Verify Rize installation on macOS
+      stat:
+        path: "/Applications/Rize.app"
+      register: rize_macos_check
+      failed_when: not rize_macos_check.stat.exists
+
+  when: ansible_os_family == "Darwin"
+  tags:
+    - quantified-self
+    - rize
+    - macos
+
+- name: Install Rize on Linux
+  block:
+    - name: Display Rize Linux installation notice
+      debug:
+        msg: |
+          Rize does not have native Linux support.
+          Please visit https://rize.io for alternative installation methods
+          or consider using ActivityWatch as an open-source alternative.
+
+    - name: Skip Rize installation on Linux
+      meta: end_play
+
+  when: ansible_os_family in ["Debian", "RedHat", "Archlinux"]
+  tags:
+    - quantified-self
+    - rize
+    - linux
+
+- name: Configure Rize autostart
+  block:
+    - name: Configure Rize autostart on Windows
+      win_shell: |
+        $startup = [Environment]::GetFolderPath("Startup")
+        $target = if (Test-Path "$env:LOCALAPPDATA\Programs\Rize\Rize.exe") {
+          "$env:LOCALAPPDATA\Programs\Rize\Rize.exe"
+        } else {
+          "$env:PROGRAMFILES\Rize\Rize.exe"
+        }
+        if (Test-Path $target) {
+          $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut("$startup\Rize.lnk")
+          $shortcut.TargetPath = $target
+          $shortcut.Save()
+        }
+      when: ansible_os_family == "Windows" and quantified_self_rize_autostart | default(true)
+
+    - name: Configure Rize autostart on macOS
+      shell: |
+        osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/Rize.app", hidden:false}'
+      when: ansible_os_family == "Darwin" and quantified_self_rize_autostart | default(true)
+
+  when: quantified_self_configure_startup | default(true)
+  tags:
+    - quantified-self
+    - rize
+    - autostart
+
+- name: Display Rize installation status
+  debug:
+    msg: "Rize has been successfully installed and configured for autostart"
+  when: ansible_os_family != "Debian" and ansible_os_family != "RedHat" and ansible_os_family != "Archlinux"
+  tags:
+    - quantified-self
+    - rize
