@@ -1,0 +1,4 @@
+---
+# Default variables for open_firewall_port
+open_firewall_port_proto: tcp
+open_firewall_port_service: "local service"

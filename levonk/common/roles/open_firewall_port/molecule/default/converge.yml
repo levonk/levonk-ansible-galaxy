@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: levonk.common.open_firewall_port
+      vars:
+        open_firewall_port_port: 8080
+        open_firewall_port_proto: tcp
+        open_firewall_port_service: "test-service"
