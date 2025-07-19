@@ -17,3 +17,6 @@
 - name: Install gitkeeper
   include_tasks: gitkeeper.yml
   when: devops_install_gitkeeper | default(false)
+
+- name: Install VirtualBox or Guest Additions
+  include_tasks: virtualbox.yml

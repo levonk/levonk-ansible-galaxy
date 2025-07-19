@@ -1,0 +1,293 @@
+---
+# VirtualBox detection and installation tasks
+# Installs VirtualBox Guest Additions if running in VirtualBox VM
+# Installs VirtualBox if running on bare metal (not in VM or container)
+
+- name: Detect if running in VirtualBox VM
+  block:
+    - name: Check for VirtualBox VM indicators on Linux
+      shell: |
+        if [ -f /sys/class/dmi/id/product_name ]; then
+          cat /sys/class/dmi/id/product_name
+        elif [ -f /sys/class/dmi/id/sys_vendor ]; then
+          cat /sys/class/dmi/id/sys_vendor
+        else
+          echo "unknown"
+        fi
+      register: vm_detection_linux
+      changed_when: false
+      failed_when: false
+      when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+
+    - name: Check for VirtualBox VM on Windows
+      win_shell: |
+        try {
+          $manufacturer = (Get-WmiObject -Class Win32_ComputerSystem).Manufacturer
+          $model = (Get-WmiObject -Class Win32_ComputerSystem).Model
+          Write-Output "$manufacturer $model"
+        } catch {
+          Write-Output "unknown"
+        }
+      register: vm_detection_windows
+      changed_when: false
+      failed_when: false
+      when: ansible_os_family == 'Windows'
+
+    - name: Check for VirtualBox VM on macOS
+      shell: |
+        if command -v system_profiler >/dev/null 2>&1; then
+          system_profiler SPHardwareDataType | grep "Model Name" || echo "unknown"
+        else
+          echo "unknown"
+        fi
+      register: vm_detection_macos
+      changed_when: false
+      failed_when: false
+      when: ansible_os_family == 'Darwin'
+
+    - name: Check for Docker container environment
+      shell: |
+        if [ -f /.dockerenv ]; then
+          echo "docker"
+        elif grep -q docker /proc/1/cgroup 2>/dev/null; then
+          echo "docker"
+        else
+          echo "not_docker"
+        fi
+      register: docker_detection
+      changed_when: false
+      failed_when: false
+      when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+
+- name: Set virtualization facts
+  set_fact:
+    is_virtualbox_vm: >-
+      {{
+        (ansible_os_family in ['Debian', 'RedHat', 'Archlinux'] and 
+         vm_detection_linux.stdout is defined and 
+         ('VirtualBox' in vm_detection_linux.stdout or 'innotek' in vm_detection_linux.stdout)) or
+        (ansible_os_family == 'Windows' and 
+         vm_detection_windows.stdout is defined and 
+         'VirtualBox' in vm_detection_windows.stdout) or
+        (ansible_os_family == 'Darwin' and 
+         vm_detection_macos.stdout is defined and 
+         'VirtualBox' in vm_detection_macos.stdout)
+      }}
+    is_docker_container: >-
+      {{
+        ansible_os_family in ['Debian', 'RedHat', 'Archlinux'] and
+        docker_detection.stdout is defined and
+        'docker' in docker_detection.stdout
+      }}
+
+- name: Display virtualization detection results
+  debug:
+    msg: |
+      VirtualBox VM: {{ is_virtualbox_vm | default(false) }}
+      Docker Container: {{ is_docker_container | default(false) }}
+      Will install: {{ 'Guest Additions' if is_virtualbox_vm else ('VirtualBox' if not is_docker_container else 'Nothing (Docker detected)') }}
+
+# VirtualBox Guest Additions installation (when running in VirtualBox VM)
+- name: Install VirtualBox Guest Additions on Debian/Ubuntu
+  block:
+    - name: Install Guest Additions prerequisites
+      apt:
+        name:
+          - build-essential
+          - dkms
+          - linux-headers-generic
+        state: present
+        update_cache: yes
+
+    - name: Install VirtualBox Guest Additions
+      apt:
+        name: virtualbox-guest-additions-iso
+        state: present
+
+    - name: Install X11 Guest Additions (graphical)
+      apt:
+        name:
+          - virtualbox-guest-x11
+          - virtualbox-guest-utils
+        state: present
+      when: "'graphical' in ansible_run_tags"
+
+    - name: Ensure vboxsf group exists for shared folders
+      group:
+        name: vboxsf
+        state: present
+
+    - name: Add user to vboxsf group for shared folders
+      user:
+        name: "{{ ansible_user }}"
+        groups: vboxsf
+        append: yes
+      when: ansible_user is defined
+  when: 
+    - ansible_os_family == 'Debian'
+    - is_virtualbox_vm | default(false)
+  tags:
+    - devops
+    - virtualbox
+    - guest_additions
+
+- name: Install VirtualBox Guest Additions on RedHat/CentOS/Fedora
+  block:
+    - name: Install Guest Additions prerequisites on RedHat
+      package:
+        name:
+          - gcc
+          - kernel-devel
+          - kernel-headers
+          - dkms
+          - make
+          - bzip2
+        state: present
+
+    - name: Install VirtualBox Guest Additions on RedHat
+      package:
+        name: VirtualBox-guest-additions
+        state: present
+      ignore_errors: true  # May not be available in all repos
+
+    - name: Ensure vboxsf group exists
+      group:
+        name: vboxsf
+        state: present
+
+    - name: Add user to vboxsf group
+      user:
+        name: "{{ ansible_user }}"
+        groups: vboxsf
+        append: yes
+      when: ansible_user is defined
+  when: 
+    - ansible_os_family == 'RedHat'
+    - is_virtualbox_vm | default(false)
+  tags:
+    - devops
+    - virtualbox
+    - guest_additions
+
+- name: Install VirtualBox Guest Additions on Windows
+  win_chocolatey:
+    name: virtualbox-guest-additions-guest.install
+    state: present
+  when: 
+    - ansible_os_family == 'Windows'
+    - is_virtualbox_vm | default(false)
+  tags:
+    - devops
+    - virtualbox
+    - guest_additions
+
+# VirtualBox installation (when NOT running in VM or container)
+- name: Install VirtualBox on Debian/Ubuntu
+  block:
+    - name: Add Oracle VirtualBox GPG key
+      apt_key:
+        url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
+        state: present
+
+    - name: Add VirtualBox repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian {{ ansible_distribution_release }} contrib"
+        state: present
+        filename: virtualbox
+
+    - name: Install VirtualBox
+      apt:
+        name: virtualbox-7.0
+        state: present
+        update_cache: yes
+
+    - name: Install VirtualBox Extension Pack
+      shell: |
+        VBOX_VERSION=$(vboxmanage --version | cut -dr -f1)
+        wget -q "https://download.virtualbox.org/virtualbox/${VBOX_VERSION}/Oracle_VM_VirtualBox_Extension_Pack-${VBOX_VERSION}.vbox-extpack" -O /tmp/extension_pack.vbox-extpack
+        echo "y" | vboxmanage extpack install /tmp/extension_pack.vbox-extpack --replace
+        rm -f /tmp/extension_pack.vbox-extpack
+      args:
+        creates: /usr/lib/virtualbox/ExtensionPacks/Oracle_VM_VirtualBox_Extension_Pack
+      become: true
+  when: 
+    - ansible_os_family == 'Debian'
+    - not (is_virtualbox_vm | default(false))
+    - not (is_docker_container | default(false))
+  tags:
+    - devops
+    - virtualbox
+    - host_install
+
+- name: Install VirtualBox on RedHat/CentOS/Fedora
+  block:
+    - name: Add VirtualBox repository on RedHat
+      yum_repository:
+        name: virtualbox
+        description: Oracle Linux / RHEL / CentOS-$releasever / $basearch - VirtualBox
+        baseurl: http://download.virtualbox.org/virtualbox/rpm/el/$releasever/$basearch
+        enabled: yes
+        gpgcheck: yes
+        repo_gpgcheck: yes
+        gpgkey: https://www.virtualbox.org/download/oracle_vbox.asc
+
+    - name: Install VirtualBox on RedHat
+      package:
+        name: VirtualBox-7.0
+        state: present
+
+    - name: Add user to vboxusers group
+      user:
+        name: "{{ ansible_user }}"
+        groups: vboxusers
+        append: yes
+      when: ansible_user is defined
+  when: 
+    - ansible_os_family == 'RedHat'
+    - not (is_virtualbox_vm | default(false))
+    - not (is_docker_container | default(false))
+  tags:
+    - devops
+    - virtualbox
+    - host_install
+
+- name: Install VirtualBox on macOS
+  community.general.homebrew_cask:
+    name: virtualbox
+    state: present
+  when: 
+    - ansible_os_family == 'Darwin'
+    - not (is_virtualbox_vm | default(false))
+  tags:
+    - devops
+    - virtualbox
+    - host_install
+
+- name: Install VirtualBox on Windows
+  win_chocolatey:
+    name: virtualbox
+    state: present
+  when: 
+    - ansible_os_family == 'Windows'
+    - not (is_virtualbox_vm | default(false))
+  tags:
+    - devops
+    - virtualbox
+    - host_install
+
+- name: Display VirtualBox installation summary
+  debug:
+    msg: |
+      {% if is_virtualbox_vm | default(false) %}
+      VirtualBox Guest Additions installed for VM environment.
+      {% if 'graphical' in ansible_run_tags %}
+      X11 Guest Additions installed for graphical support.
+      {% endif %}
+      {% elif is_docker_container | default(false) %}
+      Skipped VirtualBox installation - Docker container detected.
+      {% else %}
+      VirtualBox installed for virtualization host.
+      {% endif %}
+  tags:
+    - devops
+    - virtualbox

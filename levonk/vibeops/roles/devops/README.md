@@ -1,10 +1,10 @@
 # Ansible Role: levonk.vibeops.devops
 
-Installs essential DevOps tools (Vagrant, Packer, Terraform, Docker Desktop, gitkeeper) on Windows, Debian/Ubuntu, and macOS systems.
+Installs essential DevOps tools (Vagrant, Packer, Terraform, Docker Desktop, VirtualBox, gitkeeper) on Windows, Debian/Ubuntu, and macOS systems.
 
 ## Description
 
-This role automates the installation of HashiCorp Vagrant, Packer, Terraform, Docker Desktop, and the gitkeeper CLI tool. It is designed to be cross-platform, using the most appropriate package manager or build tool for each supported operating system.
+This role automates the installation of HashiCorp Vagrant, Packer, Terraform, Docker Desktop, VirtualBox/Guest Additions, and the gitkeeper CLI tool. It intelligently detects the environment and installs VirtualBox Guest Additions when running in a VirtualBox VM, or VirtualBox itself when running on bare metal. It is designed to be cross-platform, using the most appropriate package manager or build tool for each supported operating system.
 
 ## Requirements
 
@@ -26,9 +26,10 @@ The role's behavior is also controlled via tags.
 - **`vagrant`**: Run only the tasks required to install Vagrant.
 - **`packer`**: Run only the tasks required to install Packer.
 - **`terraform`**: Run only the tasks required to install Terraform.
-- **`graphical`**: Run tasks that require a graphical environment, such as installing Docker Desktop.
+- **`virtualbox`**: Run only the VirtualBox-related tasks (Guest Additions or VirtualBox installation).
+- **`graphical`**: Run tasks that require a graphical environment, such as installing Docker Desktop or X11 Guest Additions.
 
-If no tags are specified, the role will install Vagrant, Packer, and Terraform, but not graphical applications or tools controlled by variables.
+If no tags are specified, the role will install Vagrant, Packer, Terraform, and VirtualBox/Guest Additions, but not graphical applications or tools controlled by variables.
 
 ## Dependencies
 
@@ -36,7 +37,7 @@ If no tags are specified, the role will install Vagrant, Packer, and Terraform, 
 
 ## Example Playbook
 
-To install Vagrant, Packer, and Terraform:
+To install Vagrant, Packer, Terraform, and VirtualBox/Guest Additions:
 
 ```yaml
 ---
@@ -56,6 +57,18 @@ To install gitkeeper:
     devops_install_gitkeeper: true
   roles:
     - role: levonk.vibeops.devops
+```
+
+To install with X11 Guest Additions (when running in VirtualBox VM):
+
+```yaml
+---
+- hosts: vms
+  become: yes
+  roles:
+    - role: levonk.vibeops.devops
+  tags:
+    - graphical
 ```
 
 ## License
