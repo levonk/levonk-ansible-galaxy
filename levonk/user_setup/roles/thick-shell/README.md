@@ -43,7 +43,11 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   `thick_shell_install_zellij`: Set to `true` to install Zellij.
 -   `thick_shell_install_mosh`: Set to `true` to install Mosh.
 -   `thick_shell_install_fzf`: Set to `true` to install fzf fuzzy finder.
--   `thick_shell_install_modern_cli_tools`: Set to `true` to install modern CLI tools (direnv, ripgrep, bat, fd).
+-   `thick_shell_install_direnv`: Set to `true` to install direnv environment manager.
+-   `thick_shell_install_ripgrep`: Set to `true` to install ripgrep search tool.
+-   `thick_shell_install_bat`: Set to `true` to install bat syntax highlighter.
+-   `thick_shell_install_fd`: Set to `true` to install fd file finder.
+-   `thick_shell_install_zoxide`: Set to `true` to install zoxide smart cd.
 
 ## Dependencies
 
@@ -62,7 +66,11 @@ To install the default Zsh stack along with all advanced tools:
     thick_shell_install_tmux: true
     thick_shell_install_zellij: true
     thick_shell_install_fzf: true
-    thick_shell_install_modern_cli_tools: true
+    thick_shell_install_direnv: true
+    thick_shell_install_ripgrep: true
+    thick_shell_install_bat: true
+    thick_shell_install_fd: true
+    thick_shell_install_zoxide: true
   roles:
     - role: levonk.user_setup.thick-shell
 ```

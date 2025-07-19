@@ -1,0 +1,60 @@
+---
+# tasks file for levonk.user_setup.thick-shell - ripgrep
+
+- name: Install ripgrep on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: ripgrep
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - ripgrep
+    - search
+
+- name: Install ripgrep on Debian-based systems
+  ansible.builtin.apt:
+    name: ripgrep
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - ripgrep
+    - search
+
+- name: Install ripgrep on macOS via Homebrew
+  community.general.homebrew:
+    name: ripgrep
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - thick-shell
+    - tools
+    - ripgrep
+    - search
+
+- name: Verify ripgrep installation
+  ansible.builtin.command:
+    cmd: rg --version
+  register: ripgrep_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - ripgrep
+    - verify
+
+- name: Display ripgrep version
+  ansible.builtin.debug:
+    msg: "ripgrep version: {{ ripgrep_version.stdout }}"
+  when: ripgrep_version.rc == 0
+  tags:
+    - thick-shell
+    - tools
+    - ripgrep
+    - verify

@@ -36,6 +36,22 @@
   include_tasks: fzf.yml
   when: thick_shell_install_fzf | default(false)
 
-- name: Install modern CLI tools
-  include_tasks: modern_cli_tools.yml
-  when: thick_shell_install_modern_cli_tools | default(false)
+- name: Install direnv
+  include_tasks: direnv.yml
+  when: thick_shell_install_direnv | default(false)
+
+- name: Install ripgrep
+  include_tasks: ripgrep.yml
+  when: thick_shell_install_ripgrep | default(false)
+
+- name: Install bat
+  include_tasks: bat.yml
+  when: thick_shell_install_bat | default(false)
+
+- name: Install fd
+  include_tasks: fd.yml
+  when: thick_shell_install_fd | default(false)
+
+- name: Install zoxide
+  include_tasks: zoxide.yml
+  when: thick_shell_install_zoxide | default(false)

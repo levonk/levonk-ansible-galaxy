@@ -1,0 +1,108 @@
+---
+# tasks file for levonk.user_setup.thick-shell - direnv
+
+- name: Install direnv on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: direnv
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - environment
+
+- name: Install direnv on Debian-based systems
+  ansible.builtin.apt:
+    name: direnv
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - environment
+
+- name: Install direnv on macOS via Homebrew
+  community.general.homebrew:
+    name: direnv
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - environment
+
+- name: Verify direnv installation
+  ansible.builtin.command:
+    cmd: direnv version
+  register: direnv_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - verify
+
+- name: Display direnv version
+  ansible.builtin.debug:
+    msg: "direnv version: {{ direnv_version.stdout }}"
+  when: direnv_version.rc == 0
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - verify
+
+- name: Add direnv hook to bash
+  ansible.builtin.lineinfile:
+    path: ~/.bashrc
+    line: 'eval "$(direnv hook bash)"'
+    create: true
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'bash' in thick_shells"
+    - direnv_version.rc == 0
+  become: false
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - integration
+
+- name: Add direnv hook to zsh
+  ansible.builtin.lineinfile:
+    path: ~/.zshrc
+    line: 'eval "$(direnv hook zsh)"'
+    create: true
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'zsh' in thick_shells"
+    - direnv_version.rc == 0
+  become: false
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - integration
+
+- name: Add direnv hook to fish
+  ansible.builtin.lineinfile:
+    path: ~/.config/fish/config.fish
+    line: 'direnv hook fish | source'
+    create: true
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'fish' in thick_shells"
+    - direnv_version.rc == 0
+  become: false
+  tags:
+    - thick-shell
+    - tools
+    - direnv
+    - integration

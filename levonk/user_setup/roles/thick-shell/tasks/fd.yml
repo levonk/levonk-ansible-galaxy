@@ -1,0 +1,89 @@
+---
+# tasks file for levonk.user_setup.thick-shell - fd
+
+- name: Install fd on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: fd
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - file-search
+
+- name: Install fd on Debian-based systems
+  ansible.builtin.apt:
+    name: fd-find
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - file-search
+
+- name: Install fd on macOS via Homebrew
+  community.general.homebrew:
+    name: fd
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - file-search
+
+- name: Verify fd installation (Windows/macOS)
+  ansible.builtin.command:
+    cmd: fd --version
+  register: fd_version
+  changed_when: false
+  failed_when: false
+  when: ansible_os_family in ['Windows', 'Darwin']
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - verify
+
+- name: Verify fd installation (Debian - as fdfind)
+  ansible.builtin.command:
+    cmd: fdfind --version
+  register: fd_version_debian
+  changed_when: false
+  failed_when: false
+  when: ansible_os_family == "Debian"
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - verify
+
+- name: Display fd version
+  ansible.builtin.debug:
+    msg: "fd version: {{ fd_version.stdout if (fd_version is defined and fd_version.rc == 0) else (fd_version_debian.stdout if (fd_version_debian is defined and fd_version_debian.rc == 0) else 'Not installed') }}"
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - verify
+
+- name: Create fd symlink on Debian (for consistency)
+  ansible.builtin.file:
+    src: /usr/bin/fdfind
+    dest: /usr/local/bin/fd
+    state: link
+  when: 
+    - ansible_os_family == "Debian"
+    - fd_version_debian is defined
+    - fd_version_debian.rc == 0
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - fd
+    - integration

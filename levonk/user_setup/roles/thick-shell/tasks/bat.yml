@@ -1,0 +1,60 @@
+---
+# tasks file for levonk.user_setup.thick-shell - bat
+
+- name: Install bat on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: bat
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - bat
+    - syntax-highlighting
+
+- name: Install bat on Debian-based systems
+  ansible.builtin.apt:
+    name: bat
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - bat
+    - syntax-highlighting
+
+- name: Install bat on macOS via Homebrew
+  community.general.homebrew:
+    name: bat
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - thick-shell
+    - tools
+    - bat
+    - syntax-highlighting
+
+- name: Verify bat installation
+  ansible.builtin.command:
+    cmd: bat --version
+  register: bat_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - bat
+    - verify
+
+- name: Display bat version
+  ansible.builtin.debug:
+    msg: "bat version: {{ bat_version.stdout }}"
+  when: bat_version.rc == 0
+  tags:
+    - thick-shell
+    - tools
+    - bat
+    - verify
