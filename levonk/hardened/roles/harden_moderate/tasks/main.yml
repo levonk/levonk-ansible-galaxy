@@ -1,6 +1,9 @@
 ---
 # Moderate hardening: OS dispatcher
 
+- name: Configure system firewall (all OS)
+  import_tasks: firewall.yml
+
 - name: Include Linux moderate tasks
   import_tasks: linux.yml
   when: ansible_facts['os_family'] in ['Debian', 'RedHat']
