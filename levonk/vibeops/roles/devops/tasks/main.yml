@@ -4,6 +4,9 @@
 - name: Install Packer
   include_tasks: packer.yml
 
+- name: Install Terraform
+  include_tasks: terraform.yml
+
 - name: Install Vagrant
   include_tasks: vagrant.yml
 

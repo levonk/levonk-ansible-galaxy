@@ -1,0 +1,147 @@
+---
+# tasks file for installing HashiCorp Terraform
+
+- name: Block for Debian-based systems
+  tags:
+    - devops
+    - terraform
+  block:
+    - name: Install prerequisites for HashiCorp repository
+      apt:
+        name:
+          - gpg
+          - software-properties-common
+        state: present
+        update_cache: yes
+
+    - name: Add HashiCorp GPG key
+      apt_key:
+        url: https://apt.releases.hashicorp.com/gpg
+        state: present
+
+    - name: Ensure HashiCorp repository is configured for Terraform
+      apt_repository:
+        repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        state: present
+
+    - name: Install Terraform on Debian
+      apt:
+        name: terraform
+        state: present
+        update_cache: yes
+
+    - name: Verify Terraform installation on Debian
+      command: terraform version
+      register: terraform_version_debian
+      changed_when: false
+      failed_when: terraform_version_debian.rc != 0
+
+    - name: Display Terraform version on Debian
+      debug:
+        msg: "Terraform installed: {{ terraform_version_debian.stdout_lines[0] }}"
+  when: ansible_os_family == 'Debian'
+
+- name: Block for RedHat-based systems
+  tags:
+    - devops
+    - terraform
+  block:
+    - name: Install prerequisites for HashiCorp repository on RedHat
+      package:
+        name:
+          - gnupg2
+          - yum-utils
+        state: present
+
+    - name: Add HashiCorp repository on RedHat
+      yum_repository:
+        name: hashicorp
+        description: HashiCorp Stable - $basearch
+        baseurl: https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: https://rpm.releases.hashicorp.com/gpg
+
+    - name: Install Terraform on RedHat
+      package:
+        name: terraform
+        state: present
+
+    - name: Verify Terraform installation on RedHat
+      command: terraform version
+      register: terraform_version_redhat
+      changed_when: false
+      failed_when: terraform_version_redhat.rc != 0
+
+    - name: Display Terraform version on RedHat
+      debug:
+        msg: "Terraform installed: {{ terraform_version_redhat.stdout_lines[0] }}"
+  when: ansible_os_family == 'RedHat'
+
+- name: Block for macOS (Darwin)
+  tags:
+    - devops
+    - terraform
+  block:
+    - name: Ensure hashicorp/tap is tapped for Terraform
+      community.general.homebrew_tap:
+        name: hashicorp/tap
+        state: present
+
+    - name: Install Terraform on macOS
+      community.general.homebrew:
+        name: hashicorp/tap/terraform
+        state: present
+
+    - name: Verify Terraform installation on macOS
+      command: terraform version
+      register: terraform_version_macos
+      changed_when: false
+      failed_when: terraform_version_macos.rc != 0
+
+    - name: Display Terraform version on macOS
+      debug:
+        msg: "Terraform installed: {{ terraform_version_macos.stdout_lines[0] }}"
+  when: ansible_os_family == 'Darwin'
+
+- name: Block for Windows
+  tags:
+    - devops
+    - terraform
+  block:
+    - name: Install Terraform on Windows
+      win_chocolatey:
+        name: terraform
+        state: present
+
+    - name: Verify Terraform installation on Windows
+      win_command: terraform version
+      register: terraform_version_windows
+      changed_when: false
+      failed_when: terraform_version_windows.rc != 0
+
+    - name: Display Terraform version on Windows
+      debug:
+        msg: "Terraform installed: {{ terraform_version_windows.stdout_lines[0] }}"
+  when: ansible_os_family == 'Windows'
+
+- name: Create Terraform configuration directory
+  file:
+    path: "{{ ansible_env.HOME }}/.terraform.d"
+    state: directory
+    mode: '0755'
+  when: ansible_os_family != 'Windows'
+  tags:
+    - devops
+    - terraform
+    - config
+
+- name: Create Terraform configuration directory on Windows
+  win_file:
+    path: "{{ ansible_env.USERPROFILE }}\\.terraform.d"
+    state: directory
+  when: ansible_os_family == 'Windows'
+  tags:
+    - devops
+    - terraform
+    - config

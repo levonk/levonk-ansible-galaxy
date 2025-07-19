@@ -1,10 +1,10 @@
 # Ansible Role: levonk.vibeops.devops
 
-Installs essential DevOps tools (Vagrant, Packer, Docker Desktop, gitkeeper) on Windows, Debian/Ubuntu, and macOS systems.
+Installs essential DevOps tools (Vagrant, Packer, Terraform, Docker Desktop, gitkeeper) on Windows, Debian/Ubuntu, and macOS systems.
 
 ## Description
 
-This role automates the installation of HashiCorp Vagrant, Packer, Docker Desktop, and the gitkeeper CLI tool. It is designed to be cross-platform, using the most appropriate package manager or build tool for each supported operating system.
+This role automates the installation of HashiCorp Vagrant, Packer, Terraform, Docker Desktop, and the gitkeeper CLI tool. It is designed to be cross-platform, using the most appropriate package manager or build tool for each supported operating system.
 
 ## Requirements
 
@@ -25,9 +25,10 @@ The role's behavior is also controlled via tags.
 
 - **`vagrant`**: Run only the tasks required to install Vagrant.
 - **`packer`**: Run only the tasks required to install Packer.
+- **`terraform`**: Run only the tasks required to install Terraform.
 - **`graphical`**: Run tasks that require a graphical environment, such as installing Docker Desktop.
 
-If no tags are specified, the role will install both Vagrant and Packer, but not graphical applications or tools controlled by variables.
+If no tags are specified, the role will install Vagrant, Packer, and Terraform, but not graphical applications or tools controlled by variables.
 
 ## Dependencies
 
@@ -35,7 +36,7 @@ If no tags are specified, the role will install both Vagrant and Packer, but not
 
 ## Example Playbook
 
-To install both Vagrant and Packer:
+To install Vagrant, Packer, and Terraform:
 
 ```yaml
 ---
