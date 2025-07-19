@@ -48,3 +48,6 @@
   when:
     - tools_install_speech_tools | default(false)
     - "'graphical' in ansible_run_tags"
+
+- name: Install diagram tools (Graphviz, MermaidJS CLI)
+  ansible.builtin.include_tasks: diagram-tools.yml

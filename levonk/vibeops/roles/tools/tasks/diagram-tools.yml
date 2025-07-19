@@ -1,0 +1,84 @@
+---
+# Install Graphviz and MermaidJS CLI for all supported OSes
+
+- name: Install Graphviz on Debian/Ubuntu
+  apt:
+    name: graphviz
+    state: present
+    update_cache: yes
+  when: ansible_os_family == 'Debian'
+  tags:
+    - diagram
+    - graphviz
+    - tools
+    - debian
+
+- name: Install Graphviz on RedHat/CentOS/Fedora
+  yum:
+    name: graphviz
+    state: present
+  when: ansible_os_family == 'RedHat'
+  tags:
+    - diagram
+    - graphviz
+    - tools
+    - redhat
+
+- name: Install Graphviz on macOS
+  homebrew:
+    name: graphviz
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - diagram
+    - graphviz
+    - tools
+    - darwin
+
+- name: Install Graphviz on Windows (WinGet)
+  win_shell: winget install -e --id Graphviz.Graphviz --accept-source-agreements --accept-package-agreements
+  args:
+    creates: C:\Program Files\Graphviz\bin\dot.exe
+  when: ansible_os_family == 'Windows'
+  tags:
+    - diagram
+    - graphviz
+    - tools
+    - windows
+
+- name: Install MermaidJS CLI (npm, all OS)
+  npm:
+    name: @mermaid-js/mermaid-cli
+    global: yes
+    state: present
+  tags:
+    - diagram
+    - mermaid
+    - tools
+    - all_os
+
+- name: Ensure mmdc is in PATH (Linux/macOS)
+  file:
+    src: /usr/local/lib/node_modules/@mermaid-js/mermaid-cli/bin/mmdc
+    dest: /usr/local/bin/mmdc
+    state: link
+    force: yes
+  when: ansible_os_family != 'Windows'
+  tags:
+    - diagram
+    - mermaid
+    - tools
+    - all_os
+
+- name: Ensure mmdc is in PATH (Windows)
+  win_shell: |
+    $npmPath = (npm root -g)
+    $mmdcPath = Join-Path $npmPath '@mermaid-js/mermaid-cli\bin\mmdc.cmd'
+    $target = "$env:ProgramFiles\nodejs\mmdc.cmd"
+    if (!(Test-Path $target)) { Copy-Item $mmdcPath $target }
+  when: ansible_os_family == 'Windows'
+  tags:
+    - diagram
+    - mermaid
+    - tools
+    - windows
