@@ -1,0 +1,8 @@
+---
+# defaults file for base_system
+
+# Windows package manager installation
+base_system_install_winget: true
+
+# Base system packages (define in vars or group_vars)
+base_system_packages: []

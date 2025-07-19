@@ -35,6 +35,17 @@
   args:
     creates: C:\\ProgramData\\chocolatey\\bin\\choco.exe
 
+- name: Install WinGet - Windows package manager
+  win_chocolatey:
+    name: winget
+    state: present
+  when: base_system_install_winget | default(true)
+  tags:
+    - base_system
+    - windows
+    - winget
+    - package_manager
+
 - name: Install essential packages on Windows
   win_chocolatey:
     name: "{{ base_system_packages }}"

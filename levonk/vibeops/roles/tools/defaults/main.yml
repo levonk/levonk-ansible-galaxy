@@ -20,7 +20,6 @@ tools_install_keka: true
 
 # Windows-specific tools (default: true for better Windows experience)
 tools_install_powertoys: true
-tools_install_winget: true
 tools_install_windows_terminal: true
 tools_install_everything: true
 tools_install_autohotkey: true

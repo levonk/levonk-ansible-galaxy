@@ -12,17 +12,6 @@
     - powertoys
     - system_utilities
 
-- name: Install WinGet - Windows package manager
-  win_chocolatey:
-    name: winget
-    state: present
-  when: tools_install_winget | default(true)
-  tags:
-    - tools
-    - windows
-    - winget
-    - package_manager
-
 - name: Install Windows Terminal
   win_chocolatey:
     name: microsoft-windows-terminal

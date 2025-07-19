@@ -61,7 +61,6 @@ Installation of some tools is controlled by boolean variables. Platform-specific
 
 ### Windows-Specific Tools (default: true)
 - `tools_install_powertoys`: Install PowerToys system utilities
-- `tools_install_winget`: Install WinGet package manager
 - `tools_install_windows_terminal`: Install Windows Terminal
 - `tools_install_everything`: Install Everything file search
 - `tools_install_autohotkey`: Install AutoHotkey automation
