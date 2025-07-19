@@ -25,6 +25,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   **ripgrep**: Blazing-fast search tool that pairs beautifully with fzf.
 -   **bat**: Syntax-highlighted cat replacement with Git integration.
 -   **fd**: A simpler, faster alternative to find.
+-   **zoxide**: A smarter cd command that learns your habits and lets you jump to frequently used directories.
 
 **Note**: On Windows, these tools are intended for use within the Windows Subsystem for Linux (WSL). The role will not install them on the native Windows host but will display a message advising to install them within WSL.
 

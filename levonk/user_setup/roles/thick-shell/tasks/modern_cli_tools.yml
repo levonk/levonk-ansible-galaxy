@@ -162,6 +162,46 @@
     - file-search
 
 # ============================================================================
+# zoxide - A smarter cd command that learns your habits
+# ============================================================================
+
+- name: Install zoxide on Windows via Chocolatey
+  ansible.windows.win_chocolatey:
+    name: zoxide
+    state: present
+  when: ansible_os_family == 'Windows'
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
+    - navigation
+
+- name: Install zoxide on Debian-based systems
+  ansible.builtin.apt:
+    name: zoxide
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+  become: true
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
+    - navigation
+
+- name: Install zoxide on macOS via Homebrew
+  community.general.homebrew:
+    name: zoxide
+    state: present
+  when: ansible_os_family == "Darwin"
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
+    - navigation
+
+# ============================================================================
 # Verification and Integration
 # ============================================================================
 
@@ -227,6 +267,18 @@
     - fd
     - verify
 
+- name: Verify zoxide installation
+  ansible.builtin.command:
+    cmd: zoxide --version
+  register: zoxide_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
+    - verify
+
 - name: Display tool versions
   ansible.builtin.debug:
     msg: |
@@ -235,6 +287,7 @@
       - ripgrep: {{ ripgrep_version.stdout if ripgrep_version.rc == 0 else 'Not installed' }}
       - bat: {{ bat_version.stdout if bat_version.rc == 0 else 'Not installed' }}
       - fd: {{ fd_version.stdout if (fd_version is defined and fd_version.rc == 0) else (fd_version_debian.stdout if (fd_version_debian is defined and fd_version_debian.rc == 0) else 'Not installed') }}
+      - zoxide: {{ zoxide_version.stdout if zoxide_version.rc == 0 else 'Not installed' }}
   tags:
     - thick-shell
     - tools
@@ -306,4 +359,56 @@
     - thick-shell
     - tools
     - fd
+    - integration
+
+# ============================================================================
+# Shell Integration for zoxide
+# ============================================================================
+
+- name: Add zoxide init to bash
+  ansible.builtin.lineinfile:
+    path: ~/.bashrc
+    line: 'eval "$(zoxide init bash)"'
+    create: true
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'bash' in thick_shells"
+    - zoxide_version.rc == 0
+  become: false
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
+    - integration
+
+- name: Add zoxide init to zsh
+  ansible.builtin.lineinfile:
+    path: ~/.zshrc
+    line: 'eval "$(zoxide init zsh)"'
+    create: true
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'zsh' in thick_shells"
+    - zoxide_version.rc == 0
+  become: false
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
+    - integration
+
+- name: Add zoxide init to fish
+  ansible.builtin.lineinfile:
+    path: ~/.config/fish/config.fish
+    line: 'zoxide init fish | source'
+    create: true
+  when: 
+    - ansible_os_family != 'Windows'
+    - "'fish' in thick_shells"
+    - zoxide_version.rc == 0
+  become: false
+  tags:
+    - thick-shell
+    - tools
+    - zoxide
     - integration
