@@ -36,6 +36,8 @@ jobs:
             path: levonk/vibeops/roles/devops
           - name: syscheck
             path: levonk/base_system/roles/syscheck
+          - name: base_system
+            path: levonk/base_system/roles/base_system
           - name: reboot_manager
             path: levonk/base_system/roles/reboot_manager
           - name: install_gui_conditionally

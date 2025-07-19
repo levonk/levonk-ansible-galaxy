@@ -1,0 +1,6 @@
+---
+- name: Install essential packages on Debian/Ubuntu
+  apt:
+    name: "{{ base_system_packages }}"
+    state: present
+    update_cache: yes

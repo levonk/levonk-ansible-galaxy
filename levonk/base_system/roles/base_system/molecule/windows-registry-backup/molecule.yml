@@ -1,0 +1,14 @@
+---
+driver:
+  name: delegated
+platforms:
+  - name: windows-registry-backup
+    image: "mcr.microsoft.com/windows/servercore:ltsc2019"
+    groups:
+      - windows
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ../../../../../../../../private-deployment/cfg-management/ansible/personal-bootstrap/playbooks/kickstart.yml
+verifier:
+  name: ansible

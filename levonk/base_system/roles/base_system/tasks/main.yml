@@ -1,50 +1,14 @@
 ---
 # tasks file for base_system
-# Install essential packages cross-platform
-- name: Install essential packages on Debian/Ubuntu
-  apt:
-    name: "{{ base_system_packages }}"
-    state: present
-    update_cache: yes
+
+- name: Include Debian/Ubuntu tasks
+  include_tasks: debian.yml
   when: ansible_facts['os_family'] == 'Debian'
 
-- name: Check if Homebrew is installed
-  ansible.builtin.stat:
-    path: /opt/homebrew/bin/brew
-  register: homebrew_stat
+- name: Include macOS tasks
+  include_tasks: macos.yml
   when: ansible_facts['os_family'] == 'Darwin'
 
-- name: Install Homebrew using vetted installer
-  ansible.builtin.include_role:
-    name: levonk.common.vet_script_installer
-  vars:
-    vet_script_url: "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-    vet_script_dest: "/tmp/homebrew-install.sh"
-    vet_script_args: ""
-  when:
-    - ansible_facts['os_family'] == 'Darwin'
-    - not homebrew_stat.stat.exists
-
-- name: Install essential packages on macOS
-  community.general.homebrew:
-    name: "{{ base_system_packages }}"
-    state: present
-  when: ansible_facts['os_family'] == 'Darwin'
-
-- name: Install Chocolatey if not present
-  win_shell: |
-    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-  args:
-    creates: C:\ProgramData\chocolatey\bin\choco.exe
+- name: Include Windows tasks
+  include_tasks: windows.yml
   when: ansible_facts['os_family'] == 'Windows'
-
-- name: Install essential packages on Windows
-  win_chocolatey:
-    name: "{{ base_system_packages }}"
-    state: present
-  when: ansible_facts['os_family'] == 'Windows'
-
-# Placeholder for networking configuration (platform-specific)
-- name: Ensure networking is configured (platform-specific)
-  debug:
-    msg: "Networking configuration would go here."

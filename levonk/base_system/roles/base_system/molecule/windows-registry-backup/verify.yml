@@ -1,0 +1,33 @@
+---
+- name: Verify registry backup files exist
+  hosts: windows
+  gather_facts: false
+  tasks:
+    - name: Check for HKLM.reg
+      win_stat:
+        path: C:\\backup\\HKLM.reg
+      register: hklm_reg
+    - name: Check for HKCU.reg
+      win_stat:
+        path: C:\\backup\\HKCU.reg
+      register: hkcu_reg
+    - name: Check for HKU.reg
+      win_stat:
+        path: C:\\backup\\HKU.reg
+      register: hku_reg
+    - name: Check for HKCR.reg
+      win_stat:
+        path: C:\\backup\\HKCR.reg
+      register: hkcr_reg
+    - name: Check for HKCC.reg
+      win_stat:
+        path: C:\\backup\\HKCC.reg
+      register: hkcc_reg
+    - name: Assert all registry backup files exist
+      assert:
+        that:
+          - hklm_reg.stat.exists
+          - hkcu_reg.stat.exists
+          - hku_reg.stat.exists
+          - hkcr_reg.stat.exists
+          - hkcc_reg.stat.exists
