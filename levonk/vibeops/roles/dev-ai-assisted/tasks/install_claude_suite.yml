@@ -11,12 +11,59 @@
     - claude
     - claude-install
 
+- name: "Install claude-code-router from GitHub"
+  block:
+    - name: "Check if Go is installed for claude-code-router"
+      ansible.builtin.command:
+        cmd: go version
+      register: go_version_check
+      changed_when: false
+      failed_when: false
+
+    - name: "Install claude-code-router via go install"
+      ansible.builtin.command:
+        cmd: go install github.com/musistudio/claude-code-router@latest
+      environment:
+        GOPATH: "{{ ansible_env.HOME }}/go"
+        PATH: "{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/go/bin"
+      when: go_version_check.rc == 0
+      register: claude_router_install
+      changed_when: claude_router_install.rc == 0
+
+    - name: "Verify claude-code-router installation"
+      ansible.builtin.command:
+        cmd: "{{ ansible_env.HOME }}/go/bin/claude-code-router --version"
+      register: claude_router_version
+      changed_when: false
+      failed_when: false
+      when: go_version_check.rc == 0
+
+    - name: "Display claude-code-router installation status"
+      ansible.builtin.debug:
+        msg: |
+          {% if go_version_check.rc == 0 %}
+          claude-code-router installed successfully.
+          Location: {{ ansible_env.HOME }}/go/bin/claude-code-router
+          {% if claude_router_version.rc == 0 %}
+          Version: {{ claude_router_version.stdout }}
+          {% endif %}
+          {% else %}
+          Go is not installed. Skipping claude-code-router installation.
+          To install claude-code-router, first install Go and then run:
+          go install github.com/musistudio/claude-code-router@latest
+          {% endif %}
+  tags:
+    - claude
+    - claude-install
+    - claude-router
+
 - name: "Inform user about Claude Code usage"
   ansible.builtin.debug:
     msg:
       - "Claude Code has been installed globally via npm."
       - "To use it, you must first configure it with your API key by running: claude setup"
       - "After setup, you can run the tool from your project directory with: claude"
+      - "claude-code-router has been installed (if Go is available) for advanced code routing."
   tags:
     - claude
     - claude-install

@@ -20,6 +20,7 @@ This role installs and configures the following AI-powered tools:
 - **Claude & Experimental Tooling:**
   - Kiro
   - Claude Code
+  - Claude Code Router
   - Claude Taskmaster
   - RooCode + Boomerang Mode
 
@@ -35,6 +36,9 @@ This role installs and configures the following AI-powered tools:
   - Homebrew is required for macOS.
   - Winget is required for Windows.
   - `apt` is used for Debian-based systems.
+- **Development Tools:**
+  - Go is required for claude-code-router installation.
+  - Node.js/npm is required for Claude Code installation.
 - **Collections:** The `community.general` and `ansible.windows` collections are used.
 
 ## Usage Example
