@@ -1,0 +1,14 @@
+---
+- name: Checksums Role Kickstart Example
+  hosts: all
+  become: yes
+  vars:
+    checksums_download_url: "https://example.com/file"
+    checksums_dest: "/tmp/file"
+    checksums_checksum: "dummychecksumvalue"
+    checksums_checksum_algo: "sha256"
+    checksums_checksum_url: "https://example.com/file.sha256"
+    checksums_checksum_required: true
+    checksums_log_checksum: true
+  roles:
+    - role: levonk.common.checksums

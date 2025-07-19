@@ -1,3 +1,6 @@
----
-# vars/main.yml for vet_script_installer role
-# (Add default variables for script vetting here)
+# Default variables for vet_script_installer
+vet_script_checksum: ""
+vet_script_checksum_algo: "sha256"
+vet_script_checksum_required: false
+vet_script_checksum_url: ""
+vet_script_log_checksum: true

@@ -1,0 +1,18 @@
+---
+- name: Converge
+  hosts: all
+  become: yes
+  vars:
+    vet_bin_checksum: "dummychecksumvalue"
+    vet_bin_checksum_algo: "sha256"
+    vet_bin_checksum_required: true
+    vet_bin_checksum_url: "https://example.com/vet.sha256"
+    vet_bin_log_checksum: true
+    vet_script_url: "https://example.com/test-script.sh"
+    vet_script_checksum: "dummychecksumscript"
+    vet_script_checksum_algo: "sha256"
+    vet_script_checksum_url: "https://example.com/test-script.sh.sha256"
+    vet_script_checksum_required: true
+    vet_script_log_checksum: true
+  roles:
+    - role: levonk.common.vet_script_installer

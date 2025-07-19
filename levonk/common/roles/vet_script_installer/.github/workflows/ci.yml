@@ -1,0 +1,35 @@
+name: Vet Script Installer CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Ansible & Molecule
+        run: |
+          pip install ansible molecule molecule-plugins[docker] testinfra
+      - name: Run Molecule tests
+        run: |
+          cd levonk/common/roles/vet_script_installer
+          molecule test
+      - name: Lint YAML
+        run: |
+          pip install yamllint
+          yamllint .
+      - name: Lint Markdown
+        run: |
+          pip install markdownlint-cli2
+          markdownlint .

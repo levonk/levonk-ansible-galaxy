@@ -1,0 +1,58 @@
+# vet_script_installer/tasks/dependencies.yml
+# Ensures vet dependencies (shellcheck, bat) are present on all platforms for full vetting.
+
+# Debian/Ubuntu
+- name: Ensure shellcheck and bat are installed (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - shellcheck
+      - bat
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == 'Debian'
+  tags: [vet, dependencies]
+
+# RedHat/CentOS/Fedora
+- name: Ensure shellcheck and bat are installed (RedHat/CentOS/Fedora)
+  ansible.builtin.yum:
+    name:
+      - shellcheck
+      - bat
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_os_family == 'RedHat'
+  tags: [vet, dependencies]
+
+- name: Ensure shellcheck and bat are installed (Fedora)
+  ansible.builtin.dnf:
+    name:
+      - shellcheck
+      - bat
+    state: present
+    update_cache: yes
+  become: yes
+  when: ansible_distribution == 'Fedora'
+  tags: [vet, dependencies]
+
+# macOS
+- name: Ensure shellcheck and bat are installed (macOS)
+  community.general.homebrew:
+    name:
+      - shellcheck
+      - bat
+    state: present
+    update_homebrew: yes
+  when: ansible_os_family == 'Darwin'
+  tags: [vet, dependencies]
+
+# Windows
+- name: Ensure shellcheck and bat are installed (Windows)
+  win_chocolatey:
+    name:
+      - shellcheck
+      - bat
+    state: present
+  when: ansible_os_family == 'Windows'
+  tags: [vet, dependencies]

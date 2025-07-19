@@ -2,21 +2,49 @@
 # vet_script_installer/tasks/main.yml
 # Securely downloads, vets, and executes shell scripts/plugins
 
-- name: Ensure vet is installed
-  ansible.builtin.shell: |
-    if ! command -v vet &>/dev/null; then
-      curl -fsSL https://github.com/vet-run/vet/releases/latest/download/vet-linux-amd64 -o /usr/local/bin/vet
-      chmod +x /usr/local/bin/vet
-    fi
+- name: Download vet binary
+  ansible.builtin.get_url:
+    url: "https://github.com/vet-run/vet/releases/latest/download/vet-linux-amd64"
+    dest: "/usr/local/bin/vet"
+    mode: '0755'
   args:
     creates: /usr/local/bin/vet
   become: yes
+
+- name: Validate vet binary checksum using checksums role
+  include_role:
+    name: levonk.common.checksums
+  vars:
+    checksums_download_url: "https://github.com/vet-run/vet/releases/latest/download/vet-linux-amd64"
+    checksums_dest: "/usr/local/bin/vet"
+    checksums_checksum: "{{ vet_bin_checksum | default(omit) }}"
+    checksums_checksum_algo: "{{ vet_bin_checksum_algo | default('sha256') }}"
+    checksums_checksum_url: "{{ vet_bin_checksum_url | default(omit) }}"
+    checksums_checksum_required: "{{ vet_bin_checksum_required | default(false) }}"
+    checksums_log_checksum: "{{ vet_bin_log_checksum | default(true) }}"
+
+# ---
+# Ensure vet dependencies are present (shellcheck, bat) on all platforms. These tools are required for full vetting.
+- import_tasks: vet-dependencies.yml
+  tags: [vet, dependencies]
 
 - name: Download script
   ansible.builtin.get_url:
     url: "{{ vet_script_url }}"
     dest: "{{ vet_script_dest }}"
     mode: '0755'
+
+- name: Validate script checksum using checksums role
+  include_role:
+    name: levonk.common.checksums
+  vars:
+    checksums_download_url: "{{ vet_script_url }}"
+    checksums_dest: "{{ vet_script_dest }}"
+    checksums_checksum: "{{ vet_script_checksum | default(omit) }}"
+    checksums_checksum_algo: "{{ vet_script_checksum_algo | default('sha256') }}"
+    checksums_checksum_url: "{{ vet_script_checksum_url | default(omit) }}"
+    checksums_checksum_required: "{{ vet_script_checksum_required | default(false) }}"
+    checksums_log_checksum: "{{ vet_script_log_checksum | default(true) }}"
 
 - name: Vet script (non-interactive)
   ansible.builtin.shell: vet --non-interactive {{ vet_script_dest }}

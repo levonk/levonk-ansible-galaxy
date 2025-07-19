@@ -1,0 +1,135 @@
+---
+# levonk.common.checksums/tasks/main.yml
+# Generic, reusable checksum validation for any file download
+
+- name: Set checksum file candidates (local then remote)
+  ansible.builtin.set_fact:
+    _checksums_local_candidates:
+      - "{{ checksums_dest }}.sha256"
+      - "{{ checksums_dest }}.sha256sum"
+      - "{{ checksums_dest }}.sha512"
+      - "{{ checksums_dest }}.sha1"
+    _checksums_url_candidates:
+      - "{{ checksums_checksum_url | default('') }}"
+      - "{{ checksums_download_url }}.sha256"
+      - "{{ checksums_download_url }}.sha256sum"
+      - "{{ checksums_download_url }}.sha512"
+      - "{{ checksums_download_url }}.sha1"
+      - "{{ checksums_download_url | regex_replace('(.sh)$', '.sha256') }}"
+      - "{{ checksums_download_url | regex_replace('(.sh)$', '.sha256sum') }}"
+
+- name: Find local checksum file
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  register: checksums_local_stat
+  loop: "{{ _checksums_local_candidates }}"
+  when: not checksums_checksum
+
+- name: Use first valid local checksum file
+  ansible.builtin.set_fact:
+    checksums_checksum_file: "{{ item.stat.path }}"
+  loop: "{{ checksums_local_stat.results }}"
+  when: not checksums_checksum and item.stat.exists
+  loop_control:
+    label: "{{ item.stat.path }}"
+  register: checksums_found_local
+
+- name: Download remote checksum file if no local found
+  ansible.builtin.uri:
+    url: "{{ item }}"
+    return_content: yes
+    status_code: 200
+    timeout: 5
+  register: checksums_checksum_download
+  with_items: "{{ _checksums_url_candidates }}"
+  when: not checksums_checksum and (checksums_found_local.results | selectattr('ansible_facts.checksums_checksum_file', 'defined') | list | length == 0)
+  failed_when: false
+
+- name: Write remote checksum file to temp if found
+  ansible.builtin.copy:
+    content: "{{ item.content }}"
+    dest: "/tmp/ansible_checksum_remote"
+    mode: '0644'
+  when: not checksums_checksum and item.status == 200 and item.content is defined and (checksums_found_local.results | selectattr('ansible_facts.checksums_checksum_file', 'defined') | list | length == 0)
+  loop: "{{ checksums_checksum_download.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item }}"
+  register: checksums_remote_written
+
+- name: Set checksum file to remote temp if written
+  ansible.builtin.set_fact:
+    checksums_checksum_file: "/tmp/ansible_checksum_remote"
+  when: not checksums_checksum and checksums_remote_written is defined and checksums_remote_written.results | selectattr('dest', 'defined') | list | length > 0
+
+- name: Slurp checksum file for validation
+  ansible.builtin.slurp:
+    src: "{{ checksums_checksum_file }}"
+  register: checksums_checksum_slurp
+  when: not checksums_checksum and checksums_checksum_file is defined
+
+- name: Parse checksum line and validate size
+  ansible.builtin.set_fact:
+    checksums_checksum_size: "{{ (checksums_checksum_slurp.content | b64decode).|length }}"
+    checksums_checksum_line: "{{ (checksums_checksum_slurp.content | b64decode).split('\n') | select('match', '^[a-fA-F0-9]{40,128} ') | list | first | default('') }}"
+    checksums_checksum: "{{ (checksums_checksum_slurp.content | b64decode).split('\n') | select('match', '^[a-fA-F0-9]{40,128} ') | list | first | default('') | regex_replace('^([a-fA-F0-9]{40,128}).*', '\\1') }}"
+    checksums_checksum_source: "{{ checksums_checksum_file }}"
+  when: not checksums_checksum and checksums_checksum_file is defined and (checksums_checksum_slurp.content | b64decode).|length >= 40 and (checksums_checksum_slurp.content | b64decode).|length <= 1024 and ((checksums_checksum_slurp.content | b64decode).split('\n') | select('match', '^[a-fA-F0-9]{40,128} ') | list | length > 0)
+
+- name: Log checksum summary (single line, emoji)
+  ansible.builtin.debug:
+    msg: >-
+      {{
+        '✅' if checksums_checksum and checksums_computed_checksum.stdout.split()[0] == checksums_checksum else (
+          '❌' if checksums_checksum_required | default(false) and (not checksums_checksum or checksums_computed_checksum.stdout.split()[0] != checksums_checksum) else '⚠️'
+        )
+      }} Checksum validation: {{
+        'PASSED' if checksums_checksum and checksums_computed_checksum.stdout.split()[0] == checksums_checksum else (
+          'FAILED' if checksums_checksum else 'WARNING: Not validated'
+        )
+      }} | File: {{ checksums_dest }} | Hash: {{ checksums_computed_checksum.stdout.split()[0] }} | HashFile: {{ checksums_checksum_source | default('N/A') }} | Stated: {{ checksums_checksum | default('N/A') }} | HashFileSize: {{ checksums_checksum_size | default('N/A') }} | Line: {{ checksums_checksum_line | default('N/A') }} | Notes: {{
+        'Hash mismatch' if checksums_checksum and checksums_computed_checksum.stdout.split()[0] != checksums_checksum else (
+          'No hash file found' if not checksums_checksum else (
+            'Hash file size invalid' if checksums_checksum_size is defined and (checksums_checksum_size < 40 or checksums_checksum_size > 1024) else ''
+          )
+        )
+      }}
+  when: checksums_log_checksum | default(true)
+
+- name: Download target file if not present
+  ansible.builtin.get_url:
+    url: "{{ checksums_download_url }}"
+    dest: "{{ checksums_dest }}"
+    mode: '0755'
+  args:
+    creates: "{{ checksums_dest }}"
+  when: checksums_download_url is defined and checksums_dest is defined
+
+- name: Compute file checksum
+  ansible.builtin.command: "{{ checksums_checksum_algo | default('sha256') }}sum {{ checksums_dest }}"
+  register: checksums_computed_checksum
+  changed_when: false
+  failed_when: false
+
+- name: Log computed checksum
+  ansible.builtin.debug:
+    msg: "Computed checksum ({{ checksums_checksum_algo | default('sha256') }}): {{ checksums_computed_checksum.stdout.split()[0] }}"
+  when: checksums_log_checksum | default(true)
+
+- name: Validate checksum if supplied or found
+  ansible.builtin.debug:
+    msg: >-
+      Checksum validation: {{
+        'PASSED' if checksums_checksum and checksums_computed_checksum.stdout.split()[0] == checksums_checksum else 'FAILED'
+      }} (expected: {{ checksums_checksum }}, actual: {{ checksums_computed_checksum.stdout.split()[0] }})"
+  when: checksums_checksum
+
+- name: Fail if checksum required and does not match
+  ansible.builtin.fail:
+    msg: >-
+      Checksum validation failed!\nExpected: {{ checksums_checksum }}\nActual: {{ checksums_computed_checksum.stdout.split()[0] }}\nSet checksums_checksum_required=false to override."
+  when: checksums_checksum_required | bool and (not checksums_checksum or checksums_computed_checksum.stdout.split()[0] != checksums_checksum)
+
+- name: Warn if checksum was not validated
+  ansible.builtin.debug:
+    msg: "WARNING: Checksum was NOT validated. Supply checksums_checksum or set checksums_checksum_required to true for enforcement."
+  when: not checksums_checksum
