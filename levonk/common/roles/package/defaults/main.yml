@@ -1,0 +1,12 @@
+---
+# Default variables for levonk.common.package
+
+name: ""
+state: "present"
+update_cache: false
+checksum: ""
+checksum_url: ""
+levonk_package_cache_file: "/var/tmp/levonk_package_cache.json"
+levonk_package_manager: "auto"  # auto, winget, choco, brew, apt, yum, dnf, zypper, etc.
+levonk_package_cache_expiry_minutes: 60
+# Forward all ansible.builtin.package variables as needed

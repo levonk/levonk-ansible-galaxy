@@ -1,0 +1,91 @@
+---
+# TODO: Compliance - Add compliance test for package manager licensing
+
+- name: Check for apt package manager
+  stat:
+    path: "/usr/bin/apt"
+  register: apt_check
+  ignore_errors: true
+
+- name: Fail if apt not found
+  fail:
+    msg: "No supported package manager found (expected apt)."
+  when: not apt_check.stat.exists
+
+- name: Cache: Check if apt update needed
+  stat:
+    path: "{{ cache_file }}"
+  register: cache_stat
+
+- name: Cache: Load cache
+  slurp:
+    src: "{{ cache_file }}"
+  register: cache_content
+  when: cache_stat.stat.exists
+
+- name: Cache: Parse cache
+  set_fact:
+    _levonk_package_cache: "{{ cache_content.content | b64decode | from_json }}"
+  when: cache_stat.stat.exists
+
+
+- name: Cache: Determine if update needed
+  set_fact:
+    _apt_update_needed: >-
+      {{ (_levonk_package_cache.apt_update_last is not defined) or
+      ((ansible_date_time.epoch | int - _levonk_package_cache.apt_update_last | int) > (cache_expiry | int * 60)) }}
+  when: cache_stat.stat.exists
+
+
+- name: Update apt if needed
+  apt:
+    update_cache: yes
+  register: apt_update
+  when: _apt_update_needed | default(true)
+  ignore_errors: true
+
+- name: Update cache after apt update
+  copy:
+    dest: "{{ cache_file }}"
+    content: "{{ {'apt_update_last': ansible_date_time.epoch | int } | to_json }}"
+  when: _apt_update_needed | default(true)
+
+- name: Search for package
+  command: apt-cache search ^{{ package_name }}$
+  register: apt_search
+  changed_when: false
+  ignore_errors: true
+
+- name: Fail if package not found
+  fail:
+    msg: "Package {{ package_name }} not found in apt repositories."
+  when: apt_search.rc != 0 or (apt_search.stdout is not search('^' ~ package_name ~ ' '))
+
+
+- name: Install/upgrade package
+  ansible.builtin.package:
+    name: "{{ package_name }}"
+    state: "{{ package_state }}"
+    update_cache: false
+  register: apt_result
+  ignore_errors: true
+
+- name: Verify package installed
+  command: dpkg -l {{ package_name }}
+  register: apt_verify
+  changed_when: false
+  ignore_errors: true
+
+- name: Fail if not installed
+  fail:
+    msg: "Failed to install {{ package_name }} with apt."
+  when: apt_result is not defined or apt_result.rc != 0 or (apt_verify is defined and apt_verify.rc != 0)
+
+- name: Log package installation result
+  ansible.builtin.debug:
+    msg: "Package {{ package_name }} installed successfully with result: {{ apt_result }}"
+    warn: false
+
+- name: Return result
+  set_fact:
+    levonk_package_result: "{{ apt_result }}"

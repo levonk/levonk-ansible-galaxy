@@ -1,0 +1,124 @@
+---
+# TODO: Compliance - Add compliance test for Microsoft Store/WinGet/Chocolatey licensing
+
+- name: Check if WinGet is installed
+  win_command: "where winget"
+  register: winget_check
+  ignore_errors: true
+
+- name: Install WinGet if not present
+  win_shell: |
+    powershell -Command "Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile DesktopAppInstaller.msixbundle"
+    powershell -Command "Add-AppxPackage DesktopAppInstaller.msixbundle"
+  when: winget_check.rc != 0
+  register: winget_install
+  ignore_errors: true
+
+- name: Warn if WinGet install failed
+  ansible.builtin.debug:
+    msg: "Warning: WinGet installation failed, will attempt Chocolatey fallback."
+    warn: true
+  when: winget_check.rc != 0 and (winget_install is not defined or winget_install.rc != 0)
+
+- name: Cache: Check if WinGet upgrade needed
+  win_stat:
+    path: "{{ cache_file }}"
+  register: cache_stat
+
+- name: Cache: Load cache
+  win_slurp:
+    src: "{{ cache_file }}"
+  register: cache_content
+  when: cache_stat.stat.exists
+
+- name: Cache: Parse cache
+  set_fact:
+    _levonk_package_cache: "{{ cache_content.content | b64decode | from_json }}"
+  when: cache_stat.stat.exists
+
+- name: Cache: Determine if upgrade needed
+  set_fact:
+    _winget_upgrade_needed: >-
+      {{ (_levonk_package_cache.winget_upgrade_last is not defined) or
+      ((ansible_date_time.epoch | int - _levonk_package_cache.winget_upgrade_last | int) > (cache_expiry | int * 60)) }}
+  when: cache_stat.stat.exists
+
+- name: Upgrade WinGet if needed
+  win_command: "winget upgrade Microsoft.DesktopAppInstaller"
+  register: winget_upgrade
+  when: _winget_upgrade_needed | default(true)
+  ignore_errors: true
+
+- name: Update cache after WinGet upgrade
+  win_copy:
+    dest: "{{ cache_file }}"
+    content: "{{ {'winget_upgrade_last': ansible_date_time.epoch | int } | to_json }}"
+  when: _winget_upgrade_needed | default(true)
+
+- name: Winget source update
+  win_command: "winget source update"
+  ignore_errors: true
+
+- name: Search for package in WinGet
+  win_command: "winget search {{ package_name }}"
+  register: winget_search
+  ignore_errors: true
+
+- name: If found, install/upgrade with WinGet
+  win_command: >
+    winget {{ 'upgrade' if package_state == 'latest' else 'install' }} --id {{ package_name }} --accept-source-agreements --accept-package-agreements --silent
+  register: winget_result
+  when: winget_search.rc == 0 and 'No package found' not in winget_search.stdout
+  ignore_errors: true
+
+- name: Verify package installed with WinGet
+  win_command: "winget list {{ package_name }}"
+  register: winget_verify
+  when: winget_result is defined and winget_result.rc == 0
+  ignore_errors: true
+
+- name: If WinGet failed, fallback to Chocolatey
+  block:
+    - name: Ensure Chocolatey is installed
+      win_command: "choco -v"
+      register: choco_check
+      ignore_errors: true
+    - name: Install Chocolatey if not present
+      win_shell: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+      when: choco_check.rc != 0
+      register: choco_install
+      ignore_errors: true
+    - name: Install/upgrade package with Chocolatey
+      win_chocolatey:
+        name: "{{ package_name }}"
+        state: "{{ package_state }}"
+      register: choco_result
+      ignore_errors: true
+    - name: Verify package installed with Chocolatey
+      win_command: "choco list --local-only {{ package_name }}"
+      register: choco_verify
+      ignore_errors: true
+    - name: Fail if not installed with Chocolatey
+      fail:
+        msg: "Failed to install {{ package_name }} with WinGet or Chocolatey."
+      when: choco_result is not defined or choco_result.rc != 0 or (choco_verify is defined and choco_verify.rc != 0)
+    - name: Log Chocolatey package installation result
+      ansible.builtin.debug:
+        msg: "Package {{ package_name }} installed with Chocolatey. Result: {{ choco_result }}"
+        warn: false
+    - name: Return Chocolatey result
+      set_fact:
+        levonk_package_result: "{{ choco_result }}"
+  when: winget_result is not defined or winget_result.rc != 0 or (winget_verify is defined and winget_verify.rc != 0)
+
+- name: Log WinGet package installation result
+  ansible.builtin.debug:
+    msg: "Package {{ package_name }} installed with WinGet. Result: {{ winget_result }}"
+    warn: false
+  when: winget_result is defined and winget_result.rc == 0 and (winget_verify is defined and winget_verify.rc == 0)
+
+- name: Return WinGet result
+  set_fact:
+    levonk_package_result: "{{ winget_result }}"
+  when: winget_result is defined and winget_result.rc == 0 and (winget_verify is defined and winget_verify.rc == 0)

@@ -1,0 +1,19 @@
+---
+- name: "Detect platform"
+  set_fact:
+    _levonk_package_platform: >-
+      {{ 'windows' if ansible_os_family | lower == 'windows'
+         else 'darwin' if ansible_os_family | lower == 'darwin'
+         else 'linux' }}
+
+- name: "Include platform-specific logic"
+  include_tasks: "platform/{{ _levonk_package_platform }}.yml"
+  vars:
+    package_name: "{{ name | default(omit) }}"
+    package_state: "{{ state | default('present') }}"
+    update_cache: "{{ update_cache | default(false) }}"
+    checksum: "{{ checksum | default(omit) }}"
+    checksum_url: "{{ checksum_url | default(omit) }}"
+    cache_file: "{{ levonk_package_cache_file }}"
+    cache_expiry: "{{ levonk_package_cache_expiry_minutes }}"
+    # Forward all other ansible.builtin.package variables
