@@ -104,6 +104,41 @@
     creates: "{{ checksums_dest }}"
   when: checksums_download_url is defined and checksums_dest is defined
 
+- name: Ensure checksum tool is present (Debian)
+  ansible.builtin.apt:
+    name: coreutils
+    state: present
+  when: ansible_os_family == 'Debian'
+  tags: ['checksum', 'coreutils', 'debian']
+
+- name: Ensure checksum tool is present (RedHat)
+  ansible.builtin.yum:
+    name: coreutils
+    state: present
+  when: ansible_os_family == 'RedHat'
+  tags: ['checksum', 'coreutils', 'redhat']
+
+- name: Ensure checksum tool is present (macOS)
+  community.general.homebrew:
+    name: coreutils
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags: ['checksum', 'coreutils', 'macos']
+
+- name: Ensure checksum tool is present (Windows - Chocolatey)
+  win_chocolatey:
+    name: coreutils
+    state: present
+  when: ansible_os_family == 'Windows' and (ansible_pkg_mgr is not defined or ansible_pkg_mgr == 'chocolatey')
+  tags: ['checksum', 'coreutils', 'windows', 'choco']
+
+- name: Ensure checksum tool is present (Windows - Winget)
+  win_command: winget install -e --id GNU.Coreutils
+  args:
+    creates: C:\\Program Files\\Git\\usr\\bin\\sha256sum.exe
+  when: ansible_os_family == 'Windows' and ansible_pkg_mgr == 'winget'
+  tags: ['checksum', 'coreutils', 'windows', 'winget']
+
 - name: Compute file checksum
   ansible.builtin.command: "{{ checksums_checksum_algo | default('sha256') }}sum {{ checksums_dest }}"
   register: checksums_computed_checksum
