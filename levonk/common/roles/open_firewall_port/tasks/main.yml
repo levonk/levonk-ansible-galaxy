@@ -25,6 +25,13 @@
     - ansible_facts.packages['firewalld'] is defined
     - ansible_facts.services['firewalld.service'].state == 'running'
 
+- name: Ensure pfctl is present (macOS)
+  ansible.builtin.command: which pfctl
+  register: pfctl_check
+  changed_when: false
+  failed_when: pfctl_check.rc != 0
+  when: ansible_os_family == 'Darwin'
+
 - name: Open port in pf (macOS)
   ansible.builtin.lineinfile:
     path: /etc/pf.conf
@@ -32,6 +39,8 @@
     create: yes
   when:
     - ansible_os_family == 'Darwin'
+    - pfctl_check.rc == 0
+# TODO: Compliance - Ensure firewall rules are reviewed for compliance
     - ansible_facts.services['pfctl'].state == 'running'
 
 - name: Reload pf rules (macOS)
@@ -39,6 +48,12 @@
   when:
     - ansible_os_family == 'Darwin'
     - ansible_facts.services['pfctl'].state == 'running'
+
+- name: Check Windows Defender Firewall (MpsSvc) service state
+  ansible.windows.win_service_info:
+    name: MpsSvc
+  register: mpssvc_info
+  when: ansible_os_family == 'Windows'
 
 - name: Open port in Windows Defender Firewall
   ansible.windows.win_firewall_rule:
@@ -51,3 +66,6 @@
     profiles: any
   when:
     - ansible_os_family == 'Windows'
+    - mpssvc_info.exists
+    - mpssvc_info.status == 'running'
+# TODO: Compliance - Ensure firewall rules are reviewed for compliance
