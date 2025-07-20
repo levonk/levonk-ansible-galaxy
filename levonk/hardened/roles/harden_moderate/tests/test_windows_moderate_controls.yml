@@ -1,0 +1,58 @@
+---
+# Tests for moderate Windows hardening controls
+# Covers RDP restriction, password complexity, lockout, UAC
+
+- name: Test RDP is disabled unless allowed
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server
+    name: fDenyTSConnections
+  register: rdp_reg
+
+- name: Assert RDP is disabled (fDenyTSConnections == 1)
+  assert:
+    that:
+      - rdp_reg.value == 1
+
+- name: Test password complexity is enabled
+  ansible.windows.win_security_policy_stat:
+    section: PasswordPolicy
+    option: PasswordComplexity
+  register: pw_complexity
+
+- name: Assert password complexity is enabled
+  assert:
+    that:
+      - pw_complexity.value == 1
+
+- name: Test minimum password length
+  ansible.windows.win_security_policy_stat:
+    section: PasswordPolicy
+    option: MinimumPasswordLength
+  register: pw_length
+
+- name: Assert minimum password length >= 12
+  assert:
+    that:
+      - pw_length.value | int >= 12
+
+- name: Test account lockout threshold
+  ansible.windows.win_security_policy_stat:
+    section: AccountLockoutPolicy
+    option: LockoutBadCount
+  register: lockout
+
+- name: Assert lockout threshold <= 5
+  assert:
+    that:
+      - lockout.value | int <= 5
+
+- name: Test UAC is enabled
+  ansible.windows.win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+    name: EnableLUA
+  register: uac_reg
+
+- name: Assert UAC is enabled (EnableLUA == 1)
+  assert:
+    that:
+      - uac_reg.value == 1

@@ -1,14 +1,83 @@
 ---
 # Windows moderate hardening tasks
 
-- name: Enforce Windows password policy (placeholder)
-  ansible.builtin.debug:
-    msg: "TODO: Implement Windows password policy enforcement (min length, complexity, expiration)."
+# Moderate Windows hardening: RDP, password, lockout, UAC
+
+- name: Ensure RDP is disabled (unless explicitly allowed)
+  ansible.windows.win_regedit:
+    path: HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server
+    name: fDenyTSConnections
+    data: 1
+    type: dword
+    state: present
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - rdp
+
+- name: Enforce password complexity
+  ansible.windows.win_security_policy:
+    section: PasswordPolicy
+    option: PasswordComplexity
+    value: 1
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - password
+
+- name: Set minimum password length
+  ansible.windows.win_security_policy:
+    section: PasswordPolicy
+    option: MinimumPasswordLength
+    value: 12
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - password
+
+- name: Set account lockout threshold
+  ansible.windows.win_security_policy:
+    section: AccountLockoutPolicy
+    option: LockoutBadCount
+    value: 5
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - password
+    - lockout
+
+- name: Ensure UAC is enabled
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System
+    name: EnableLUA
+    data: 1
+    type: dword
+    state: present
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - uac
 
 - name: Ensure Windows firewall is enabled
   ansible.windows.win_firewall:
     state: enabled
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - firewall
 
-- name: Enable Windows audit policy (placeholder)
+# Expand audit policy as needed for moderate
+- name: Expand Windows audit policy (moderate)
   ansible.builtin.debug:
-    msg: "TODO: Implement Windows audit policy configuration."
+    msg: "TODO: Implement additional audit policy configuration for moderate."
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - audit
