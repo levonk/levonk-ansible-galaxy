@@ -1,6 +1,12 @@
 ---
+# Install Xbox app using levonk.common.package for supported platforms
+
 - name: Install Xbox app (Windows)
-  ansible.windows.win_chocolatey:
-    name: xbox
-    state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: xbox
+    package_state: present
   when: ansible_facts['os_family'] == 'Windows'
+  tags: [xbox, gamer, package]
+  # TODO: Compliance - Ensure Xbox installer is reviewed for licensing/compliance

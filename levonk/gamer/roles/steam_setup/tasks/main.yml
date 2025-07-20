@@ -1,12 +1,12 @@
 ---
-- name: Install Steam (Linux)
-  ansible.builtin.package:
-    name: steam
-    state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+# Install Steam using levonk.common.package for all supported platforms
 
-- name: Install Steam (Windows)
-  ansible.windows.win_chocolatey:
-    name: steam
-    state: present
-  when: ansible_facts['os_family'] == 'Windows'
+- name: Install Steam (cross-platform)
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: steam
+    package_state: present
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Windows']
+  tags: [steam, gamer, package]
+  # TODO: Compliance - Ensure Steam installer is reviewed for licensing/compliance

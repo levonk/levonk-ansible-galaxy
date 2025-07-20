@@ -1,14 +1,21 @@
 ---
+# Download and optionally install Minecraft Forge using unified patterns
+
 - name: Download Minecraft Forge installer (Windows)
   ansible.windows.win_get_url:
     url: "{{ minecraft_forge_windows_url }}"
     dest: "{{ minecraft_forge_windows_installer_path | default('C:/Temp/forge-installer.exe') }}"
   when: ansible_facts['os_family'] == 'Windows'
+  tags: [minecraft, forge, gamer, installer]
+  # TODO: Compliance - Ensure Forge installer is reviewed for licensing/compliance
 
 - name: Download Minecraft Forge installer (Linux)
   ansible.builtin.get_url:
     url: "{{ minecraft_forge_linux_url }}"
     dest: "{{ minecraft_forge_linux_installer_path | default('/tmp/forge-installer.jar') }}"
   when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+  tags: [minecraft, forge, gamer, installer]
+  # TODO: Compliance - Ensure Forge installer is reviewed for licensing/compliance
 
-# TODO: Add tasks to run the installer and verify installation
+# TODO: Add tasks to run the installer and verify installation (cross-platform)
+#       Use levonk.common.package for Java or dependencies if needed

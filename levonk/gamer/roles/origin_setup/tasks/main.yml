@@ -1,6 +1,12 @@
 ---
+# Install Origin using levonk.common.package for supported platforms
+
 - name: Install Origin (Windows)
-  ansible.windows.win_chocolatey:
-    name: origin
-    state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: origin
+    package_state: present
   when: ansible_facts['os_family'] == 'Windows'
+  tags: [origin, gamer, package]
+  # TODO: Compliance - Ensure Origin installer is reviewed for licensing/compliance
