@@ -2,6 +2,25 @@
 - name: Verify
   hosts: all
   tasks:
-    - name: Check role result
+    - name: Assert file exists after checksum
+      stat:
+        path: "{{ checksums_dest | default('/tmp/file') }}"
+      register: file_stat
+
+    - name: Assert file was created
       assert:
-        that: true  # Replace with real checks
+        that:
+          - file_stat.stat.exists
+
+    - name: Assert checksum log contains emoji (if log exists)
+      shell: grep -E '✅|❌|🛡️' /var/log/checksums.log
+      register: emoji_log
+      ignore_errors: true
+
+    - name: Assert emoji found in log
+      assert:
+        that:
+          - emoji_log.rc == 0
+        fail_msg: "No emoji status found in /var/log/checksums.log"
+        success_msg: "Emoji status found in /var/log/checksums.log"
+      when: emoji_log is defined
