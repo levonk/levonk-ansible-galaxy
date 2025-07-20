@@ -23,7 +23,6 @@
     checksums_checksum_required: "{{ vet_bin_checksum_required | default(false) }}"
     checksums_log_checksum: "{{ vet_bin_log_checksum | default(true) }}"
 
-# ---
 # Ensure vet dependencies are present (shellcheck, bat) on all platforms. These tools are required for full vetting.
 - import_tasks: vet-dependencies.yml
   tags: [vet, dependencies]

@@ -1,28 +1,14 @@
-# vet_script_installer/tasks/dependencies.yml
+# vet_script_installer/tasks/vet-dependencies.yml
 # Ensures vet dependencies (shellcheck, bat) are present on all platforms for full vetting.
 
-# Debian/Ubuntu
 - name: Ensure shellcheck and bat are installed (all platforms)
   include_role:
     name: levonk.common.package
   vars:
-    name:
+    package_name:
       - shellcheck
       - bat
-    state: latest
+    package_state: latest
   become: yes
   tags: [vet, dependencies]
   # TODO: Compliance - Ensure vet dependencies are reviewed for compliance
-
-- name: Ensure shellcheck and bat are installed (Fedora)
-  ansible.builtin.dnf:
-    name:
-      - shellcheck
-      - bat
-    state: latest
-    update_cache: yes
-  become: yes
-  when: ansible_distribution == 'Fedora'
-  tags: [vet, dependencies]
-
-
