@@ -38,8 +38,8 @@
   tags: ['packages', 'aur', 'arch']
 
 # OS-specific tasks
-- name: Include Debian/Ubuntu tasks
-  import_tasks: debian.yml
+- name: Include shell setup tasks (was debian.yml)
+  import_tasks: shell_setup.yml
   when: ansible_os_family == 'Debian'
 
 # macOS tasks now handled by package-managers/homebrew.yml and base_packages.yml

@@ -1,8 +1,49 @@
 # APT package manager configuration (Debian/Ubuntu)
-- name: Update APT cache
+# TODO: Compliance - Ensure cache file is reviewed for security and compliance
+
+- name: Set cache file path (match levonk.common.package)
+  set_fact:
+    levonk_package_cache_file: "{{ levonk_package_cache_file | default('/var/tmp/levonk_package_cache.json') }}"
+
+- name: Stat cache file
+  stat:
+    path: "{{ levonk_package_cache_file }}"
+  register: cache_stat
+
+- name: Slurp cache file if exists
+  slurp:
+    src: "{{ levonk_package_cache_file }}"
+  register: cache_content
+  when: cache_stat.stat.exists
+
+- name: Parse cache file (if exists)
+  set_fact:
+    levonk_package_cache: "{{ cache_content.content | b64decode | from_json }}"
+  when: cache_stat.stat.exists
+
+- name: Determine if apt update is needed
+  set_fact:
+    apt_update_needed: >-
+      {{
+        (not cache_stat.stat.exists) or
+        (levonk_package_cache is not defined) or
+        ((ansible_date_time.epoch | int) - (levonk_package_cache.apt_last_update | default(0) | int) > (levonk_package_cache_expiry_minutes | default(60) | int) * 60)
+      }}
+
+- name: Update APT cache if needed
   apt:
     update_cache: yes
-  when: 
+  when:
     - ansible_os_family == 'Debian'
-    - apt_update_cache | bool
+    - apt_update_needed | bool
+  tags: ['packages', 'apt', 'debian', 'ubuntu']
+
+- name: Update cache file timestamp after apt update
+  copy:
+    dest: "{{ levonk_package_cache_file }}"
+    content: "{{ levonk_package_cache | default({}) | combine({'apt_last_update': ansible_date_time.epoch | int}) | to_nice_json }}"
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Debian'
+    - apt_update_needed | bool
   tags: ['packages', 'apt', 'debian', 'ubuntu']

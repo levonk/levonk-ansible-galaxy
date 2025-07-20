@@ -1,0 +1,24 @@
+# Registry backup tasks (run after reg_backup_tool_check)
+- name: Back up HKCU registry hive
+  win_command: reg export HKCU C:\\backup\\HKCU.reg /y
+  args:
+    creates: C:\\backup\\HKCU.reg
+  tags: ['windows', 'registry', 'backup']
+
+- name: Back up HKU registry hive
+  win_command: reg export HKU C:\\backup\\HKU.reg /y
+  args:
+    creates: C:\\backup\\HKU.reg
+  tags: ['windows', 'registry', 'backup']
+
+- name: Back up HKCR registry hive
+  win_command: reg export HKCR C:\\backup\\HKCR.reg /y
+  args:
+    creates: C:\\backup\\HKCR.reg
+  tags: ['windows', 'registry', 'backup']
+
+- name: Back up HKCC registry hive
+  win_command: reg export HKCC C:\\backup\\HKCC.reg /y
+  args:
+    creates: C:\\backup\\HKCC.reg
+  tags: ['windows', 'registry', 'backup']

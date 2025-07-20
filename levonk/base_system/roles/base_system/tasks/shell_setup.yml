@@ -5,14 +5,18 @@
     state: present
     update_cache: yes
 
-- name: Ensure zsh is installed
-  apt:
+- name: Ensure zsh is installed (cross-platform)
+  include_role:
+    name: levonk.common.package
+  vars:
     name: zsh
     state: present
   tags:
     - shell
     - zsh
     - base_system
+    - crossplatform
+# TODO: Compliance - Ensure zsh package use is reviewed for compliance
 
 - name: Set default shell for new users to zsh
   lineinfile:

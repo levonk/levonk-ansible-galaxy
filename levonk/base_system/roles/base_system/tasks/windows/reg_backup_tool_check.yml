@@ -1,0 +1,13 @@
+# Check for registry backup tool (reg.exe)
+- name: Check if reg.exe is available
+  win_command: where reg.exe
+  register: reg_exe_check
+  ignore_errors: yes
+  changed_when: false
+  tags: ['windows', 'registry', 'backup', 'check']
+
+- name: Fail if reg.exe is not present
+  fail:
+    msg: 'reg.exe (Windows Registry backup tool) is not available on this system. Cannot proceed with registry backup.'
+  when: reg_exe_check.rc != 0
+  tags: ['windows', 'registry', 'backup', 'check']

@@ -1,29 +1,57 @@
 ---
 # Install JetBrains Mono Nerd Font on all platforms
 
-- name: Install JetBrains Mono Nerd Font on macOS
-  community.general.homebrew_cask:
+- name: Ensure font dependencies (Debian)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name:
+      - unzip
+      - fontconfig
+    state: latest
+  when: ansible_os_family == 'Debian'
+  tags: ['fonts', 'dependencies', 'debian']
+
+- name: Install JetBrains Mono Nerd Font (macOS, Homebrew Cask)
+  include_role:
+    name: levonk.common.package
+  vars:
     name: font-jetbrains-mono-nerd-font
-    state: present
-    tap: homebrew/cask-fonts
+    cask: true
+    state: latest
   when: ansible_os_family == 'Darwin'
+  tags: ['fonts', 'jetbrains', 'macos']
+# TODO: Compliance - Ensure font use is reviewed for compliance
 
-- name: Install JetBrains Mono Nerd Font on Windows
-  ansible.windows.win_winget:
-    name: JetBrainsMonoNerdFont
-    id: Ryanoasis.JetBrainsMonoNerdFont
-    state: present
+- name: Install JetBrains Mono Nerd Font (Windows, Winget)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: Ryanoasis.JetBrainsMonoNerdFont
+    provider: winget
+    state: latest
   when: ansible_os_family == 'Windows'
+  tags: ['fonts', 'jetbrains', 'windows', 'winget']
+# TODO: Compliance - Ensure font use is reviewed for compliance
 
-- name: Install JetBrains Mono Nerd Font on Debian-based systems
+- name: Install JetBrains Mono Nerd Font (Debian fallback/manual)
   when: ansible_os_family == 'Debian'
   block:
-    - name: Ensure dependencies are installed
-      become: true
-      ansible.builtin.apt:
-        name: ["unzip", "fontconfig"]
-        state: present
-        update_cache: true
+    - name: Download and install JetBrains Mono Nerd Font manually (if not in package manager)
+      ansible.builtin.get_url:
+        url: "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/JetBrainsMono.zip"
+        dest: "/tmp/JetBrainsMono.zip"
+        mode: '0644'
+      register: font_download
+    - name: Unzip font to system fonts directory
+      ansible.builtin.unarchive:
+        src: "/tmp/JetBrainsMono.zip"
+        dest: "/usr/local/share/fonts/"
+        remote_src: yes
+      when: font_download is changed
+    - name: Rebuild font cache
+      ansible.builtin.command: fc-cache -f -v
+      changed_when: false
 
     - name: Get latest JetBrains Mono Nerd Font release
       ansible.builtin.uri:

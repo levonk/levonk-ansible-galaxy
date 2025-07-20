@@ -25,10 +25,50 @@
   when: ansible_os_family == 'Windows'
   tags: ['packages', 'chocolatey', 'windows']
 
-- name: Update Chocolatey cache
+- name: Set cache file path (match levonk.common.package)
+  set_fact:
+    levonk_package_cache_file: "{{ levonk_package_cache_file | default('C:/Windows/Temp/levonk_package_cache.json') }}"
+
+- name: Stat cache file
+  win_stat:
+    path: "{{ levonk_package_cache_file }}"
+  register: cache_stat
+
+- name: Slurp cache file if exists
+  win_slurp:
+    src: "{{ levonk_package_cache_file }}"
+  register: cache_content
+  when: cache_stat.stat.exists
+
+- name: Parse cache file (if exists)
+  set_fact:
+    levonk_package_cache: "{{ cache_content.content | b64decode | from_json }}"
+  when: cache_stat.stat.exists
+
+- name: Determine if choco update is needed
+  set_fact:
+    choco_update_needed: >-
+      {{
+        (not cache_stat.stat.exists) or
+        (levonk_package_cache is not defined) or
+        ((ansible_date_time.epoch | int) - (levonk_package_cache.choco_last_update | default(0) | int) > (levonk_package_cache_expiry_minutes | default(60) | int) * 60)
+      }}
+
+- name: Update Chocolatey cache if needed
   win_shell: choco upgrade chocolatey -y
   become: yes
-  when: 
-    - ansible_os_family == 'Windows' 
-    - chocolatey_update_cache | bool
+  when:
+    - ansible_os_family == 'Windows'
+    - choco_update_needed | bool
   tags: ['packages', 'chocolatey', 'windows']
+
+- name: Update cache file timestamp after choco update
+  win_copy:
+    dest: "{{ levonk_package_cache_file }}"
+    content: "{{ levonk_package_cache | default({}) | combine({'choco_last_update': ansible_date_time.epoch | int}) | to_nice_json }}"
+  when:
+    - ansible_os_family == 'Windows'
+    - choco_update_needed | bool
+  tags: ['packages', 'chocolatey', 'windows']
+
+# TODO: Compliance - Ensure cache file is reviewed for security and compliance

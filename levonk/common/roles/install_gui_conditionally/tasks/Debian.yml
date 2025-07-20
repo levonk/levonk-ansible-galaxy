@@ -12,12 +12,14 @@
     gui_present: "{{ 'graphical.target' in current_systemd_default.stdout }}"
 
 - name: Install GNOME desktop environment
-  ansible.builtin.apt:
+  include_role:
+    name: levonk.common.package
+  vars:
     name: task-gnome-desktop
-    state: present
-    update_cache: true
+    state: latest
   when: not gui_present
   become: true
+# TODO: Compliance - Ensure GUI package use is reviewed for compliance
 
 - name: Set default target to graphical
   ansible.builtin.command: systemctl set-default graphical.target
