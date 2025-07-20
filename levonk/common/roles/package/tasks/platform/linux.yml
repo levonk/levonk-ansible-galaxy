@@ -1,16 +1,66 @@
 ---
 # TODO: Compliance - Add compliance test for package manager licensing
 
+# --- APT (Debian/Ubuntu) ---
 - name: Check for apt package manager
   stat:
     path: "/usr/bin/apt"
   register: apt_check
   ignore_errors: true
 
-- name: Fail if apt not found
+- name: Run apt logic if present
+  include_tasks: apt.yml
+  when: apt_check.stat.exists
+
+# --- DNF (Fedora) ---
+- name: Check for dnf package manager
+  stat:
+    path: "/usr/bin/dnf"
+  register: dnf_check
+  ignore_errors: true
+
+- name: Run dnf logic if present
+  include_tasks: dnf.yml
+  when: dnf_check.stat.exists and not apt_check.stat.exists
+
+# --- YUM (RHEL/CentOS) ---
+- name: Check for yum package manager
+  stat:
+    path: "/usr/bin/yum"
+  register: yum_check
+  ignore_errors: true
+
+- name: Run yum logic if present
+  include_tasks: yum.yml
+  when: yum_check.stat.exists and not apt_check.stat.exists and not dnf_check.stat.exists
+
+# --- Zypper (openSUSE) ---
+- name: Check for zypper package manager
+  stat:
+    path: "/usr/bin/zypper"
+  register: zypper_check
+  ignore_errors: true
+
+- name: Run zypper logic if present
+  include_tasks: zypper.yml
+  when: zypper_check.stat.exists and not apt_check.stat.exists and not dnf_check.stat.exists and not yum_check.stat.exists
+
+# --- APK (Alpine) ---
+- name: Check for apk package manager
+  stat:
+    path: "/sbin/apk"
+  register: apk_check
+  ignore_errors: true
+
+- name: Run apk logic if present
+  include_tasks: apk.yml
+  when: apk_check.stat.exists and not apt_check.stat.exists and not dnf_check.stat.exists and not yum_check.stat.exists and not zypper_check.stat.exists
+
+# --- Fallback ---
+- name: Fail if no supported package manager found
   fail:
-    msg: "No supported package manager found (expected apt)."
-  when: not apt_check.stat.exists
+    msg: "No supported package manager found (expected apt, dnf, yum, zypper, or apk)."
+  when: not apt_check.stat.exists and not dnf_check.stat.exists and not yum_check.stat.exists and not zypper_check.stat.exists and not apk_check.stat.exists
 
 - name: Cache: Check if apt update needed
   stat:

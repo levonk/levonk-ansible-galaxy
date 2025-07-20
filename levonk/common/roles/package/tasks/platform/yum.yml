@@ -1,0 +1,38 @@
+---
+# YUM (RHEL/CentOS) package install logic for levonk.common.package
+# TODO: Compliance - Add compliance test for yum licensing
+
+- name: YUM: Ensure yum cache is updated if needed
+  ansible.builtin.yum:
+    update_cache: yes
+  when: update_cache | default(false)
+  register: yum_update
+  ignore_errors: true
+
+- name: YUM: Install/upgrade package
+  ansible.builtin.package:
+    name: "{{ package_name }}"
+    state: "{{ package_state }}"
+    update_cache: false
+  register: yum_result
+  ignore_errors: true
+
+- name: YUM: Verify package installed
+  ansible.builtin.command: rpm -q {{ package_name }}
+  register: yum_verify
+  changed_when: false
+  ignore_errors: true
+
+- name: YUM: Fail if not installed
+  ansible.builtin.fail:
+    msg: "Failed to install {{ package_name }} with yum."
+  when: yum_result is not defined or yum_result.rc != 0 or (yum_verify is defined and yum_verify.rc != 0)
+
+- name: YUM: Log package installation result
+  ansible.builtin.debug:
+    msg: "Package {{ package_name }} installed successfully with result: {{ yum_result }}"
+    warn: false
+
+- name: YUM: Return result
+  set_fact:
+    levonk_package_result: "{{ yum_result }}"

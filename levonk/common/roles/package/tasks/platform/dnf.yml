@@ -1,0 +1,38 @@
+---
+# DNF (Fedora) package install logic for levonk.common.package
+# TODO: Compliance - Add compliance test for dnf licensing
+
+- name: DNF: Ensure dnf cache is updated if needed
+  ansible.builtin.dnf:
+    update_cache: yes
+  when: update_cache | default(false)
+  register: dnf_update
+  ignore_errors: true
+
+- name: DNF: Install/upgrade package
+  ansible.builtin.package:
+    name: "{{ package_name }}"
+    state: "{{ package_state }}"
+    update_cache: false
+  register: dnf_result
+  ignore_errors: true
+
+- name: DNF: Verify package installed
+  ansible.builtin.command: rpm -q {{ package_name }}
+  register: dnf_verify
+  changed_when: false
+  ignore_errors: true
+
+- name: DNF: Fail if not installed
+  ansible.builtin.fail:
+    msg: "Failed to install {{ package_name }} with dnf."
+  when: dnf_result is not defined or dnf_result.rc != 0 or (dnf_verify is defined and dnf_verify.rc != 0)
+
+- name: DNF: Log package installation result
+  ansible.builtin.debug:
+    msg: "Package {{ package_name }} installed successfully with result: {{ dnf_result }}"
+    warn: false
+
+- name: DNF: Return result
+  set_fact:
+    levonk_package_result: "{{ dnf_result }}"

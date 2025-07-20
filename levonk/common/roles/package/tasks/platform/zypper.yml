@@ -1,0 +1,38 @@
+---
+# Zypper (openSUSE) package install logic for levonk.common.package
+# TODO: Compliance - Add compliance test for zypper licensing
+
+- name: Zypper: Ensure zypper cache is updated if needed
+  community.general.zypper:
+    update_cache: yes
+  when: update_cache | default(false)
+  register: zypper_update
+  ignore_errors: true
+
+- name: Zypper: Install/upgrade package
+  ansible.builtin.package:
+    name: "{{ package_name }}"
+    state: "{{ package_state }}"
+    update_cache: false
+  register: zypper_result
+  ignore_errors: true
+
+- name: Zypper: Verify package installed
+  ansible.builtin.command: rpm -q {{ package_name }}
+  register: zypper_verify
+  changed_when: false
+  ignore_errors: true
+
+- name: Zypper: Fail if not installed
+  ansible.builtin.fail:
+    msg: "Failed to install {{ package_name }} with zypper."
+  when: zypper_result is not defined or zypper_result.rc != 0 or (zypper_verify is defined and zypper_verify.rc != 0)
+
+- name: Zypper: Log package installation result
+  ansible.builtin.debug:
+    msg: "Package {{ package_name }} installed successfully with result: {{ zypper_result }}"
+    warn: false
+
+- name: Zypper: Return result
+  set_fact:
+    levonk_package_result: "{{ zypper_result }}"
