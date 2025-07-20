@@ -15,20 +15,16 @@
 # Leap Smear is a feature that allows the system to adjust the time more gradually, 
 # which helps prevent clock skew and system instability.
 # Other choices are: time.cloudflare.com, time.windows.com, time.apple.com, pool.ntp.org
-- name: Install NTP package (Debian/Ubuntu)
-  apt:
-    name: ntp
-    state: present
-    update_cache: yes
-  when: ansible_os_family == 'Debian'
-  tags: ['system', 'ntp', 'linux']
 
-- name: Install NTP package (RHEL/CentOS)
-  yum:
+- name: Install NTP package (cross-platform)
+  include_role:
+    name: levonk.common.package
+  vars:
     name: ntp
     state: present
-  when: ansible_os_family == 'RedHat'
-  tags: ['system', 'ntp', 'linux']
+  when: ansible_os_family in ['Debian', 'RedHat']
+  tags: ['system', 'ntp', 'linux', 'crossplatform']
+# TODO: Compliance - Ensure NTP package use is reviewed for compliance
 
 - name: Configure NTP on macOS
   command: systemsetup -setusingnetworktime on
