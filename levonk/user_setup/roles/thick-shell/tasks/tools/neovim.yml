@@ -1,0 +1,39 @@
+---
+# Install Neovim cross-platform
+
+- name: Install Neovim on Debian/Ubuntu
+  become: true
+  ansible.builtin.apt:
+    name: neovim
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install Neovim on macOS
+  community.general.homebrew:
+    name: neovim
+    state: present
+  when: ansible_os_family == 'Darwin'
+
+- name: Install Neovim on Windows
+  ansible.windows.win_chocolatey:
+    name: neovim
+    state: present
+  when: ansible_os_family == 'Windows'
+
+- name: Ensure Neovim config directory exists
+  ansible.builtin.file:
+    path: "~/.config/nvim"
+    state: directory
+    mode: '0755'
+
+- name: Install lazy.nvim plugin manager
+  ansible.builtin.git:
+    repo: https://github.com/folke/lazy.nvim.git
+    dest: "~/.config/nvim/lazy/lazy.nvim"
+    version: stable
+    update: no
+  register: lazy_nvim_clone
+
+- name: Display lazy.nvim install status
+  ansible.builtin.debug:
+    msg: "lazy.nvim plugin manager is present at ~/.config/nvim/lazy/lazy.nvim (changed={{ lazy_nvim_clone.changed }})"

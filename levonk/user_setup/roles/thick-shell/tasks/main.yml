@@ -5,53 +5,57 @@
     thick_shells: "{{ thick_shells | default(['zsh']) }}"
 
 - name: Ensure zsh stack if requested
-  include_tasks: zsh.yml
+  include_tasks: shells/zsh.yml
   when: "'zsh' in thick_shells"
 
 - name: Ensure bash stack if requested
-  include_tasks: bash.yml
+  include_tasks: shells/bash.yml
   when: "'bash' in thick_shells"
 
 - name: Ensure fish stack if requested
-  include_tasks: fish.yml
+  include_tasks: shells/fish.yml
   when: "'fish' in thick_shells"
 
 - name: Always install Oh My Posh + Posh-Git on Windows
-  include_tasks: windows_posh.yml
+  include_tasks: shells/windows_posh.yml
   when: ansible_system == 'Windows'
 
 - name: Install tmux
-  include_tasks: tmux.yml
-  when: thick_shell_install_tmux | default(false)
+  include_tasks: tools/tmux.yml
+  when: thick_shell_install_tmux 
 
 - name: Install zellij
-  include_tasks: zellij.yml
-  when: thick_shell_install_zellij | default(false)
+  include_tasks: tools/zellij.yml
+  when: thick_shell_install_zellij 
 
 - name: Install mosh
-  include_tasks: mosh.yml
-  when: thick_shell_install_mosh | default(false)
+  include_tasks: tools/mosh.yml
+  when: thick_shell_install_mosh 
 
 - name: Install fzf fuzzy finder
-  include_tasks: fzf.yml
-  when: thick_shell_install_fzf | default(false)
+  include_tasks: tools/fzf.yml
+  when: thick_shell_install_fzf 
 
 - name: Install direnv
-  include_tasks: direnv.yml
-  when: thick_shell_install_direnv | default(false)
+  include_tasks: tools/direnv.yml
+  when: thick_shell_install_direnv 
 
 - name: Install ripgrep
-  include_tasks: ripgrep.yml
-  when: thick_shell_install_ripgrep | default(false)
+  include_tasks: tools/ripgrep.yml
+  when: thick_shell_install_ripgrep 
 
 - name: Install bat
-  include_tasks: bat.yml
-  when: thick_shell_install_bat | default(false)
+  include_tasks: tools/bat.yml
+  when: thick_shell_install_bat 
 
 - name: Install fd
-  include_tasks: fd.yml
-  when: thick_shell_install_fd | default(false)
+  include_tasks: tools/fd.yml
+  when: thick_shell_install_fd 
 
 - name: Install zoxide
-  include_tasks: zoxide.yml
-  when: thick_shell_install_zoxide | default(false)
+  include_tasks: tools/zoxide.yml
+  when: thick_shell_install_zoxide 
+
+- name: Install Neovim
+  include_tasks: tools/neovim.yml
+  when: thick_shell_install_neovim 

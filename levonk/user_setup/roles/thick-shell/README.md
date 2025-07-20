@@ -26,6 +26,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   **bat**: Syntax-highlighted cat replacement with Git integration.
 -   **fd**: A simpler, faster alternative to find.
 -   **zoxide**: A smarter cd command that learns your habits and lets you jump to frequently used directories.
+-   **neovim**: Modern, extensible Vim-based text editor (`nvim`) with Lua plugin support. Installs on all platforms and ensures `~/.config/nvim` exists.
 
 **Note**: On Windows, these tools are intended for use within the Windows Subsystem for Linux (WSL). The role will not install them on the native Windows host but will display a message advising to install them within WSL.
 
@@ -35,6 +36,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   `homebrew` on macOS.
 -   `apt` on Debian-based systems.
 -   For **Zellij** on Debian, a working **Rust** development environment is required (e.g., via the `levonk.dev_setup.dev-rust` role).
+-   For **Neovim**, Python 3 is recommended for advanced plugin support (not required for minimal usage).
 
 ## Role Variables
 
@@ -48,6 +50,7 @@ This role is designed to create a "thick shell" environment for power users. It 
 -   `thick_shell_install_bat`: Set to `true` to install bat syntax highlighter.
 -   `thick_shell_install_fd`: Set to `true` to install fd file finder.
 -   `thick_shell_install_zoxide`: Set to `true` to install zoxide smart cd.
+-   `thick_shell_install_neovim`: Set to `true` to install Neovim modern text editor.
 
 ## Dependencies
 
@@ -71,9 +74,22 @@ To install the default Zsh stack along with all advanced tools:
     thick_shell_install_bat: true
     thick_shell_install_fd: true
     thick_shell_install_zoxide: true
+    thick_shell_install_neovim: true
   roles:
     - role: levonk.user_setup.thick-shell
 ```
+
+## Neovim
+
+- Installs Neovim (`nvim`) on all supported platforms.
+- Ensures the config directory `~/.config/nvim` exists.
+- BDD and Testinfra tests verify:
+  - Neovim is installed and runs (`nvim --version`, `nvim --headless +qall`)
+  - Config directory exists
+  - Editor launches and exits cleanly
+
+See `doc/gherkin/features/neovim.feature` and `molecule/default/tests/test_neovim.py` for details.
+
 
 ## License
 

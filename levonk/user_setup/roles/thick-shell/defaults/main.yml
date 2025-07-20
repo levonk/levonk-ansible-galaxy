@@ -3,13 +3,14 @@
 shell_stack: zsh
 
 # Set to true to install the corresponding terminal multiplexer or remote shell.
-thick_shell_install_tmux: false
-thick_shell_install_zellij: false
-thick_shell_install_mosh: false
-thick_shell_install_fzf: false
-thick_shell_install_direnv: false
-thick_shell_install_ripgrep: false
-thick_shell_install_bat: false
-thick_shell_install_fd: false
-thick_shell_install_zoxide: false
+thick_shell_install_tmux: true
+thick_shell_install_zellij: true
+thick_shell_install_mosh: true
+thick_shell_install_fzf: true
+thick_shell_install_direnv: true
+thick_shell_install_ripgrep: true
+thick_shell_install_bat: true
+thick_shell_install_fd: true
+thick_shell_install_zoxide: true
+thick_shell_install_neovim: true
 
