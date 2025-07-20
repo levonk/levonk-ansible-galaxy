@@ -1,11 +1,15 @@
 ---
-# tasks file for etckeeper
+# Harden Baseline: Etckeeper tasks
 
 - name: Etckeeper | Ensure etckeeper is installed
   ansible.builtin.package:
     name: etckeeper
     state: present
   become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
 
 - name: Etckeeper | Configure etckeeper to use git
   ansible.builtin.lineinfile:
@@ -13,11 +17,20 @@
     regexp: '^#?VCS='
     line: 'VCS="git"'
     state: present
+    backup: yes
   become: yes
   notify: Commit changes to /etc
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
 
 - name: Etckeeper | Initialize etckeeper repository
   ansible.builtin.command:
     cmd: etckeeper init
     creates: /etc/.git
   become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security

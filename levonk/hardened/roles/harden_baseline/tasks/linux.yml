@@ -1,16 +1,21 @@
 ---
-# Linux baseline hardening tasks (extended for shell plugin safety)
+# Harden Baseline: Linux baseline hardening tasks
 
-- name: Ensure shellcheck and bat are installed
-  ansible.builtin.apt:
+- name: Ensure shellcheck and bat are installed (Debian)
+  levonk.common.package:
     name:
       - shellcheck
       - bat
-    state: present
-    update_cache: yes
+    state: latest
   when: ansible_facts['os_family'] == 'Debian'
+  become: yes
+  tags:
+    - harden_baseline
+    - linux
+    - security
+    - shell
 
-- name: Ensure vet is installed
+- name: Ensure vet is installed (safe script vetting)
   ansible.builtin.shell: |
     if ! command -v vet &>/dev/null; then
       curl -fsSL https://github.com/vet-run/vet/releases/latest/download/vet-linux-amd64 -o /usr/local/bin/vet
@@ -19,24 +24,46 @@
   args:
     creates: /usr/local/bin/vet
   become: yes
+  tags:
+    - harden_baseline
+    - linux
+    - vet
+    - security
 
-# Example: Use vet to safely install Oh My Zsh (replace curl|sh with vet)
 - name: Download Oh My Zsh install script
   ansible.builtin.get_url:
     url: https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
     dest: /tmp/ohmyzsh-install.sh
     mode: '0755'
+  tags:
+    - harden_baseline
+    - linux
+    - shell
+    - ohmyzsh
 
 - name: Vet Oh My Zsh install script (non-interactive)
   ansible.builtin.shell: vet --non-interactive /tmp/ohmyzsh-install.sh
   register: vet_result
   failed_when: vet_result.rc != 0
+  tags:
+    - harden_baseline
+    - linux
+    - vet
+    - ohmyzsh
+    - security
 
 - name: Install Oh My Zsh script only if vetted
   ansible.builtin.shell: /tmp/ohmyzsh-install.sh --unattended
   when: vet_result.rc == 0
+  tags:
+    - harden_baseline
+    - linux
+    - ohmyzsh
+    - security
 
-# Repeat above pattern for any shell plugin/script installs (bash-it, starship, etc.)
+# TODO: Repeat above vetting pattern for all downloaded scripts
+# TODO: Expand with additional hardening tasks as needed
+pattern for any shell plugin/script installs (bash-it, starship, etc.)
 
 - name: Include etckeeper tasks
   import_tasks: etckeeper.yml

@@ -1,10 +1,20 @@
 ---
-# Windows baseline hardening tasks
+# Harden Baseline: Windows baseline hardening tasks
 
 - name: Ensure firewall is enabled
   ansible.windows.win_firewall:
     state: enabled
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - firewall
 
 - name: Windows baseline hardening placeholder
   ansible.builtin.debug:
     msg: "TODO: Implement RDP restriction, audit policy, password complexity, and additional Windows baseline controls."
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - todo

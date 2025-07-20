@@ -2,6 +2,10 @@
 # Cloudflare WARP client installation and configuration
 # https://developers.cloudflare.com/warp-client/
 
+---
+# Cloudflare WARP client installation and configuration
+# https://developers.cloudflare.com/warp-client/
+
 - name: Block for Debian-based systems
   tags:
     - security
@@ -9,56 +13,60 @@
     - warp
   block:
     - name: Install prerequisites for WARP
-      apt:
+      levonk.common.package:
         name:
           - apt-transport-https
           - ca-certificates
           - curl
           - gnupg
           - lsb-release
-        state: present
-        update_cache: yes
-
+        state: latest
+      become: true
+      tags:
+        - harden_baseline
+        - linux
+        - warp
+    # TODO: Abstract repo/key management into levonk.common if possible
     - name: Add Cloudflare GPG key
       apt_key:
         url: https://pkg.cloudflareclient.com/pubkey.gpg
         state: present
-
+      become: true
     - name: Add Cloudflare WARP repository
       apt_repository:
         repo: "deb [arch=amd64] https://pkg.cloudflareclient.com/ {{ ansible_distribution_release }} main"
         state: present
         filename: cloudflare-warp
-
+      become: true
     - name: Install Cloudflare WARP CLI
-      apt:
+      levonk.common.package:
         name: cloudflare-warp
-        state: present
-        update_cache: yes
-
+        state: latest
+      become: true
+      tags:
+        - harden_baseline
+        - linux
+        - warp
     - name: Ensure WARP service is enabled and started
       service:
         name: warp-svc
         state: started
         enabled: yes
-
+      become: true
     - name: Check if WARP is already registered
       command: warp-cli --accept-tos status
       register: warp_status
       changed_when: false
       failed_when: warp_status.rc != 0 and 'Missing registration' not in warp_status.stderr
-
     - name: Register WARP client (if not already registered)
       command: warp-cli --accept-tos register
       when: '"Missing registration" in warp_status.stderr'
-
     - name: Enable WARP mode (if registered)
       command: warp-cli --accept-tos set-mode warp
       when: '"Missing registration" not in warp_status.stderr'
-
     - name: Connect to WARP
       command: warp-cli --accept-tos connect
-  when: 
+  when:
     - ansible_os_family == 'Debian'
     - harden_baseline_install_warp_cli | default(true)
 
@@ -69,20 +77,23 @@
     - warp
   block:
     - name: Install Cloudflare WARP on Windows
-      win_chocolatey:
+      levonk.common.package:
         name: cloudflare-warp
-        state: present
-
+        state: latest
+      become: true
+      tags:
+        - harden_baseline
+        - windows
+        - warp
     - name: Verify WARP CLI installation on Windows
       win_command: warp-cli --version
       register: warp_version_windows
       changed_when: false
       failed_when: warp_version_windows.rc != 0
-
     - name: Display WARP version on Windows
       debug:
         msg: "WARP CLI installed: {{ warp_version_windows.stdout }}"
-  when: 
+  when:
     - ansible_os_family == 'Windows'
     - harden_baseline_install_warp_cli | default(true)
 
@@ -93,29 +104,30 @@
     - warp
   block:
     - name: Install Cloudflare WARP on macOS
-      community.general.homebrew_cask:
+      levonk.common.package:
         name: cloudflare-warp
-        state: present
-
+        state: latest
+      become: true
+      tags:
+        - harden_baseline
+        - macos
+        - warp
     - name: Verify WARP CLI installation on macOS
       command: warp-cli --version
       register: warp_version_macos
       changed_when: false
       failed_when: warp_version_macos.rc != 0
-
     - name: Display WARP version on macOS
       debug:
         msg: "WARP CLI installed: {{ warp_version_macos.stdout }}"
-  when: 
+  when:
     - ansible_os_family == 'Darwin'
     - harden_baseline_install_warp_cli | default(true)
 
 # GUI installation (requires graphical tag)
 - name: Install WARP GUI on Windows
-  win_package:
-    path: "Cloudflare.cloudflare-warp"
-    state: present
-    provider: winget
+  debug:
+    msg: "WARP GUI installation should use levonk.common.package when available."
   when:
     - ansible_os_family == 'Windows'
     - harden_baseline_install_warp_gui | default(false)

@@ -1,8 +1,19 @@
 ---
-# macOS baseline hardening tasks
+# Harden Baseline: macOS baseline hardening tasks
+# No package installation required here; use levonk.common.package if needed in the future.
 
 - name: Ensure basic firewall is enabled
   ansible.builtin.command: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on"
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - firewall
 
 - name: Enforce password policy on macOS
   ansible.builtin.command: "pwpolicy -n /Local/Default -setglobalpolicy 'minChars=12 requiresAlpha=1 requiresNumeric=1'"
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - password
