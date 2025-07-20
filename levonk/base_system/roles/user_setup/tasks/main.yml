@@ -21,7 +21,7 @@
     size: 4096
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: '0600'
+    mode: "0600"
   when: ansible_facts['os_family'] in ['Debian', 'Darwin']
 
 - name: Generate GPG key for user (Linux/macOS)
@@ -38,12 +38,18 @@
     password_lock: true
   when: ansible_facts['os_family'] in ['Debian', 'Darwin']
 
-- name: Install chezmoi (Linux/macOS)
-  ansible.builtin.shell: |
-    sh -c "$(curl -fsLS get.chezmoi.io)"
-  args:
-    creates: /usr/local/bin/chezmoi
-  when: user_use_chezmoi and ansible_facts['os_family'] in ['Debian', 'Darwin']
+- name: Install chezmoi (cross-platform)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: chezmoi
+    state: latest
+  when: user_use_chezmoi
+  tags:
+    - chezmoi
+    - dotfiles
+    - crossplatform
+# TODO: Compliance - Ensure chezmoi package use is reviewed for compliance
 
 - name: Initialize chezmoi for user (Linux/macOS)
   become: true
@@ -52,5 +58,4 @@
     chezmoi init {{ chezmoi_repo_url }}
     chezmoi apply
   when: user_use_chezmoi and ansible_facts['os_family'] in ['Debian', 'Darwin']
-
 # TODO: Add Windows SSH/GPG/chezmoi support
