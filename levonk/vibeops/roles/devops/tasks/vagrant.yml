@@ -28,17 +28,22 @@
         name: hashicorp/tap
         state: present
 
-    - name: Install Vagrant on macOS
-      community.general.homebrew_cask:
-        name: vagrant
-        state: present
+    - name: Install Vagrant on macOS via levonk.common.package
+      levonk.common.package:
+        name:
+          - vagrant
+        state: latest
+      when: devops_virtualization_enabled | default(true)
   when: ansible_os_family == 'Darwin'
 
-- name: Install Vagrant on Windows
+- name: Install Vagrant on Windows via levonk.common.package
   tags:
     - devops
     - vagrant
-  win_chocolatey:
-    name: vagrant
-    state: present
-  when: ansible_os_family == 'Windows'
+  levonk.common.package:
+    name:
+      - vagrant
+    state: latest
+  when:
+    - ansible_os_family == 'Windows'
+    - devops_virtualization_enabled | default(true)

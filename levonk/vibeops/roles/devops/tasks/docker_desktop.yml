@@ -1,30 +1,18 @@
 ---
 # tasks file for levonk.vibeops.devops - Docker Desktop
 
-- name: Install Docker Desktop on Windows
-  ansible.windows.win_winget:
-    name: Docker.DockerDesktop
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Install Docker Desktop via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - docker-desktop
+    state: latest
+  when: "'graphical' in ansible_run_tags"
+  tags:
+    - devops
+    - docker
+    - docker-desktop
 
-- name: Install Docker Desktop on macOS
-  community.general.homebrew_cask:
-    name: docker
-    state: present
-  when: ansible_os_family == 'Darwin'
-
-- name: Install Docker Desktop on Debian-based systems
-  when: ansible_os_family == 'Debian'
-  become: true
-  block:
-    - name: Ensure dependencies are installed
-      ansible.builtin.apt:
-        name: ["ca-certificates", "curl"]
-        state: present
-
-    - name: Ensure /etc/apt/keyrings directory exists
-      ansible.builtin.file:
-        path: /etc/apt/keyrings
+# If there are additional repo or dependency steps for Debian, keep those as a separate block before this install.
         state: directory
         mode: '0755'
 

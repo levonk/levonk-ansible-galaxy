@@ -96,6 +96,7 @@
           - build-essential
           - dkms
           - linux-headers-generic
+          - virtualbox-guest-utils
         state: present
         update_cache: yes
 
@@ -108,7 +109,6 @@
       apt:
         name:
           - virtualbox-guest-x11
-          - virtualbox-guest-utils
         state: present
       when: "'graphical' in ansible_run_tags"
 
@@ -169,10 +169,11 @@
     - virtualbox
     - guest_additions
 
-- name: Install VirtualBox Guest Additions on Windows
-  win_chocolatey:
-    name: virtualbox-guest-additions-guest.install
-    state: present
+- name: Install VirtualBox Guest Additions on Windows via levonk.common.package
+  levonk.common.package:
+    name:
+      - virtualbox-guest-additions-guest.install
+    state: latest
   when: 
     - ansible_os_family == 'Windows'
     - is_virtualbox_vm | default(false)
@@ -187,19 +188,19 @@
     - name: Add Oracle VirtualBox GPG key
       apt_key:
         url: https://www.virtualbox.org/download/oracle_vbox_2016.asc
-        state: present
+        state: latest
 
     - name: Add VirtualBox repository
       apt_repository:
         repo: "deb [arch=amd64] https://download.virtualbox.org/virtualbox/debian {{ ansible_distribution_release }} contrib"
-        state: present
+        state: latest
         filename: virtualbox
 
-    - name: Install VirtualBox
-      apt:
-        name: virtualbox-7.0
-        state: present
-        update_cache: yes
+    - name: Install VirtualBox (headless or graphical) via levonk.common.package (Debian)
+      levonk.common.package:
+        name: "{{ 'virtualbox-7.0' if 'graphical' in ansible_run_tags else 'virtualbox-7.0-headless' }}"
+        state: latest
+      when: devops_virtualization_enabled | default(true)
 
     - name: Install VirtualBox Extension Pack
       shell: |
@@ -231,10 +232,11 @@
         repo_gpgcheck: yes
         gpgkey: https://www.virtualbox.org/download/oracle_vbox.asc
 
-    - name: Install VirtualBox on RedHat
-      package:
-        name: VirtualBox-7.0
-        state: present
+    - name: Install VirtualBox (headless or graphical) on RedHat via levonk.common.package
+      levonk.common.package:
+        name: "{{ 'VirtualBox-7.0' if 'graphical' in ansible_run_tags else 'VirtualBox-7.0-headless' }}"
+        state: latest
+      when: devops_virtualization_enabled | default(true)
 
     - name: Add user to vboxusers group
       user:
@@ -251,25 +253,27 @@
     - virtualbox
     - host_install
 
-- name: Install VirtualBox on macOS
-  community.general.homebrew_cask:
-    name: virtualbox
-    state: present
+- name: Install VirtualBox (headless or graphical) on macOS via levonk.common.package
+  levonk.common.package:
+    name: "{{ 'virtualbox' if 'graphical' in ansible_run_tags else 'virtualbox-headless' }}"
+    state: latest
   when: 
     - ansible_os_family == 'Darwin'
     - not (is_virtualbox_vm | default(false))
+    - devops_virtualization_enabled | default(true)
   tags:
     - devops
     - virtualbox
     - host_install
 
-- name: Install VirtualBox on Windows
-  win_chocolatey:
-    name: virtualbox
-    state: present
+- name: Install VirtualBox (headless or graphical) on Windows via levonk.common.package
+  levonk.common.package:
+    name: "{{ 'virtualbox' if 'graphical' in ansible_run_tags else 'virtualbox-headless' }}"
+    state: latest
   when: 
     - ansible_os_family == 'Windows'
     - not (is_virtualbox_vm | default(false))
+    - devops_virtualization_enabled | default(true)
   tags:
     - devops
     - virtualbox

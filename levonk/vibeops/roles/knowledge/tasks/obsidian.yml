@@ -1,22 +1,29 @@
 ---
 # tasks file for levonk.vibeops.knowledge - Obsidian
 
-- name: Install Obsidian on Windows
-  ansible.windows.win_winget:
-    name: Obsidian
-    id: Obsidian.Obsidian
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Install Obsidian on Windows via levonk.common.package
+  levonk.common.package:
+    name:
+      - obsidian
+    state: latest
+  when:
+    - ansible_os_family == 'Windows'
+    - 'graphical' in ansible_run_tags
 
-- name: Install Obsidian on macOS
-  community.general.homebrew_cask:
-    name: obsidian
-    state: present
-  when: ansible_os_family == 'Darwin'
+- name: Install Obsidian on macOS via levonk.common.package
+  levonk.common.package:
+    name:
+      - obsidian
+    state: latest
+  when:
+    - ansible_os_family == 'Darwin'
+    - 'graphical' in ansible_run_tags
 
 - name: Install Obsidian on Debian-based systems
   become: true
-  when: ansible_os_family == 'Debian'
+  when:
+    - ansible_os_family == 'Debian'
+    - 'graphical' in ansible_run_tags
   block:
     - name: Get latest Obsidian release information
       ansible.builtin.uri:
@@ -31,5 +38,5 @@
     - name: Install Obsidian from .deb URL
       ansible.builtin.apt:
         deb: "{{ obsidian_deb_url }}"
-        state: present
+        state: latest
       when: obsidian_deb_url is defined

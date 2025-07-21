@@ -11,24 +11,24 @@
         name:
           - gpg
           - software-properties-common
-        state: present
+        state: latest
         update_cache: yes
 
     - name: Add HashiCorp GPG key
       apt_key:
         url: https://apt.releases.hashicorp.com/gpg
-        state: present
+        state: latest
 
     - name: Ensure HashiCorp repository is configured for Packer
       apt_repository:
         repo: "deb [arch=amd64] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
-        state: present
+        state: latest
 
-    - name: Install Packer on Debian
-      apt:
-        name: packer
-        state: present
-        update_cache: yes
+    - name: Install Packer on Debian via levonk.common.package
+      levonk.common.package:
+        name:
+          - packer
+        state: latest
   when: ansible_os_family == 'Debian'
 
 - name: Block for macOS (Darwin)
@@ -39,19 +39,24 @@
     - name: Ensure hashicorp/tap is tapped for Packer
       community.general.homebrew_tap:
         name: hashicorp/tap
-        state: present
+        state: latest
 
-    - name: Install Packer on macOS
-      community.general.homebrew:
-        name: packer
-        state: present
+    - name: Install Packer on macOS via levonk.common.package
+      levonk.common.package:
+        name:
+          - packer
+        state: latest
   when: ansible_os_family == 'Darwin'
 
 - name: Install Packer on Windows
   tags:
     - devops
     - packer
+  levonk.common.package:
+    name:
+      - packer
+    state: latest
   win_chocolatey:
     name: packer
-    state: present
+    state: latest
   when: ansible_os_family == 'Windows'

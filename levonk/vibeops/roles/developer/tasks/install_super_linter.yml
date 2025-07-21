@@ -1,13 +1,28 @@
 ---
 # tasks file for installing super-linter
 
-- name: Install Super-Linter via npm
+- name: Install Super-Linter via levonk.common.package (if available)
+  levonk.common.package:
+    name:
+      - super-linter
+    state: latest
+  register: super_linter_pkg_result
+  failed_when: false
+  tags:
+    - developer
+    - tools
+    - linter
+
+- name: Fallback: Install Super-Linter via npm if not available as package
   community.general.npm:
     name: super-linter
     global: yes
     state: present
   become: true
+  when: super_linter_pkg_result is failed
   tags:
     - developer
     - tools
     - linter
+    - fallback
+

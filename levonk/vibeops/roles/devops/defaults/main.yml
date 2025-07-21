@@ -1,5 +1,4 @@
 ---
-# defaults file for devops
+# Defaults for devops role
 
-devops_install_gitkeeper: false
-
+devops_virtualization_enabled: true

@@ -1,12 +1,13 @@
 ---
 # tasks file for installing universal-ctags
 
-- name: Install Universal Ctags
-  ansible.builtin.package:
-    name: universal-ctags
-    state: present
-  become: true
+- name: Install Universal Ctags via levonk.common.package
+  levonk.common.package:
+    name:
+      - universal-ctags
+    state: latest
   tags:
     - developer
     - tools
     - ctags
+

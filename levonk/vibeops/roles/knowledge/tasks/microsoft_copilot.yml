@@ -1,12 +1,14 @@
 ---
 # tasks file for levonk.vibeops.knowledge - Microsoft Copilot
 
-- name: Install Microsoft Copilot on Windows
-  ansible.windows.win_winget:
-    name: Microsoft Copilot
-    id: Microsoft.Copilot
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Install Microsoft Copilot on Windows via levonk.common.package
+  levonk.common.package:
+    name:
+      - microsoft-copilot
+    state: latest
+  when:
+    - ansible_os_family == 'Windows'
+    - 'graphical' in ansible_run_tags
 
 # Note: Microsoft Copilot is not available as a standalone Homebrew Cask on macOS
 # or as a native package on Debian-based systems at this time.
