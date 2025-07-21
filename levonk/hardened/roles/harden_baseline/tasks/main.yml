@@ -1,6 +1,18 @@
 ---
 # Baseline hardening: OS dispatcher
 
+- name: Include Linux auto security updates (baseline)
+  import_tasks: extra/linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include macOS auto security updates (baseline)
+  import_tasks: extra/macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include Windows auto security updates (baseline)
+  import_tasks: extra/windows.yml
+  when: ansible_facts['os_family'] == 'Windows'
+
 - name: Include Linux baseline tasks
   import_tasks: linux.yml
   when: ansible_facts['os_family'] in ['Debian', 'RedHat']

@@ -1,0 +1,22 @@
+---
+# Extra moderate Linux controls (not baseline)
+
+- name: Restrict at to root only
+  ansible.builtin.copy:
+    dest: /etc/at.allow
+    content: "root\n"
+    owner: root
+    group: root
+    mode: '0600'
+
+- name: Enable automatic security updates (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Enable automatic security updates (RedHat/Fedora)
+  ansible.builtin.yum:
+    name: dnf-automatic
+    state: present
+  when: ansible_facts['os_family'] == 'RedHat'

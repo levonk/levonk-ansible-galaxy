@@ -1,0 +1,12 @@
+---
+# Moderate/advanced Windows audit controls
+
+# Expand audit policy as needed for moderate
+- name: Expand Windows audit policy (moderate)
+  ansible.builtin.debug:
+    msg: "TODO: Implement additional audit policy configuration for moderate."
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - audit

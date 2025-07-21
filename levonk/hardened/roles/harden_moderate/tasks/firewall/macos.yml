@@ -1,0 +1,30 @@
+---
+# Moderate/advanced macOS firewall controls
+# Add non-baseline firewall controls here (e.g., custom pf rules, app-specific blocks)
+
+- name: Ensure macOS firewall is enabled
+  ansible.builtin.command: "/usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on"
+
+# TODO: Implement moderate/advanced macOS firewall controls if required.
+
+# macOS: Ensure pf firewall is enabled and auto-starts at boot
+- name: Ensure /etc/pf.conf exists (macOS)
+  ansible.builtin.copy:
+    dest: /etc/pf.conf
+    content: |
+      # Default pf.conf - user should customize rules as needed
+      scrub-anchor "com.apple/*"
+      nat-anchor "com.apple/*"
+      rdr-anchor "com.apple/*"
+      dummynet-anchor "com.apple/*"
+      anchor "com.apple/*"
+      load anchor "com.apple" from "/etc/pf.anchors/com.apple"
+      pass all
+    owner: root
+    group: wheel
+    mode: '0644'
+  when: ansible_os_family == 'Darwin'
+
+- name: Enable pf now (macOS)
+  ansible.builtin.command: pfctl -e
+  when: ansible_os_family == 'Darwin'

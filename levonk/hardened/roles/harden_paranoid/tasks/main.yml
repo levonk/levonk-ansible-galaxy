@@ -1,25 +1,18 @@
 ---
-# Paranoid hardening: OS dispatcher with advanced compliance
+# Paranoid hardening: always apply moderate first, then only advanced/paranoid controls
 
-- name: Include Linux paranoid tasks
-  import_tasks: linux.yml
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+- name: Apply moderate hardening before paranoid
+  import_role:
+    name: harden_moderate
 
+# Only include advanced/paranoid-specific controls below
 - name: Include Linux advanced compliance tasks
   import_tasks: linux_advanced_compliance.yml
   when: ansible_facts['os_family'] in ['Debian', 'RedHat']
 
-- name: Include macOS paranoid tasks
-  import_tasks: macos.yml
-  when: ansible_facts['os_family'] == 'Darwin'
-
 - name: Include macOS advanced compliance tasks
   import_tasks: macos_advanced_compliance.yml
   when: ansible_facts['os_family'] == 'Darwin'
-
-- name: Include Windows paranoid tasks
-  import_tasks: windows.yml
-  when: ansible_facts['os_family'] == 'Windows'
 
 - name: Include Windows advanced compliance tasks
   import_tasks: windows_advanced_compliance.yml

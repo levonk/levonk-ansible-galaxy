@@ -1,0 +1,36 @@
+---
+# Moderate/advanced Windows password policy controls
+
+- name: Enforce password complexity
+  ansible.windows.win_security_policy:
+    section: PasswordPolicy
+    option: PasswordComplexity
+    value: 1
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - password
+
+- name: Set minimum password length
+  ansible.windows.win_security_policy:
+    section: PasswordPolicy
+    option: MinimumPasswordLength
+    value: 12
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - password
+
+- name: Set account lockout threshold
+  ansible.windows.win_security_policy:
+    section: AccountLockoutPolicy
+    option: LockoutBadCount
+    value: 5
+  tags:
+    - harden_moderate
+    - windows
+    - security
+    - password
+    - lockout

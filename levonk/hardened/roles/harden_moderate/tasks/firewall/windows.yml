@@ -1,0 +1,5 @@
+---
+# Moderate/advanced Windows firewall controls
+# Add non-baseline firewall controls here (e.g., outbound rules, logging, app restrictions)
+
+# TODO: Implement moderate/advanced Windows firewall controls if required.

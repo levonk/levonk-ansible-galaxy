@@ -1,0 +1,5 @@
+---
+# Moderate/advanced macOS audit controls
+
+- name: Enable macOS audit logging
+  ansible.builtin.command: "/usr/bin/audit -s"

@@ -1,0 +1,23 @@
+---
+# Moderate/advanced Linux audit/mandatory access controls
+
+- name: Ensure SELinux is enforcing (RedHat/Fedora)
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Ensure AppArmor is enabled (Debian/Ubuntu)
+  ansible.builtin.service:
+    name: apparmor
+    state: started
+    enabled: true
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Ensure audit log retention is set
+  ansible.builtin.lineinfile:
+    path: /etc/audit/auditd.conf
+    regexp: '^max_log_file_action'
+    line: 'max_log_file_action = keep_logs'
+    create: yes
+    backup: yes

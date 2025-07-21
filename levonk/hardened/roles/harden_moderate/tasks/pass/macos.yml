@@ -1,0 +1,5 @@
+---
+# Moderate/advanced macOS password policy controls
+
+- name: Enforce password policy on macOS
+  ansible.builtin.command: "pwpolicy -n /Local/Default -setglobalpolicy 'minChars=16 requiresAlpha=1 requiresNumeric=1 requiresSymbol=1'"

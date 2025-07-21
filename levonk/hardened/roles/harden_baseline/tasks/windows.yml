@@ -10,11 +10,25 @@
     - security
     - firewall
 
-- name: Windows baseline hardening placeholder
-  ansible.builtin.debug:
-    msg: "TODO: Implement RDP restriction, audit policy, password complexity, and additional Windows baseline controls."
+# Disable Guest account for baseline security
+- name: Ensure Guest account is disabled
+  ansible.windows.win_user:
+    name: Guest
+    account_disabled: yes
   tags:
     - harden_baseline
     - windows
     - security
-    - todo
+    - guest
+
+# Enable audit policy for logon events (baseline)
+- name: Set audit policy for logon events
+  ansible.windows.win_audit_policy_system:
+    category: Logon/Logoff
+    subcategory: Logon
+    audit_type: success, failure
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - audit

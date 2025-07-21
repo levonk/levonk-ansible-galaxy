@@ -1,0 +1,17 @@
+---
+# Moderate/advanced Windows extra controls
+
+- name: Enable automatic Windows Updates (auto-install important updates)
+  ansible.windows.win_regedit:
+    path: HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU
+    name: AUOptions
+    data: 4
+    type: dword
+    state: present
+  tags:
+    - harden_moderate
+    - windows
+    - updates
+    - security
+
+# 4 = Auto download and schedule install (recommended)

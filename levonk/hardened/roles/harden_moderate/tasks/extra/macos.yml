@@ -1,0 +1,10 @@
+---
+# Moderate/advanced macOS extra controls
+
+- name: Enable automatic macOS software updates
+  ansible.builtin.command: softwareupdate --schedule on
+  tags:
+    - harden_moderate
+    - macos
+    - updates
+    - security

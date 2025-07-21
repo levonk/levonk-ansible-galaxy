@@ -1,0 +1,20 @@
+---
+# Moderate/advanced Linux password/SSH controls
+
+- name: Ensure SSH AllowUsers is set
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^AllowUsers'
+    line: 'AllowUsers {{ ansible_user | default("*") }}'
+    create: yes
+    backup: yes
+  notify: Restart sshd
+
+- name: Set SSH ClientAliveInterval
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^ClientAliveInterval'
+    line: 'ClientAliveInterval 300'
+    create: yes
+    backup: yes
+  notify: Restart sshd

@@ -1,0 +1,10 @@
+---
+# Baseline macOS automatic security updates
+
+- name: Enable automatic macOS software updates
+  ansible.builtin.command: softwareupdate --schedule on
+  tags:
+    - harden_baseline
+    - macos
+    - updates
+    - security

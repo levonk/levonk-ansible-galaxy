@@ -1,8 +1,60 @@
 ---
-# Moderate hardening: OS dispatcher
+# Moderate hardening: always apply baseline first, then moderate controls
 
-- name: Configure system firewall (all OS)
-  import_tasks: firewall.yml
+- name: Apply baseline hardening before moderate
+  import_role:
+    name: harden_baseline
+
+# OS-specific moderate/advanced firewall controls
+- name: Include Linux firewall controls (moderate)
+  import_tasks: firewall/linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include macOS firewall controls (moderate)
+  import_tasks: firewall/macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include Windows firewall controls (moderate)
+  import_tasks: firewall/windows.yml
+  when: ansible_facts['os_family'] == 'Windows'
+
+# OS-specific moderate/advanced password controls
+- name: Include Linux password controls (moderate)
+  import_tasks: pass/linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include macOS password controls (moderate)
+  import_tasks: pass/macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include Windows password controls (moderate)
+  import_tasks: pass/windows.yml
+  when: ansible_facts['os_family'] == 'Windows'
+
+# OS-specific moderate/advanced audit controls
+- name: Include Linux audit controls (moderate)
+  import_tasks: audit/linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include Linux extra controls (moderate)
+  import_tasks: extra/linux.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
+- name: Include macOS audit controls (moderate)
+  import_tasks: audit/macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include macOS extra controls (moderate)
+  import_tasks: extra/macos.yml
+  when: ansible_facts['os_family'] == 'Darwin'
+
+- name: Include Windows audit controls (moderate)
+  import_tasks: audit/windows.yml
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Include Windows extra controls (moderate)
+  import_tasks: extra/windows.yml
+  when: ansible_facts['os_family'] == 'Windows'
 
 - name: Include Linux moderate tasks
   import_tasks: linux.yml
