@@ -1,43 +1,17 @@
 ---
 # Install Graphviz and MermaidJS CLI for all supported OSes
 
-- name: Install Graphviz on Debian/Ubuntu
-  apt:
-    name: graphviz
-    state: present
-    update_cache: yes
-  when: ansible_os_family == 'Debian'
+- name: Install Graphviz via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - graphviz
+    state: latest
   tags:
     - diagram
     - graphviz
     - tools
-    - debian
+    - vibeops
 
-- name: Install Graphviz on RedHat/CentOS/Fedora
-  yum:
-    name: graphviz
-    state: present
-  when: ansible_os_family == 'RedHat'
-  tags:
-    - diagram
-    - graphviz
-    - tools
-    - redhat
-
-- name: Install Graphviz on macOS
-  homebrew:
-    name: graphviz
-    state: present
-  when: ansible_os_family == 'Darwin'
-  tags:
-    - diagram
-    - graphviz
-    - tools
-    - darwin
-
-- name: Install Graphviz on Windows (WinGet)
-  win_shell: winget install -e --id Graphviz.Graphviz --accept-source-agreements --accept-package-agreements
-  args:
     creates: C:\Program Files\Graphviz\bin\dot.exe
   when: ansible_os_family == 'Windows'
   tags:

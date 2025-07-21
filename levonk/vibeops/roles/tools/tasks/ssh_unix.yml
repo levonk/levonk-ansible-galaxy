@@ -1,23 +1,19 @@
 ---
 # Install OpenSSH client and server on Linux/macOS
 
-- name: Ensure OpenSSH client is installed (Linux)
-  ansible.builtin.package:
-    name: openssh-client
-    state: present
-  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+- name: Ensure OpenSSH client/server installed via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - openssh-client
+      - openssh-server
+      - openssh
+    state: latest
+  tags:
+    - vibeops
+    - tools
+    - ssh
+    - openssh
 
-- name: Ensure OpenSSH server is installed (Linux)
-  ansible.builtin.package:
-    name: openssh-server
-    state: present
-  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
-
-- name: Ensure OpenSSH is installed (macOS)
-  ansible.builtin.homebrew:
-    name: openssh
-    state: present
-  when: ansible_os_family == 'Darwin'
 
 # Change SSH server port to 7722
 - name: Set SSHD to listen on port 7722 (Debian/RedHat/Arch)

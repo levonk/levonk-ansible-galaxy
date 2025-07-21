@@ -11,19 +11,22 @@
     msg: "macOS Voice Control is a built-in feature. Please enable it manually in System Settings > Accessibility > Voice Control."
   when: ansible_os_family == 'Darwin'
 
-- name: Install Simon speech recognition
-  block:
-    - name: Install Simon on Debian-based systems
-      become: true
-      ansible.builtin.apt:
-        name: simon
-        state: present
-        update_cache: true
-      when: ansible_os_family == 'Debian'
-    - name: Note about Simon on other platforms
-      ansible.builtin.debug:
-        msg: "The Simon speech recognition tool is primarily available for Linux. No package was found for Windows or macOS."
-      when: ansible_os_family in ['Windows', 'Darwin']
+- name: Install Simon speech recognition via levonk.common.package (Debian)
+  levonk.common.package:
+    name:
+      - simon
+    state: latest
+  when: ansible_os_family == 'Debian'
+  tags:
+    - vibeops
+    - tools
+    - speech
+    - simon
+
+- name: Note about Simon on other platforms
+  ansible.builtin.debug:
+    msg: "The Simon speech recognition tool is primarily available for Linux. No package was found for Windows or macOS."
+  when: ansible_os_family in ['Windows', 'Darwin']
 
 - name: Install Python-based speech tools
   block:

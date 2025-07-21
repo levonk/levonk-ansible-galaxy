@@ -1,26 +1,19 @@
 ---
 # Ensure SSH client and server are installed on Windows
 
-- name: Ensure OpenSSH Client is installed (Windows 10+)
-  ansible.windows.win_feature:
-    name: OpenSSH.Client
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Ensure OpenSSH Client/Server installed via levonk.common.package (Windows)
+  levonk.common.package:
+    name:
+      - openssh.client
+      - openssh.server
+      - openssh
+    state: latest
+  tags:
+    - vibeops
+    - tools
+    - ssh
+    - openssh
 
-- name: Ensure OpenSSH Server is installed (Windows 10+)
-  ansible.windows.win_feature:
-    name: OpenSSH.Server
-    state: present
-  when: ansible_os_family == 'Windows'
-
-- block:
-    - name: Fallback: Install Win32-OpenSSH via Chocolatey if needed
-      ansible.builtin.win_chocolatey:
-        name: openssh
-        state: present
-  when:
-    - ansible_os_family == 'Windows'
-    - ansible_distribution_major_version is version('10', '<')
 
 # Change SSHD to listen on port 7722
 - name: Set SSHD to listen on port 7722 (Windows)

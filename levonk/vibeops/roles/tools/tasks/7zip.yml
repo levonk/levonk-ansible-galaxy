@@ -1,23 +1,17 @@
 ---
 # tasks file for levonk.vibeops.tools - 7-Zip
 
-- name: Install 7-Zip on Windows
-  ansible.windows.win_winget:
-    name: 7-Zip
-    id: 7zip.7zip
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Install 7-Zip/Keka/p7zip-full via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - 7zip
+      - keka
+      - p7zip-full
+    state: latest
+  tags:
+    - vibeops
+    - tools
+    - 7zip
+    - keka
+    - p7zip
 
-- name: Install Keka (7-Zip alternative) on macOS
-  community.general.homebrew_cask:
-    name: keka
-    state: present
-  when: ansible_os_family == 'Darwin'
-
-- name: Install p7zip-full on Debian-based systems
-  ansible.builtin.apt:
-    name: p7zip-full
-    state: present
-    update_cache: true
-  when: ansible_os_family == 'Debian'
-  become: true

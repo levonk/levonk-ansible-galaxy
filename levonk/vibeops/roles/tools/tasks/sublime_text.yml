@@ -1,20 +1,17 @@
 ---
 # tasks file for levonk.vibeops.tools - Sublime Text
 
-- name: Install Sublime Text on Windows
-  ansible.windows.win_winget:
-    name: Sublime Text 4
-    id: SublimeHQ.SublimeText.4
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Install Sublime Text via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - sublime-text
+    state: latest
+  tags:
+    - vibeops
+    - tools
+    - sublime-text
 
-- name: Install Sublime Text on macOS
-  community.general.homebrew_cask:
-    name: sublime-text
-    state: present
-  when: ansible_os_family == 'Darwin'
-
-- name: Install Sublime Text on Debian-based systems
+- name: Debian: Ensure dependencies and repo for Sublime Text
   become: true
   when: ansible_os_family == 'Debian'
   block:
@@ -36,8 +33,6 @@
         state: present
         filename: sublime-text
 
-    - name: Install Sublime Text
-      ansible.builtin.apt:
         name: sublime-text
         state: present
         update_cache: true

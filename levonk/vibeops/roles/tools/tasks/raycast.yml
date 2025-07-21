@@ -1,20 +1,20 @@
 ---
 # tasks file for levonk.vibeops.tools - Raycast
 
-- name: Install Raycast on macOS
-  when: ansible_os_family == "Darwin"
-  block:
-    - name: Install Raycast via Homebrew Cask
-      community.general.homebrew_cask:
-        name: raycast
-        state: present
+- name: Install Raycast via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - raycast
+    state: latest
+  register: raycast_pkg_result
+  failed_when: false
+  tags:
+    - vibeops
+    - tools
+    - raycast
 
-    - name: Install Raycast extension for Homebrew
-      ansible.builtin.command: brew install raycast/extensions/raycast-brew
-      changed_when: false # The command itself doesn't report change status well
-
-- name: Install Raycast on Debian-based systems
-  when: ansible_os_family == "Debian"
+- name: Fallback: Download Raycast AppImage for Linux if package fails
+  when: ansible_os_family == "Debian" and raycast_pkg_result is failed
   block:
     - name: Download Raycast AppImage for Linux
       ansible.builtin.get_url:
@@ -22,3 +22,8 @@
         dest: /usr/local/bin/raycast
         mode: '0755'
       become: true
+
+- name: Install Raycast extension for Homebrew
+  ansible.builtin.command: brew install raycast/extensions/raycast-brew
+  changed_when: false
+  when: ansible_os_family == "Darwin"
