@@ -2,9 +2,9 @@
 # Harden Baseline: Etckeeper tasks
 
 - name: Etckeeper | Ensure etckeeper is installed
-  ansible.builtin.package:
+  levonk.common.package:
     name: etckeeper
-    state: present
+    state: latest
   become: yes
   tags:
     - harden_baseline
