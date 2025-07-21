@@ -1,36 +1,11 @@
 ---
 # tasks file for levonk.user_setup.thick-shell - fzf fuzzy finder
 
-- name: Install fzf on Windows via Chocolatey
-  ansible.windows.win_chocolatey:
-    name: fzf
-    state: present
-  when: ansible_os_family == 'Windows'
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - fzf
-    - fuzzy-finder
-
-- name: Install fzf on Debian-based systems
-  ansible.builtin.apt:
-    name: fzf
-    state: present
-    update_cache: true
-  when: ansible_os_family == "Debian"
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - fzf
-    - fuzzy-finder
-
-- name: Install fzf on macOS via Homebrew
-  community.general.homebrew:
-    name: fzf
-    state: present
-  when: ansible_os_family == "Darwin"
+- name: Install fzf via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - fzf
+    state: latest
   tags:
     - thick-shell
     - tools

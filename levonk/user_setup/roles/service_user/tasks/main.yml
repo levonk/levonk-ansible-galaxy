@@ -1,4 +1,13 @@
 ---
+- name: Ensure shell for service user is installed
+  levonk.common.package:
+    name: "{{ service_user_shell | default('/usr/sbin/nologin') | basename }}"
+    state: latest
+  when: service_user_shell is defined and service_user_shell not in ['/usr/sbin/nologin', '/sbin/nologin', '/bin/false']
+  tags:
+    - service_user
+    - shell
+
 - name: Ensure service user exists
   ansible.builtin.user:
     name: "{{ service_user_name }}"

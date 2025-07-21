@@ -1,11 +1,17 @@
 ---
 # Bash + Bash-it + Starship
 - block:
-    - name: Install bash
+    - name: Install bash and starship via levonk.common.package
       become: true
-      ansible.builtin.package:
-        name: bash
-        state: present
+      levonk.common.package:
+        name:
+          - bash
+          - starship
+        state: latest
+      tags:
+        - thick-shell
+        - bash
+        - starship
 
     - name: Securely install Bash-it (vetted)
       include_role:
@@ -15,14 +21,9 @@
         vet_script_dest: "/tmp/bash-it-install.sh"
         vet_script_args: "--silent"
       when: ansible_system != 'Windows'
+      tags:
+        - thick-shell
+        - bash-it
 
-    - name: Securely install Starship prompt (vetted)
-      include_role:
-        name: levonk.common.roles.vet_script_installer
-      vars:
-        vet_script_url: "https://starship.rs/install.sh"
-        vet_script_dest: "/tmp/starship-install.sh"
-        vet_script_args: "-y"
-      when: ansible_system != 'Windows'
   name: Bash Shell Stack
   become: true

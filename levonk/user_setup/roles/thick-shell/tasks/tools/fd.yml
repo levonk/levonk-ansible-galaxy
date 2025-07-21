@@ -1,36 +1,12 @@
 ---
 # tasks file for levonk.user_setup.thick-shell - fd
 
-- name: Install fd on Windows via Chocolatey
-  ansible.windows.win_chocolatey:
-    name: fd
-    state: present
-  when: ansible_os_family == 'Windows'
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - fd
-    - file-search
-
-- name: Install fd on Debian-based systems
-  ansible.builtin.apt:
-    name: fd-find
-    state: present
-    update_cache: true
-  when: ansible_os_family == "Debian"
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - fd
-    - file-search
-
-- name: Install fd on macOS via Homebrew
-  community.general.homebrew:
-    name: fd
-    state: present
-  when: ansible_os_family == "Darwin"
+- name: Install fd via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - fd
+      - fd-find
+    state: latest
   tags:
     - thick-shell
     - tools

@@ -1,36 +1,11 @@
 ---
 # tasks file for levonk.user_setup.thick-shell - direnv
 
-- name: Install direnv on Windows via Chocolatey
-  ansible.windows.win_chocolatey:
-    name: direnv
-    state: present
-  when: ansible_os_family == 'Windows'
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - direnv
-    - environment
-
-- name: Install direnv on Debian-based systems
-  ansible.builtin.apt:
-    name: direnv
-    state: present
-    update_cache: true
-  when: ansible_os_family == "Debian"
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - direnv
-    - environment
-
-- name: Install direnv on macOS via Homebrew
-  community.general.homebrew:
-    name: direnv
-    state: present
-  when: ansible_os_family == "Darwin"
+- name: Install direnv via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - direnv
+    state: latest
   tags:
     - thick-shell
     - tools

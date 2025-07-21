@@ -1,25 +1,11 @@
 ---
 # tasks file for levonk.user_setup.thick-shell - bat
 
-- name: Install bat on Windows via Chocolatey
-  ansible.windows.win_chocolatey:
-    name: bat
-    state: present
-  when: ansible_os_family == 'Windows'
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - bat
-    - syntax-highlighting
-
-- name: Install bat on Debian-based systems
-  ansible.builtin.apt:
-    name: bat
-    state: present
-    update_cache: true
-  when: ansible_os_family == "Debian"
-  become: true
+- name: Install bat via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - bat
+    state: latest
   tags:
     - thick-shell
     - tools

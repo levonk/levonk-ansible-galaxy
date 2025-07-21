@@ -1,36 +1,11 @@
 ---
 # tasks file for levonk.user_setup.thick-shell - zoxide
 
-- name: Install zoxide on Windows via Chocolatey
-  ansible.windows.win_chocolatey:
-    name: zoxide
-    state: present
-  when: ansible_os_family == 'Windows'
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - zoxide
-    - navigation
-
-- name: Install zoxide on Debian-based systems
-  ansible.builtin.apt:
-    name: zoxide
-    state: present
-    update_cache: true
-  when: ansible_os_family == "Debian"
-  become: true
-  tags:
-    - thick-shell
-    - tools
-    - zoxide
-    - navigation
-
-- name: Install zoxide on macOS via Homebrew
-  community.general.homebrew:
-    name: zoxide
-    state: present
-  when: ansible_os_family == "Darwin"
+- name: Install zoxide via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - zoxide
+    state: latest
   tags:
     - thick-shell
     - tools

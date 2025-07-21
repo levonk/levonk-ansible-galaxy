@@ -1,8 +1,8 @@
 ---
-# tasks file for levonk.user_setup.chezmoi on Windows
+# tasks file for levonk.user_setup.chezmoi on Linux
 # Copyright (c) 2025, Brillarc, LLC
 
-- name: "Install | chezmoi (Windows)"
+- name: "Install | chezmoi (Linux)"
   block:
     - name: "Install chezmoi via package manager (levonk.common.package)"
       levonk.common.package:
@@ -12,7 +12,7 @@
       failed_when: false
       tags:
         - chezmoi
-        - windows
+        - linux
         - user_setup
 
     - name: "Fallback: Install chezmoi via vetted script installer if package fails"
@@ -20,6 +20,7 @@
         name: levonk.common.roles.vet_script_installer
       vars:
         vet_script_url: "https://get.chezmoi.io"
-        vet_script_dest: "chezmoi-install.ps1"
+        vet_script_dest: "/tmp/chezmoi-install.sh"
         vet_script_args: ""
       when: chezmoi_pkg_result is failed
+  become: true

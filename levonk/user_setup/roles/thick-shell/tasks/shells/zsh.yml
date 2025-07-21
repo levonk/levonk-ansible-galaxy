@@ -1,11 +1,14 @@
 ---
 # Zsh + Oh My Zsh + PowerLevel10k (default)
 - block:
-    - name: Install zsh
+    - name: Install zsh via levonk.common.package
       become: true
-      ansible.builtin.package:
+      levonk.common.package:
         name: zsh
-        state: present
+        state: latest
+      tags:
+        - thick-shell
+        - zsh
 
     - name: Securely install Oh My Zsh (vetted)
       include_role:
@@ -15,6 +18,9 @@
         vet_script_dest: "/tmp/ohmyzsh-install.sh"
         vet_script_args: "--unattended"
       when: ansible_system != 'Windows'
+      tags:
+        - thick-shell
+        - ohmyzsh
 
     - name: Install PowerLevel10k theme
       become: true
@@ -23,5 +29,9 @@
         dest: ~/.oh-my-zsh/custom/themes/powerlevel10k
         version: master
       when: ansible_system != 'Windows'
+      tags:
+        - thick-shell
+        - powerlevel10k
+
   name: Zsh Shell Stack
   become: true

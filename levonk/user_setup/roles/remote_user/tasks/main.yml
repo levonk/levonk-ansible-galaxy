@@ -1,8 +1,17 @@
 ---
+- name: Ensure shell for remote user is installed
+  levonk.common.package:
+    name: "{{ remote_user_shell | default('/bin/bash') | basename }}"
+    state: latest
+  when: remote_user_shell is defined and remote_user_shell not in ['/usr/sbin/nologin', '/sbin/nologin', '/bin/false']
+  tags:
+    - remote_user
+    - shell
+
 - name: Ensure remote user exists
   ansible.builtin.user:
     name: "{{ remote_user_name }}"
-    shell: "/bin/bash"
+    shell: "{{ remote_user_shell | default('/bin/bash') }}"
     groups: "{{ remote_user_groups | default([]) }}"
     state: present
 

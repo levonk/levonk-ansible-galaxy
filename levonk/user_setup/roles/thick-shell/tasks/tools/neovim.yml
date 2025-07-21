@@ -1,24 +1,16 @@
 ---
 # Install Neovim cross-platform
 
-- name: Install Neovim on Debian/Ubuntu
-  become: true
-  ansible.builtin.apt:
-    name: neovim
-    state: present
-  when: ansible_os_family == 'Debian'
-
-- name: Install Neovim on macOS
-  community.general.homebrew:
-    name: neovim
-    state: present
-  when: ansible_os_family == 'Darwin'
-
-- name: Install Neovim on Windows
-  ansible.windows.win_chocolatey:
-    name: neovim
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Install Neovim via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - neovim
+    state: latest
+  tags:
+    - thick-shell
+    - tools
+    - neovim
+    - editor
 
 - name: Ensure Neovim config directory exists
   ansible.builtin.file:

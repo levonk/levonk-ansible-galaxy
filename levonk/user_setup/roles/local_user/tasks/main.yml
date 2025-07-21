@@ -1,4 +1,13 @@
 ---
+- name: Ensure shell for local user is installed
+  levonk.common.package:
+    name: "{{ local_user_shell | default('/bin/bash') | basename }}"
+    state: latest
+  when: local_user_shell is defined and local_user_shell not in ['/usr/sbin/nologin', '/sbin/nologin', '/bin/false']
+  tags:
+    - local_user
+    - shell
+
 - name: Ensure local user exists
   ansible.builtin.user:
     name: "{{ local_user_name }}"

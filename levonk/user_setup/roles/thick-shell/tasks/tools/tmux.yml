@@ -1,21 +1,19 @@
 ---
 # tasks file for levonk.user_setup.thick-shell - tmux
 
-- name: Install tmux on macOS
-  community.general.homebrew:
-    name: tmux
-    state: present
-  when: ansible_os_family == 'Darwin'
-
-- name: Install tmux on Debian-based systems
-  become: true
-  ansible.builtin.apt:
-    name: tmux
-    state: present
-    update_cache: true
-  when: ansible_os_family == 'Debian'
+- name: Install tmux via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - tmux
+    state: latest
+  tags:
+    - thick-shell
+    - tools
+    - tmux
+    - terminal-multiplexer
 
 - name: Show note for tmux on Windows
   ansible.builtin.debug:
     msg: "tmux is not available as a native Windows application. Please install it within your WSL (Windows Subsystem for Linux) environment."
   when: ansible_os_family == 'Windows'
+

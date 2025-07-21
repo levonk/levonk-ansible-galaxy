@@ -1,7 +1,32 @@
 ---
 # Always install Oh My Posh + Posh-Git on Windows
-- name: Install Oh My Posh (winget)
-  win_command: winget install JanDeDobbeleer.OhMyPosh -h --accept-package-agreements --accept-source-agreements
+- name: Install Oh My Posh and posh-git via levonk.common.package (Windows)
+  levonk.common.package:
+    name:
+      - oh-my-posh
+      - posh-git
+    state: latest
+  register: posh_pkg_result
+  failed_when: false
+  tags:
+    - thick-shell
+    - windows
+    - oh-my-posh
+    - posh-git
 
-- name: Install Posh-Git (PowerShell Gallery)
+- name: Fallback: Install Oh My Posh (winget) if package fails
+  win_command: winget install JanDeDobbeleer.OhMyPosh -h --accept-package-agreements --accept-source-agreements
+  when: posh_pkg_result is failed
+  tags:
+    - thick-shell
+    - windows
+    - oh-my-posh
+
+- name: Fallback: Install Posh-Git (PowerShell Gallery) if package fails
   win_shell: Install-Module posh-git -Scope CurrentUser -Force
+  when: posh_pkg_result is failed
+  tags:
+    - thick-shell
+    - windows
+    - posh-git
+

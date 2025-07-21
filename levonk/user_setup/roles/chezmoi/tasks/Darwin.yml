@@ -4,11 +4,23 @@
 
 - name: "Install | chezmoi (macOS)"
   block:
-    - name: "Install chezmoi via vetted script installer"
+    - name: "Install chezmoi via Homebrew (levonk.common.package)"
+      levonk.common.package:
+        name: chezmoi
+        state: latest
+      register: chezmoi_pkg_result
+      failed_when: false
+      tags:
+        - chezmoi
+        - macos
+        - user_setup
+
+    - name: "Fallback: Install chezmoi via vetted script installer if package fails"
       ansible.builtin.include_role:
         name: levonk.common.roles.vet_script_installer
       vars:
         vet_script_url: "https://get.chezmoi.io"
         vet_script_dest: "/tmp/chezmoi-install.sh"
         vet_script_args: ""
+      when: chezmoi_pkg_result is failed
   become: true
