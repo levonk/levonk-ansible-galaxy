@@ -1,11 +1,12 @@
 ---
 # Harden Baseline: Linux baseline hardening tasks
 
-- name: Ensure shellcheck and bat are installed (Debian)
+- name: Ensure shellcheck, bat, and gpg are installed (Debian)
   levonk.common.package:
     name:
       - shellcheck
       - bat
+      - gnupg
     state: latest
   when: ansible_facts['os_family'] == 'Debian'
   become: yes
@@ -14,6 +15,33 @@
     - linux
     - security
     - shell
+
+
+
+- name: Get GPG key ID (Linux)
+  ansible.builtin.shell: |
+    gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ {print $5; exit}'
+  register: gpg_key_id
+  changed_when: false
+  become: yes
+  tags:
+    - harden_baseline
+    - linux
+    - security
+    - gpg
+
+- name: Export GPG public key (Linux)
+  ansible.builtin.shell: |
+    gpg --armor --export {{ gpg_key_id.stdout }}
+  register: gpg_pubkey
+  changed_when: false
+  become: yes
+  tags:
+    - harden_baseline
+    - linux
+    - security
+    - gpg
+
 
 - name: Ensure vet is installed (safe script vetting)
   ansible.builtin.shell: |
@@ -65,6 +93,42 @@
 # TODO: Expand with additional hardening tasks as needed
 pattern for any shell plugin/script installs (bash-it, starship, etc.)
 
+# Ensure etckeeper is installed and initialized before any other hardening tasks
+- name: Etckeeper | Ensure etckeeper is installed
+  levonk.common.package:
+    name: etckeeper
+    state: latest
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | Configure etckeeper to use git
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?VCS='
+    line: 'VCS="git"'
+    state: present
+    backup: yes
+  become: yes
+  notify: Commit changes to /etc
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | Initialize etckeeper repository
+  ansible.builtin.command:
+    cmd: etckeeper init
+    creates: /etc/.git
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+# Now include any additional etckeeper tasks
 - name: Include etckeeper tasks
   import_tasks: etckeeper.yml
 

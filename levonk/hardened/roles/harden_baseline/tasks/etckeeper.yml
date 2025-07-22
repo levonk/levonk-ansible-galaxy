@@ -3,13 +3,37 @@
 
 - name: Etckeeper | Ensure etckeeper is installed
   levonk.common.package:
-    name: etckeeper
+    name:
+      - git
+      - etckeeper
+      - gnupg
     state: latest
   become: yes
   tags:
     - harden_baseline
     - etckeeper
     - security
+
+- name: Etckeeper | Check if any GPG secret key exists (Linux)
+  ansible.builtin.shell: |
+    gpg --list-secret-keys --with-colons | grep '^sec:' || true
+  register: gpg_key_exists
+  changed_when: false
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - gpg
+
+- name: Etckeeper | Generate GPG key for automation (Linux)
+  ansible.builtin.shell: |
+    echo -e "Key-Type: default\nSubkey-Type: default\nName-Real: VibeOps Automation\nName-Email: automation@localhost\nExpire-Date: 0\n%no-protection\n%commit" | gpg --batch --gen-key
+  when: force_generate_gpg_key | default(false) or gpg_key_exists.stdout == ''
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - gpg
 
 - name: Etckeeper | Configure etckeeper to use git
   ansible.builtin.lineinfile:

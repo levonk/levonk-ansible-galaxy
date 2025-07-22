@@ -10,6 +10,80 @@
     - security
     - firewall
 
+- name: Ensure gpg and pinentry-mac are installed (macOS)
+  levonk.common.package:
+    name:
+      - gnupg
+      - pinentry-mac
+    state: latest
+  become: yes
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - gpg
+
+- name: Check if any GPG secret key exists (macOS)
+  ansible.builtin.shell: |
+    gpg --list-secret-keys --with-colons | grep '^sec:' || true
+  register: gpg_key_exists
+  changed_when: false
+  become: yes
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - gpg
+
+- name: Generate GPG key for automation (macOS)
+  ansible.builtin.shell: |
+    echo -e "Key-Type: default\nSubkey-Type: default\nName-Real: VibeOps Automation\nName-Email: automation@localhost\nExpire-Date: 0\n%no-protection\n%commit" | gpg --batch --gen-key
+  when: force_generate_gpg_key | default(false) or gpg_key_exists.stdout == ''
+  become: yes
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - gpg
+
+- name: Get GPG key ID (macOS)
+  ansible.builtin.shell: |
+    gpg --list-secret-keys --with-colons | awk -F: '/^sec:/ {print $5; exit}'
+  register: gpg_key_id
+  changed_when: false
+  become: yes
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - gpg
+
+- name: Export GPG public key (macOS)
+  ansible.builtin.shell: |
+    gpg --armor --export {{ gpg_key_id.stdout }}
+  register: gpg_pubkey
+  changed_when: false
+  become: yes
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - gpg
+
+- name: Configure pinentry-mac in gpg-agent.conf (macOS)
+  ansible.builtin.lineinfile:
+    path: ~/.gnupg/gpg-agent.conf
+    line: 'pinentry-program /opt/homebrew/bin/pinentry-mac'
+    create: yes
+    state: present
+  become: yes
+  tags:
+    - harden_baseline
+    - macos
+    - security
+    - gpg
+
+
 - name: Enforce password policy on macOS
   ansible.builtin.command: "pwpolicy -n /Local/Default -setglobalpolicy 'minChars=12 requiresAlpha=1 requiresNumeric=1'"
   tags:

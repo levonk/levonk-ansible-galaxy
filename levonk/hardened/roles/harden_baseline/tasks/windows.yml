@@ -10,6 +10,67 @@
     - security
     - firewall
 
+- name: Ensure GPG is installed (Windows)
+  win_chocolatey:
+    name: gnupg
+    state: latest
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - gpg
+
+- name: Check if any GPG secret key exists (Windows)
+  win_shell: |
+    gpg --list-secret-keys --with-colons | findstr "^sec:" || exit 0
+  register: gpg_key_exists
+  changed_when: false
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - gpg
+
+- name: Generate GPG key for automation (Windows)
+  win_shell: |
+    echo Key-Type: default > gen-key-script
+    echo Subkey-Type: default >> gen-key-script
+    echo Name-Real: VibeOps Automation >> gen-key-script
+    echo Name-Email: automation@localhost >> gen-key-script
+    echo Expire-Date: 0 >> gen-key-script
+    echo %no-protection% >> gen-key-script
+    echo %commit% >> gen-key-script
+    gpg --batch --gen-key gen-key-script
+  when: force_generate_gpg_key | default(false) or gpg_key_exists.stdout == ''
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - gpg
+
+- name: Get GPG key ID (Windows)
+  win_shell: |
+    gpg --list-secret-keys --with-colons | findstr "^sec:" | for /f "tokens=5 delims=:" %a in ('more') do @echo %a
+  register: gpg_key_id
+  changed_when: false
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - gpg
+
+- name: Export GPG public key (Windows)
+  win_shell: |
+    gpg --armor --export %gpg_key_id.stdout%
+  register: gpg_pubkey
+  changed_when: false
+  tags:
+    - harden_baseline
+    - windows
+    - security
+    - gpg
+
+
 # Disable Guest account for baseline security
 - name: Ensure Guest account is disabled
   ansible.windows.win_user:
