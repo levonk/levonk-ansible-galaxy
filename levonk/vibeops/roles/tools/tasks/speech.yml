@@ -1,11 +1,13 @@
 ---
 # tasks file for levonk.vibeops.tools - Speech Tools
 
+## TODO: Implement this feature directly
 - name: Display note for Windows Voice Access
   ansible.builtin.debug:
     msg: "Windows Voice Access is a built-in feature. Please enable it manually in Settings > Accessibility > Speech."
   when: ansible_os_family == 'Windows'
 
+## TODO: Implement this feature directly
 - name: Display note for macOS Voice Control
   ansible.builtin.debug:
     msg: "macOS Voice Control is a built-in feature. Please enable it manually in System Settings > Accessibility > Voice Control."

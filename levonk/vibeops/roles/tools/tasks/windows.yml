@@ -4,7 +4,7 @@
 - name: Install PowerToys - Windows system utilities
   win_chocolatey:
     name: powertoys
-    state: present
+    state: latest
   when: tools_install_powertoys | default(true)
   tags:
     - tools
@@ -15,7 +15,7 @@
 - name: Install Windows Terminal
   win_chocolatey:
     name: microsoft-windows-terminal
-    state: present
+    state: latest
   when: tools_install_windows_terminal | default(true)
   tags:
     - tools
@@ -25,7 +25,7 @@
 - name: Install Everything - File search
   win_chocolatey:
     name: everything
-    state: present
+    state: latest
   when: tools_install_everything | default(true)
   tags:
     - tools
@@ -36,7 +36,7 @@
 - name: Install AutoHotkey - Automation scripting
   win_chocolatey:
     name: autohotkey
-    state: present
+    state: latest
   when: tools_install_autohotkey | default(true)
   tags:
     - tools
@@ -47,7 +47,7 @@
 - name: Install Sysinternals Suite
   win_chocolatey:
     name: sysinternals
-    state: present
+    state: latest
   when: tools_install_sysinternals | default(true)
   tags:
     - tools
@@ -58,7 +58,7 @@
 - name: Install ShareX - Screenshot and screen recording
   win_chocolatey:
     name: sharex
-    state: present
+    state: latest
   when: tools_install_sharex | default(true)
   tags:
     - tools
@@ -69,7 +69,7 @@
 - name: Install Notepad++ - Text editor
   win_chocolatey:
     name: notepadplusplus
-    state: present
+    state: latest
   when: tools_install_notepadplusplus | default(true)
   tags:
     - tools

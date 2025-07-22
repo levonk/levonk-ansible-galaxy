@@ -24,12 +24,25 @@
   npm:
     name: @mermaid-js/mermaid-cli
     global: yes
-    state: present
+    state: latest
   tags:
     - diagram
     - mermaid
     - tools
     - all_os
+
+# Include Archi diagram tool installation
+- name: Include Archi diagram tool installation
+  include_tasks: archi-diagrams.yml
+  tags:
+    - diagram
+    - tools
+    - all_os
+    - vibeops
+    - archi
+    - archimate
+    - graphical
+
 
 - name: Ensure mmdc is in PATH (Linux/macOS)
   file:

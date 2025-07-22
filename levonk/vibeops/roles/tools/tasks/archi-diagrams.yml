@@ -1,0 +1,219 @@
+---
+# tasks file for Archi diagram tool installation
+# This file handles the installation of Archi, an ArchiMate modeling tool
+
+- name: Check if Archi is already installed
+  block:
+    - name: Check for Archi variants in PATH
+      ansible.builtin.command: which {{ item }}
+      register: archi_installed
+      ignore_errors: true
+      changed_when: false
+      check_mode: false
+      with_items:
+        - archi
+        - archimate
+        - archimatetool
+        - architool
+      when: archi_install is not defined or archi_install is skipped
+
+    - name: Set archi_installed fact
+      set_fact:
+        archi_installed: "{{ archi_installed is defined and archi_installed is not skipped and archi_installed.results | selectattr('rc', 'defined') | selectattr('rc', 'eq', 0) | list | length > 0 }}"
+  tags:
+    - diagram
+    - tools
+    - all_os
+    - vibeops
+    - archi
+    - archimate
+    - graphical
+
+- name: Install archi the ArchiMate Diagramer (via package manager)
+  block:
+    - name: Try installing Archi with different package names
+      block:
+        - name: Try installing archi package
+          levonk.common.package:
+            name: "{{ item }}"
+            state: latest
+          register: archi_install
+          ignore_errors: true
+          with_items:
+            - archi
+            - archimatetool
+            - archimate
+            - architool
+          when: not archi_installed | default(false)
+
+        - name: Set archi_install result if any installation succeeded
+          set_fact:
+            archi_install: "{{ archi_install | default({}) | combine({'failed': false}) }}"
+          when: not archi_installed | default(false) and archi_install is defined and archi_install.results is defined and archi_install.results | selectattr('rc', 'defined') | selectattr('rc', 'eq', 0) | list | length > 0
+
+      rescue:
+        - name: Set archi_install as failed if all installations failed
+          set_fact:
+            archi_install:
+              failed: true
+              msg: "All Archi package installation attempts failed"
+
+  when: not archi_installed | default(false)
+  tags:
+    - diagram
+    - tools
+    - all_os
+    - vibeops
+    - archi
+    - archimate
+    - graphical
+
+- name: Create temp directory for Archi installation
+  ansible.builtin.tempfile:
+    state: directory
+    suffix: archi_install
+  register: archi_tempdir
+  when: archi_install is failed or archi_install is skipped
+
+- name: Set Archi package download URL based on OS
+  set_fact:
+    archi_package_url: >-
+      {% if ansible_os_family == 'Debian' %}
+        https://www.archimatetool.com/downloads/archi.php?/download/archi-latest/Archi-Linux64.deb
+      {% elif ansible_os_family == 'RedHat' %}
+        https://www.archimatetool.com/downloads/archi.php?/download/archi-latest/Archi-Linux64.rpm
+      {% elif ansible_os_family == 'Windows' %}
+        https://www.archimatetool.com/downloads/archi.php?/download/archi-latest/Archi-Win64-Setup.exe
+      {% elif ansible_os_family == 'Darwin' %}
+        https://www.archimatetool.com/downloads/archi.php?/download/archi-latest/Archi-Mac-Silicon.dmg
+      {% endif %}
+    archi_package_file: >-
+      {% if ansible_os_family == 'Debian' %}archi.deb
+      {% elif ansible_os_family == 'RedHat' %}archi.rpm
+      {% elif ansible_os_family == 'Windows' %}archi-setup.exe
+      {% elif ansible_os_family == 'Darwin' %}archi.dmg{% endif %}
+    archi_tarball_url: https://www.archimatetool.com/downloads/archi.php?/download/archi-latest/Archi-Linux64.tgz
+    archi_tarball_file: archi.tgz
+  when: archi_install is failed or archi_install is skipped
+
+- name: Download Archi package
+  block:
+    - name: Download Archi package
+      get_url:
+        url: "{{ archi_package_url }}"
+        dest: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
+        mode: '0755'
+  rescue:
+    - name: Set fallback to tarball
+      set_fact:
+        use_tarball: true
+  when: 
+    - archi_install is failed or archi_install is skipped
+    - ansible_os_family in ['Debian', 'RedHat', 'Windows', 'Darwin']
+    - use_tarball is not defined
+
+- name: Download Archi tarball (fallback)
+  block:
+    - name: Download Archi tarball
+      get_url:
+        url: "{{ archi_tarball_url }}"
+        dest: "{{ archi_tempdir.path }}/{{ archi_tarball_file }}"
+        mode: '0755'
+    - name: Set tarball downloaded flag
+      set_fact:
+        tarball_downloaded: true
+  when: 
+    - archi_install is failed or archi_install is skipped
+    - (ansible_os_family == 'Linux' and ansible_os_family not in ['Debian', 'RedHat']) or use_tarball is defined
+
+- name: Install Archi (Debian/Ubuntu)
+  block:
+    - name: Install Archi using apt
+      ansible.builtin.apt:
+        deb: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
+        state: present
+  rescue:
+    - name: Set fallback to tarball on package install failure
+      set_fact:
+        use_tarball: true
+  when:
+    - ansible_os_family == 'Debian'
+    - archi_install is failed or archi_install is skipped
+    - use_tarball is not defined
+
+- name: Install Archi (RHEL/CentOS/Fedora)
+  block:
+    - name: Install Archi using dnf
+      ansible.builtin.dnf:
+        name: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
+        state: present
+  rescue:
+    - name: Set fallback to tarball on package install failure
+      set_fact:
+        use_tarball: true
+  when:
+    - ansible_os_family == 'RedHat'
+    - archi_install is failed or archi_install is skipped
+    - use_tarball is not defined
+
+- name: Install Archi (Windows)
+  block:
+    - name: Install Archi using Windows package
+      win_package:
+        path: "{{ archi_tempdir.path }}\\{{ archi_package_file }}"
+        arguments: /S
+        state: present
+  rescue:
+    - name: Set fallback to tarball on package install failure
+      set_fact:
+        use_tarball: true
+  when:
+    - ansible_os_family == 'Windows'
+    - archi_install is failed or archi_install is skipped
+    - use_tarball is not defined
+
+- name: Install Archi (macOS)
+  block:
+    - name: Install Archi using dmg
+      community.general.dmg_package:
+        dmg_path: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
+        package: Archi
+        type: app
+        dest: /Applications
+  rescue:
+    - name: Set fallback to tarball on package install failure
+      set_fact:
+        use_tarball: true
+  when:
+    - ansible_os_family == 'Darwin'
+    - archi_install is failed or archi_install is skipped
+    - use_tarball is not defined
+
+- name: Install Archi from tarball (fallback)
+  block:
+    - name: Ensure tarball is downloaded
+      include_tasks: "{{ role_path }}/tasks/download-tarball.yml"
+      when: tarball_downloaded is not defined and use_tarball is defined
+
+    - name: Extract Archi from tarball
+      ansible.builtin.unarchive:
+        src: "{{ archi_tempdir.path }}/{{ archi_tarball_file }}"
+        dest: /opt
+        remote_src: true
+        creates: /opt/Archi/Archi
+
+    - name: Create symlink for Archi
+      file:
+        src: /opt/Archi/Archi
+        dest: /usr/local/bin/archi
+        state: link
+        force: true
+  when:
+    - (ansible_os_family == 'Linux' and ansible_os_family not in ['Debian', 'RedHat']) or use_tarball is defined
+    - archi_install is failed or archi_install is skipped
+
+- name: Clean up temp directory
+  file:
+    path: "{{ archi_tempdir.path }}"
+    state: absent
+  when: archi_tempdir is defined and archi_tempdir.path is defined

@@ -1,0 +1,15 @@
+# tasks file for installing eza (modern ls replacement)
+# https://github.com/eza-community/eza
+# Installs via levonk.common.package if available in the system package manager.
+
+- name: Install eza via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - eza
+    state: latest
+  tags:
+    - vibeops
+    - tools
+    - eza
+
+# Note: If eza is not available in the default repositories, consider adding a custom repo or using another install method.
