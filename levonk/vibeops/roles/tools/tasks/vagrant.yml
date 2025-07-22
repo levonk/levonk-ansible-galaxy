@@ -1,0 +1,146 @@
+---
+# tasks file for installing Vagrant securely and idempotently
+# Tags: [vagrant, tools, install]
+
+- name: Check if Vagrant is already installed
+  ansible.builtin.command: vagrant --version
+  register: vagrant_version
+  ignore_errors: yes
+  changed_when: false
+  tags:
+    - vagrant
+    - tools
+
+- name: Install dependencies for Vagrant (cross-platform)
+  levonk.common.package:
+    name:
+      - libvirt-daemon-system
+      - libvirt-clients
+      - qemu-kvm
+      - ruby
+    state: present
+  tags:
+    - vagrant
+    - tools
+
+- name: Download Vagrant installer securely
+  ansible.builtin.get_url:
+    url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_{{ ansible_system | lower }}_amd64.deb"
+    dest: "/tmp/vagrant_latest.deb"
+    mode: '0644'
+    checksum: "sha256:{{ lookup('url', 'https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_SHA256SUMS') | regex_search('vagrant_2.4.1_{{ ansible_system | lower }}_amd64.deb.*([a-f0-9]{64})', '\1') }}"
+  when:
+    - ansible_os_family == 'Debian'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Vet Vagrant installer script (security)
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    script_path: "/tmp/vagrant_latest.deb"
+  when:
+    - ansible_os_family == 'Debian'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Install Vagrant (Debian)
+  ansible.builtin.apt:
+    deb: /tmp/vagrant_latest.deb
+  when:
+    - ansible_os_family == 'Debian'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Ensure Vagrant is in PATH
+  ansible.builtin.command: vagrant --version
+  register: vagrant_path_check
+  changed_when: false
+  tags:
+    - vagrant
+    - tools
+
+- name: Download Vagrant installer for Windows
+  ansible.builtin.get_url:
+    url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_windows_amd64.msi"
+    dest: "%TEMP%/vagrant_latest.msi"
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Windows'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Vet Vagrant installer script (Windows)
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    script_path: "%TEMP%/vagrant_latest.msi"
+  when:
+    - ansible_os_family == 'Windows'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Install Vagrant (Windows)
+  ansible.windows.win_package:
+    path: "%TEMP%/vagrant_latest.msi"
+    state: present
+  when:
+    - ansible_os_family == 'Windows'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Download Vagrant installer for macOS
+  ansible.builtin.get_url:
+    url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_x86_64.dmg"
+    dest: "/tmp/vagrant_latest.dmg"
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Darwin'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Vet Vagrant installer script (macOS)
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    script_path: "/tmp/vagrant_latest.dmg"
+  when:
+    - ansible_os_family == 'Darwin'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Install Vagrant (macOS)
+  ansible.builtin.command: hdiutil attach /tmp/vagrant_latest.dmg && sudo installer -pkg /Volumes/Vagrant/Vagrant.pkg -target /
+  args:
+    warn: false
+  when:
+    - ansible_os_family == 'Darwin'
+    - vagrant_version.rc != 0
+  tags:
+    - vagrant
+    - tools
+
+- name: Vagrant install not implemented for this OS
+  ansible.builtin.fail:
+    msg: "Vagrant installation is not implemented for this OS family ({{ ansible_os_family }}). Please contribute support."
+  when:
+    - ansible_os_family not in ['Debian', 'Windows', 'Darwin']
+  tags:
+    - vagrant
+    - tools

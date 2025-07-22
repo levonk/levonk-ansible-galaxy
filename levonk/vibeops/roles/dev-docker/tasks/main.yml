@@ -1,18 +1,35 @@
 ---
-- name: Ensure Docker is installed (Linux)
-  ansible.builtin.package:
-    name: docker.io
-    state: present
-  when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
+# Main tasks file for Docker installation
+# This role handles Docker installation and related tooling
 
-- name: Ensure Docker is installed (RedHat)
-  ansible.builtin.package:
-    name: docker
-    state: present
-  when: ansible_facts['os_family'] == 'RedHat'
+# Core Docker Installation
+- name: Include Docker CLI installation tasks
+  ansible.builtin.include_tasks: docker-cli.yml
+  tags: [docker, core, cli, install]
+  when: install_docker_cli | default(true) | bool
 
-- name: Ensure Docker Desktop is installed (Windows)
-  ansible.windows.win_chocolatey:
-    name: docker-desktop
-    state: present
-  when: ansible_facts['os_family'] == 'Windows'
+- name: Include Docker Desktop installation tasks
+  ansible.builtin.include_tasks: docker-desktop.yml
+  tags: [docker, core, desktop, install, graphical]
+  when: install_docker_desktop | default(ansible_facts['os_family'] in ['Windows', 'Darwin']) | bool
+
+# Docker Tools
+- name: Include Dive installation tasks
+  ansible.builtin.include_tasks: dive.yml
+  tags: [docker, tools, dive]
+  when: install_dive | default(true) | bool
+
+- name: Include Docker Security tools
+  ansible.builtin.include_tasks: docker-security.yml
+  tags: [docker, tools, security]
+  when: install_docker_security | default(true) | bool
+
+- name: Include Docker Optimization tools
+  ansible.builtin.include_tasks: docker-optimize.yml
+  tags: [docker, tools, optimize]
+  when: install_docker_optimize | default(true) | bool
+
+- name: Include Docker UX tools
+  ansible.builtin.include_tasks: docker-ux.yml
+  tags: [docker, tools, ux]
+  when: install_docker_ux | default(true) | bool

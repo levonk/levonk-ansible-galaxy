@@ -1,0 +1,144 @@
+---
+# tasks file for installing VirtualBox securely and idempotently
+# Tags: [virtualbox, tools, install]
+
+- name: Check if VirtualBox is already installed
+  ansible.builtin.command: VBoxManage --version
+  register: virtualbox_version
+  ignore_errors: yes
+  changed_when: false
+  tags:
+    - virtualbox
+    - tools
+
+- name: Install dependencies for VirtualBox (cross-platform)
+  levonk.common.package:
+    name:
+      - dkms
+      - linux-headers-{{ ansible_kernel | default('generic') }}
+    state: latest
+  when: ansible_os_family == 'Debian'
+  tags:
+    - virtualbox
+    - tools
+
+- name: Download VirtualBox installer (Debian)
+  ansible.builtin.get_url:
+    url: "https://download.virtualbox.org/virtualbox/7.0.18/virtualbox-7.0_7.0.18-162988~Ubuntu~{{ ansible_distribution_release }}_amd64.deb"
+    dest: "/tmp/virtualbox_latest.deb"
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Debian'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Vet VirtualBox installer script (Debian)
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    script_path: "/tmp/virtualbox_latest.deb"
+  when:
+    - ansible_os_family == 'Debian'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Install VirtualBox (Debian)
+  ansible.builtin.apt:
+    deb: /tmp/virtualbox_latest.deb
+  when:
+    - ansible_os_family == 'Debian'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Download VirtualBox installer for Windows
+  ansible.builtin.get_url:
+    url: "https://download.virtualbox.org/virtualbox/7.0.18/VirtualBox-7.0.18-162988-Win.exe"
+    dest: "%TEMP%/VirtualBox-latest.exe"
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Windows'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Vet VirtualBox installer script (Windows)
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    script_path: "%TEMP%/VirtualBox-latest.exe"
+  when:
+    - ansible_os_family == 'Windows'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Install VirtualBox (Windows)
+  ansible.windows.win_package:
+    path: "%TEMP%/VirtualBox-latest.exe"
+    state: present
+  when:
+    - ansible_os_family == 'Windows'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Download VirtualBox installer for macOS
+  ansible.builtin.get_url:
+    url: "https://download.virtualbox.org/virtualbox/7.0.18/VirtualBox-7.0.18-162988-OSX.dmg"
+    dest: "/tmp/VirtualBox-latest.dmg"
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Darwin'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Vet VirtualBox installer script (macOS)
+  include_role:
+    name: levonk.common.vet_script_installer
+  vars:
+    script_path: "/tmp/VirtualBox-latest.dmg"
+  when:
+    - ansible_os_family == 'Darwin'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Install VirtualBox (macOS)
+  ansible.builtin.command: hdiutil attach /tmp/VirtualBox-latest.dmg && sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg -target /
+  args:
+    warn: false
+  when:
+    - ansible_os_family == 'Darwin'
+    - virtualbox_version.rc != 0
+  tags:
+    - virtualbox
+    - tools
+
+- name: Ensure VirtualBox is in PATH
+  ansible.builtin.command: VBoxManage --version
+  register: virtualbox_path_check
+  changed_when: false
+  tags:
+    - virtualbox
+    - tools
+
+- name: VirtualBox install not implemented for this OS
+  ansible.builtin.fail:
+    msg: "VirtualBox installation is not implemented for this OS family ({{ ansible_os_family }}). Please contribute support."
+  when:
+    - ansible_os_family not in ['Debian', 'Windows', 'Darwin']
+  tags:
+    - virtualbox
+    - tools

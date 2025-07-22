@@ -1,0 +1,69 @@
+---
+# Docker UX Tools
+# Handles installation of tools that improve Docker user experience and monitoring
+
+- name: Set UX tools version variables
+  ansible.builtin.set_fact:
+    stern_version: "{{ stern_version | default('1.25.0') }}"
+    ctop_version: "{{ ctop_version | default('0.7.7') }}"
+    dockerize_version: "{{ dockerize_version | default('0.6.1') }}"
+    portainer_version: "{{ portainer_version | default('2.18.4') }}"
+
+# Stern - Multi pod and container log tailing
+- name: Install Stern
+  levonk.common.package:
+    name: stern
+    state: latest
+  tags: [docker, ux, stern]
+
+# ctop - Container metrics and monitoring
+- name: Install ctop
+  levonk.common.package:
+    name: ctop
+    state: latest
+  tags: [docker, ux, ctop]
+
+# Dockerize - Utility to simplify running applications in containers
+- name: Install Dockerize
+  levonk.common.package:
+    name: dockerize
+    state: latest
+  tags: [docker, ux, dockerize]
+
+# Portainer - Web UI for Docker
+- name: Install Portainer (Docker)
+  community.docker.docker_container:
+    name: portainer
+    image: portainer/portainer-ce:{{ portainer_version }}
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+  tags: [docker, ux, portainer]
+  when: install_portainer | default(true) | bool
+
+# Netshoot - Network troubleshooting container
+- name: Install Netshoot (Docker)
+  community.docker.docker_container:
+    name: netshoot
+    image: nicolaka/netshoot:latest
+    command: sleep infinity
+    state: started
+    restart_policy: unless-stopped
+  tags: [docker, ux, netshoot]
+  when: install_netshoot | default(true) | bool
+
+# Verify UX tools installation
+- name: Verify UX tools installation
+  ansible.builtin.command: "{{ item }} --version"
+  with_items:
+    - stern
+    - ctop
+    - dockerize
+  register: ux_tools_check
+  changed_when: false
+  ignore_errors: yes
+  tags: [docker, ux]

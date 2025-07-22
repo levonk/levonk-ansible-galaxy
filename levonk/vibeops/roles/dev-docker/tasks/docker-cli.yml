@@ -1,0 +1,40 @@
+---
+
+- name: Set optimization tools version variables
+  ansible.builtin.set_fact:
+    docker_compose_version: "{{ docker_compose_version | default('v2.23.0') }}"
+
+# Docker CLI Installation
+# Handles installation of Docker CLI tools across different platforms
+- name: Install Docker CLI
+  levonk.common.package:
+    name: docker-ce
+    state: latest
+  tags: [docker, cli, core]
+
+# Docker Compose
+- name: Install Docker Compose
+  levonk.common.package:
+    name: docker-compose
+    state: latest
+  tags: [docker, compose, core]
+
+# Compose Switch
+- name: Install Docker Compose Switch
+  levonk.common.package:
+    name: docker-compose-switch
+    state: latest
+  tags: [docker, compose, core]
+  when: ansible_facts['os_family'] in ['Debian', 'Ubuntu', 'RedHat']
+
+# Verify optimization tools installation
+- name: Verify optimization tools installation
+  ansible.builtin.command: "{{ item }} --version"
+  with_items:
+    - docker
+    - docker-compose
+    - docker-compose-swtich
+  register: optimize_tools_check
+  changed_when: false
+  ignore_errors: yes
+  tags: [docker, core]

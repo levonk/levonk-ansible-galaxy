@@ -1,0 +1,9 @@
+---
+# Docker Desktop installation tasks
+# Handles Docker Desktop installation with GUI components
+
+- name: Install Docker Desktop
+  levonk.common.package:
+    name: docker-desktop
+    state: latest
+  tags: [docker, desktop, graphical]

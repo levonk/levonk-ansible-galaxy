@@ -1,0 +1,58 @@
+---
+# Docker Security Tools
+# Handles installation of security-related Docker tools
+
+- name: Set security tools version variables
+  ansible.builtin.set_fact:
+    trivy_version: "{{ trivy_version | default('0.45.0') }}"
+    grype_version: "{{ grype_version | default('0.72.0') }}"
+    clair_version: "{{ clair_version | default('4.7.1') }}"
+    dockle_version: "{{ dockle_version | default('v0.4.13') }}"
+
+# Trivy - Comprehensive security scanner
+- name: Install Trivy
+  levonk.common.package:
+    name: trivy
+    state: latest
+  tags: [docker, security, trivy]
+
+# Grype - Vulnerability scanner for container images
+- name: Install Grype
+  levonk.common.package:
+    name: grype
+    state: latest
+  tags: [docker, security, grype]
+
+# Dockle - Container Image Linter for Security
+- name: Install Dockle
+  levonk.common.package:
+    name: dockle
+    state: latest
+  tags: [docker, security, dockle]
+
+# Clair - Static Analysis for Vulnerabilities in Containers
+- name: Install Clair (Docker)
+  community.docker.docker_container:
+    name: clair
+    image: quay.io/projectquay/clair:{{ clair_version }}
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "6060:8080"
+    volumes:
+      - /tmp:/tmp
+      - ./clair-config:/config:ro
+  tags: [docker, security, clair]
+  when: install_clair | default(false) | bool
+
+# Verify security tools installation
+- name: Verify security tools installation
+  ansible.builtin.command: "{{ item }} --version"
+  with_items:
+    - trivy
+    - grype
+    - dockle
+  register: security_tools_check
+  changed_when: false
+  ignore_errors: yes
+  tags: [docker, security]

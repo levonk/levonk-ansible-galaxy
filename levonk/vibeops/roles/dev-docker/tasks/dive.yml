@@ -1,0 +1,64 @@
+---
+# Dive installation tasks
+# Dive is a tool for exploring a docker image, layer contents, and discovering ways to shrink the size of your Docker/OCI image
+# https://github.com/wagoodman/dive
+
+- name: Set Dive version
+  ansible.builtin.set_fact:
+    dive_version: "{{ dive_version | default('0.10.0') }}"
+
+# Linux (Debian/Ubuntu)
+- name: Install Dive (Debian/Ubuntu)
+  block:
+    - name: Download Dive .deb package
+      ansible.builtin.get_url:
+        url: "https://github.com/wagoodman/dive/releases/download/v{{ dive_version }}/dive_{{ dive_version }}_linux_amd64.deb"
+        dest: /tmp/dive.deb
+        mode: '0644'
+
+    - name: Install Dive
+      ansible.builtin.apt:
+        deb: /tmp/dive.deb
+        state: present
+  tags: [docker, tools, dive]
+  when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
+
+# Linux (RedHat/CentOS)
+- name: Install Dive (RedHat/CentOS)
+  block:
+    - name: Download Dive .rpm package
+      ansible.builtin.get_url:
+        url: "https://github.com/wagoodman/dive/releases/download/v{{ dive_version }}/dive_{{ dive_version }}_linux_amd64.rpm"
+        dest: /tmp/dive.rpm
+        mode: '0644'
+
+    - name: Install Dive
+      ansible.builtin.dnf:
+        name: /tmp/dive.rpm
+        state: present
+  tags: [docker, tools, dive]
+  when: ansible_facts['os_family'] == 'RedHat'
+
+# macOS
+- name: Install Dive (macOS)
+  levonk.common.package:
+    name: dive
+    state: latest
+  tags: [docker, tools, dive]
+  when: ansible_facts['os_family'] == 'Darwin'
+
+# Windows
+- name: Install Dive (Windows)
+  levonk.common.package:
+    name: dive
+    state: latest
+  tags: [docker, tools, dive]
+  when: ansible_facts['os_family'] == 'Windows'
+
+# Verify Dive installation
+- name: Verify Dive installation
+  ansible.builtin.command: dive --version
+  register: dive_version_check
+  changed_when: false
+  failed_when: false
+  tags: [docker, tools, dive]

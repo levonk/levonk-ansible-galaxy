@@ -1,0 +1,29 @@
+---
+- name: Verify graphical subsystem setup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check that xfce4-session is installed
+      ansible.builtin.command: dpkg-query -W xfce4-session
+      register: xfce4_session_check
+      failed_when: xfce4_session_check.rc != 0
+
+    - name: Check that lightdm is installed
+      ansible.builtin.command: dpkg-query -W lightdm
+      register: lightdm_check
+      failed_when: lightdm_check.rc != 0
+
+    - name: Check .xsession contains exec startxfce4
+      ansible.builtin.shell: grep '^exec startxfce4' /home/vagrant/.xsession
+      register: xsession_check
+      failed_when: xsession_check.rc != 0
+
+    - name: Check systemd default target is graphical
+      ansible.builtin.command: systemctl get-default
+      register: systemd_target
+      failed_when: systemd_target.stdout.strip() != 'graphical.target'
+
+    - name: Check reboot_required fact is set
+      ansible.builtin.debug:
+        msg: "reboot_required is set: {{ hostvars[inventory_hostname]['reboot_required'] | default(false) }}"
+      failed_when: not hostvars[inventory_hostname]['reboot_required'] | default(false)

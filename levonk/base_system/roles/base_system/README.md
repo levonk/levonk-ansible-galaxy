@@ -4,6 +4,24 @@ This role provides fundamental system setup and configuration across platforms, 
 
 ## Features
 
+### Graphical Subsystem Setup (Debian)
+
+Installs and configures a graphical desktop environment (XFCE4, LightDM, dbus-x11, VirtualBox guest additions) if the `graphical` tag is set. Ensures GUI support for Vagrant/VirtualBox and other desktop use cases.
+
+- **Feature defined in:** `docs/requirements/gherkin/install_graphical_subsystem.feature`
+- **Tags:** `graphical`, `base_system`, `xfce4`, `virtualbox-guest`
+- **Testing:** Molecule scenario verifies package install, session config, systemd target, and reboot flag.
+- **Idempotency:** Safe to run repeatedly; only applies changes if not already present.
+- **Security:** Uses official repositories and packages only.
+- **Usage:**
+  - Add the `graphical` tag to your play or role invocation to enable this feature.
+  - Example:
+    ```yaml
+    - role: levonk.base_system.base_system
+      tags: [base, system, graphical]
+    ```
+
+
 ### JetBrains Mono Nerd Font (All OS)
 
 Installs the latest patched, full JetBrains Mono Nerd Font from the official Nerd Fonts website for all users on Windows, macOS, and Linux. Ensures consistent developer experience and full glyph support in terminals and editors.

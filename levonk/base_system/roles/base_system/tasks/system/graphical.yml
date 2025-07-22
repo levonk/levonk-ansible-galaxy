@@ -1,0 +1,46 @@
+---
+# tasks file for ensuring a graphical subsystem exists if graphical tag is set
+
+- name: Ensure graphical subsystem packages are installed (Debian)
+  ansible.builtin.apt:
+    name:
+      - xfce4-session
+      - xfce4-goodies
+      - lightdm
+      - dbus-x11
+      - virtualbox-guest-dkms
+      - virtualbox-guest-x11
+    state: present
+    update_cache: yes
+  when:
+    - ansible_os_family == 'Debian'
+  tags:
+    - graphical
+
+- name: Write xfce4 session to .xsession for vagrant user (Debian)
+  ansible.builtin.copy:
+    dest: /home/vagrant/.xsession
+    content: "exec startxfce4\n"
+    owner: vagrant
+    group: vagrant
+    mode: '0644'
+  when:
+    - ansible_os_family == 'Debian'
+    - ansible_facts['env']['HOME'] is defined
+  tags:
+    - graphical
+
+- name: Set default systemd target to graphical (Debian)
+  ansible.builtin.command: systemctl set-default graphical.target
+  when:
+    - ansible_os_family == 'Debian'
+  tags:
+    - graphical
+
+- name: Set reboot needed flag (Debian)
+  set_fact:
+    reboot_required: true
+  when:
+    - ansible_os_family == 'Debian'
+  tags:
+    - graphical
