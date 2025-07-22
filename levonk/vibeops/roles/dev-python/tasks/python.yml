@@ -1,0 +1,52 @@
+---
+# Python installation tasks
+# Handles Python installation with fallback mechanism
+
+- name: Set Python package name based on OS
+  ansible.builtin.set_fact:
+    python_package: "python{{ python_version | default('3') }}"
+  when: ansible_facts['os_family'] != 'Windows'
+
+- name: Set Python package name for Windows
+  ansible.builtin.set_fact:
+    python_package: "python"
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Try to install Python using levonk.common.package
+  levonk.common.package:
+    name: "{{ python_package }}"
+    state: latest
+  register: python_install
+  ignore_errors: true
+  tags: [python, install]
+
+- name: Install Python using system package manager (fallback)
+  block:
+    - name: Install Python (Debian/Ubuntu)
+      ansible.builtin.apt:
+        name: "{{ python_package }}"
+        state: latest
+        update_cache: yes
+      when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
+
+    - name: Install Python (RedHat/CentOS)
+      ansible.builtin.dnf:
+        name: "{{ python_package }}"
+        state: latest
+      when: ansible_facts['os_family'] == 'RedHat'
+
+    - name: Install Python (Windows)
+      ansible.windows.win_chocolatey:
+        name: python
+        state: present
+      when: ansible_facts['os_family'] == 'Windows'
+  when: python_install is failed or python_install is skipped
+  tags: [python, install, fallback]
+
+- name: Install Python development tools
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ dev_python_tools | default(['black', 'flake8', 'pytest']) }}"
+  when: ansible_facts['os_family'] != 'Windows'
+  tags: [python, tools]

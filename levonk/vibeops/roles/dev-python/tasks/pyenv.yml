@@ -1,0 +1,113 @@
+---
+# pyenv installation tasks
+# Handles pyenv installation with fallback mechanism
+# Note: pyenv is not supported on Windows
+
+- name: Set pyenv dependencies based on OS
+  ansible.builtin.set_fact:
+    pyenv_dependencies:
+      Debian:
+        - make
+        - build-essential
+        - libssl-dev
+        - zlib1g-dev
+        - libbz2-dev
+        - libreadline-dev
+        - libsqlite3-dev
+        - wget
+        - curl
+        - llvm
+        - libncurses5-dev
+        - libncursesw5-dev
+        - xz-utils
+        - tk-dev
+        - libffi-dev
+        - liblzma-dev
+        - git
+      RedHat:
+        - make
+        - gcc
+        - zlib-devel
+        - bzip2
+        - bzip2-devel
+        - readline-devel
+        - sqlite
+        - sqlite-devel
+        - openssl-devel
+        - xz
+        - xz-devel
+        - libffi-devel
+        - findutils
+        - git
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+
+- name: Install pyenv dependencies
+  levonk.common.package:
+    name: "{{ pyenv_dependencies[ansible_facts['os_family']] }}"
+    state: latest
+    update_cache: yes
+  register: pyenv_deps_install
+  ignore_errors: true
+  when: ansible_facts['os_family'] in pyenv_dependencies
+  tags: [pyenv, deps]
+
+- name: Try to install pyenv using levonk.common.package (primary method)
+  levonk.common.package:
+    name: pyenv
+    state: latest
+  register: pyenv_install
+  ignore_errors: true
+  tags: [pyenv, install]
+
+- name: Install pyenv from GitHub (fallback)
+  block:
+    - name: Ensure pyenv directory exists
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.pyenv"
+        state: directory
+        mode: '0755'
+
+    - name: Clone pyenv repository
+      ansible.builtin.git:
+        repo: "https://github.com/pyenv/pyenv.git"
+        dest: "{{ ansible_env.HOME }}/.pyenv"
+        version: master
+        update: yes
+
+    - name: Set pyenv environment variables in shell rc
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: |
+          export PYENV_ROOT="$HOME/.pyenv"
+          export PATH="$PYENV_ROOT/bin:$PATH"
+          eval "$(pyenv init --path)"
+          eval "$(pyenv init -)"
+        create: yes
+        state: present
+  when: pyenv_install is failed or pyenv_install is skipped
+  tags: [pyenv, install, fallback]
+
+- name: Reload shell environment
+  ansible.builtin.shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+  args:
+    executable: /bin/bash
+  changed_when: false
+  when: ansible_facts['os_family'] != 'Windows'
+  tags: [pyenv, setup]
+
+- name: Verify pyenv installation
+  ansible.builtin.command: pyenv --version
+  register: pyenv_version
+  changed_when: false
+  ignore_errors: true
+  tags: [pyenv, verify]
+
+- name: Warn if pyenv installation failed
+  ansible.builtin.debug:
+    msg: "Failed to install pyenv. Some Python version management features may not be available."
+  when: pyenv_install is failed and pyenv_version.rc != 0
+  tags: [pyenv, verify]

@@ -1,0 +1,72 @@
+---
+# Poetry installation tasks
+# Handles Poetry installation with fallback mechanism
+
+- name: Try to install Poetry using levonk.common.package (primary method)
+  levonk.common.package:
+    name: poetry
+    state: latest
+  register: poetry_install
+  ignore_errors: true
+  tags: [poetry, install]
+
+- name: Install Poetry using pipx (Linux/macOS fallback)
+  block:
+    - name: Ensure pipx is installed
+      ansible.builtin.package:
+        name: pipx
+        state: present
+      when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Install Poetry using pipx
+      ansible.builtin.command: >
+        pipx install poetry
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/poetry"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+      when: ansible_facts['os_family'] != 'Windows'
+  when: 
+    - (poetry_install is failed or poetry_install is skipped)
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [poetry, install, fallback]
+
+- name: Install Poetry using official installer (universal fallback)
+  block:
+    - name: Download Poetry installer
+      ansible.builtin.get_url:
+        url: https://install.python-poetry.org
+        dest: /tmp/install-poetry.py
+        mode: '0755'
+
+    - name: Run Poetry installer
+      ansible.builtin.command: >
+        python /tmp/install-poetry.py --yes
+      environment:
+        POETRY_HOME: "{{ ansible_env.HOME }}/.poetry"
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+
+    - name: Add Poetry to PATH
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'export PATH="$HOME/.local/bin:$PATH"'
+        create: yes
+        state: present
+      when: ansible_facts['os_family'] != 'Windows'
+  when: 
+    - (poetry_install is failed or poetry_install is skipped)
+    - not (ansible_facts['os_family'] == 'Windows' and poetry_install is failed)
+  tags: [poetry, install, fallback]
+
+- name: Verify Poetry installation
+  ansible.builtin.command: poetry --version
+  register: poetry_version
+  changed_when: false
+  ignore_errors: true
+  tags: [poetry, verify]
+
+- name: Fail if Poetry installation failed
+  ansible.builtin.fail:
+    msg: "Failed to install Poetry using any available method"
+  when: poetry_install is failed and poetry_version.rc != 0
+  tags: [poetry, verify]
