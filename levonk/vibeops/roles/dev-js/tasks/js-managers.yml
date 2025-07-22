@@ -16,9 +16,9 @@
     - lookup('ansible.builtin.env', 'SCOOP') != ''
 
 - name: Install fnm (Fast Node Manager) on Windows (Chocolatey fallback)
-  ansible.windows.win_chocolatey:
+  levonk.common.package:
     name: fnm
-    state: present
+    state: latest
   when:
     - dev_js_install_fnm | default(true)
     - ansible_facts['os_family'] == 'Windows'
