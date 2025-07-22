@@ -4,6 +4,10 @@
   set_fact:
     thick_shells: "{{ thick_shells | default(['zsh']) }}"
 
+- name: Ensure nushell stack if requested
+  include_tasks: shells/nushell.yml
+  when: "'nushell' in thick_shells"
+
 - name: Ensure zsh stack if requested
   include_tasks: shells/zsh.yml
   when: "'zsh' in thick_shells"

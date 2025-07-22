@@ -1,0 +1,70 @@
+---
+# Nushell installation tasks
+- block:
+    - name: Set platform-specific package names for Nushell
+      set_fact:
+        nushell_package: "{{ 'nushell' if ansible_os_family != 'Darwin' else 'nushell' }}"
+        nushell_cmd: "{{ 'nu' if ansible_os_family != 'Windows' else 'nu.exe' }}"
+
+    - name: Install Nushell via system package manager (primary method)
+      become: true
+      levonk.common.package:
+        name: "{{ nushell_package }}"
+        state: latest
+      register: nushell_pkg_install
+      ignore_errors: true
+      tags:
+        - thick-shell
+        - nushell
+
+    - name: Download and install Nushell (fallback method for Linux)
+      block:
+        - name: Install required dependencies for building
+          become: true
+          apt:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - pkg-config
+            - libssl-dev
+            - libxcb-composite0-dev
+            - libx11-dev
+          when: ansible_os_family == 'Debian'
+
+        - name: Install Rust (required for building from source)
+          include_role:
+            name: levonk.common.roles.rust
+          when: ansible_os_family == 'Debian' or ansible_os_family == 'RedHat'
+
+        - name: Install Nushell via cargo
+          command: cargo install nu --features=extra
+          args:
+            creates: "{{ ansible_env.HOME }}/.cargo/bin/{{ nushell_cmd }}"
+          when: ansible_os_family == 'Debian' or ansible_os_family == 'RedHat'
+
+      when: 
+        - nushell_pkg_install is failed or nushell_pkg_install.changed == false
+        - ansible_os_family in ['Debian', 'RedHat']
+      tags:
+        - thick-shell
+        - nushell
+
+    - name: Verify Nushell installation
+      command: "{{ nushell_cmd }} --version"
+      register: nushell_version
+      changed_when: false
+      ignore_errors: true
+      tags:
+        - thick-shell
+        - nushell
+
+    - name: Fail if Nushell installation failed
+      fail:
+        msg: "Failed to install Nushell. Please check the logs for more information."
+      when: nushell_version.rc != 0
+
+  name: Nushell Installation
+  become: true
+  tags:
+    - thick-shell
+    - nushell
