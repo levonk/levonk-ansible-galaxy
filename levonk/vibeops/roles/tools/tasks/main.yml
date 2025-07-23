@@ -45,6 +45,11 @@
     - tools_install_sublime_text | default(false)
     - "'graphical' in ansible_run_tags"
 
+- name: Install git-friendly
+  ansible.builtin.include_tasks: git_friendly.yml
+  when:
+    - tools_install_git_friendly | default(true)
+
 - name: Install Espanso
   ansible.builtin.include_tasks: espanso.yml
   when:
@@ -59,3 +64,7 @@
 
 - name: Install diagram tools (Graphviz, MermaidJS CLI)
   ansible.builtin.include_tasks: diagram-tools.yml
+
+- name: Install m1f tool
+  ansible.builtin.include_tasks: m1f.yml
+  when: tools_install_m1f | default(false)

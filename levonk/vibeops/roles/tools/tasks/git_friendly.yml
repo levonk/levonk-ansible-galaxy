@@ -1,0 +1,30 @@
+---
+# tasks file for levonk.vibeops.tools - git-friendly
+
+- name: Install git-friendly via levonk.common.package
+  levonk.common.package:
+    name: git-friendly
+    state: latest
+  register: git_friendly_pkg_result
+  failed_when: false
+  tags:
+    - vibeops
+    - tools
+    - git
+    - git-friendly
+
+- name: Fallback: Install git-friendly via curl if package fails
+  when: git_friendly_pkg_result is failed
+  block:
+    - name: Install git-friendly via curl
+      ansible.builtin.shell: |
+        curl -sS https://raw.githubusercontent.com/git-friendly/git-friendly/main/install.sh | bash
+      args:
+        executable: /bin/bash
+      become: true
+      changed_when: true
+      tags:
+        - vibeops
+        - tools
+        - git
+        - git-friendly

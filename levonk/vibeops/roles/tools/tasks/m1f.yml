@@ -1,0 +1,92 @@
+---
+# m1f installation tasks
+# Reference: https://github.com/franz-agency/m1f
+
+- name: Set m1f installation facts
+  set_fact:
+    m1f_github_repo: "franz-agency/m1f"
+    m1f_install_dir: "{{ ansible_user_dir }}/.local/bin"
+    m1f_binary: "{{ m1f_install_dir }}/m1f"
+    m1f_version: "latest"  # or specify a version like "v1.0.0"
+
+- name: Create installation directory
+  ansible.builtin.file:
+    path: "{{ m1f_install_dir }}"
+    state: directory
+    mode: '0755'
+  when: m1f_install_dir is defined
+
+- name: Try installing via levonk.common.package
+  include_role:
+    name: levonk.common.package
+    tasks_from: install
+  vars:
+    package_name: m1f
+    package_github_repo: "{{ m1f_github_repo }}"
+    package_version: "{{ m1f_version }}"
+    package_install_dir: "{{ m1f_install_dir }}"
+  register: package_install_result
+  ignore_errors: yes
+  changed_when: false
+
+- name: Manual installation (fallback)
+  block:
+    - name: Get latest release info from GitHub
+      uri:
+        url: "https://api.github.com/repos/{{ m1f_github_repo }}/releases/{{ 'latest' if m1f_version == 'latest' else 'tags/' + m1f_version }}"
+        return_content: yes
+        headers:
+          Accept: application/vnd.github.v3+json
+      register: release_info
+      when: package_install_result is not defined or package_install_result is failed
+      retries: 3
+      delay: 5
+      until: release_info.status == 200
+      changed_when: false
+
+    - name: Determine binary URL and name
+      set_fact:
+        m1f_asset_url: "{{ (release_info.json.assets | selectattr('name', 'match', '^m1f-.*' + ansible_system | lower + '-' + (ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64')) + '$') | first).browser_download_url }}"
+        m1f_asset_name: "{{ (release_info.json.assets | selectattr('name', 'match', '^m1f-.*' + ansible_system | lower + '-' + (ansible_architecture | replace('x86_64', 'amd64') | replace('aarch64', 'arm64')) + '$') | first).name }}"
+      when: release_info is defined and release_info.status == 200
+
+    - name: Download m1f binary
+      ansible.builtin.get_url:
+        url: "{{ m1f_asset_url }}"
+        dest: "{{ m1f_install_dir }}/{{ m1f_asset_name }}"
+        mode: '0755'
+        force: yes
+      register: download_binary
+      when: m1f_asset_url is defined and m1f_asset_url != ''
+
+    - name: Create symlink
+      ansible.builtin.file:
+        src: "{{ m1f_install_dir }}/{{ m1f_asset_name }}"
+        dest: "{{ m1f_binary }}"
+        state: link
+        force: yes
+      when: download_binary is defined and download_binary.changed
+
+  when: package_install_result is not defined or package_install_result is failed
+
+- name: Verify m1f installation
+  ansible.builtin.command: "{{ m1f_binary }} --version"
+  register: m1f_version_check
+  changed_when: false
+  failed_when: false
+  check_mode: no
+
+- name: Set m1f facts
+  set_fact:
+    m1f_installed: "{{ m1f_version_check.rc == 0 }}"
+    m1f_version: "{{ m1f_version_check.stdout | default('unknown') }}"
+  changed_when: false
+
+- name: Add m1f directory to PATH
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: 'export PATH="{{ m1f_install_dir }}:$PATH"'
+    regexp: '^export PATH=.*{{ m1f_install_dir | regex_escape }}.*$'
+    state: present
+    create: yes
+    insertafter: '^# User specific environment'
