@@ -59,6 +59,10 @@
   ansible.builtin.include_tasks: halp.yml
   when: tools_install_halp | default(true)
 
+- name: Install Tealdeer (tldr) pages
+  ansible.builtin.include_tasks: tealdeer.yml
+  when: tools_install_tealdeer | default(true)
+
 - name: Install Espanso
   ansible.builtin.include_tasks: espanso.yml
   when:

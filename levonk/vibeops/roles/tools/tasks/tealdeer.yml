@@ -1,0 +1,54 @@
+---
+# Tealdeer installation tasks
+# Project URL: https://github.com/tealdeer-rs/tealdeer
+# Tealdeer is a fast implementation of the tldr client, providing simplified
+# and community-driven man pages with practical examples for common commands.
+# Known as 'tldr' in most package managers.
+
+- name: Install Tealdeer using levonk.common.package (primary method)
+  levonk.common.package:
+    name: "{{ 'tealdeer' if ansible_os_family == 'Archlinux' else 'tldr' }}"
+    state: latest
+  register: tealdeer_install
+  ignore_errors: true
+  tags: [tealdeer, install, package]
+  changed_when: tealdeer_install is changed
+
+- name: Install Tealdeer using cargo (fallback for Linux/macOS)
+  block:
+    - name: Install Rust and cargo using levonk.common.package
+      levonk.common.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - rustup
+        - cargo
+      when: ansible_facts['os_family'] != 'Windows'
+      tags: [tealdeer, install, rust]
+
+    - name: Install Tealdeer using cargo
+      ansible.builtin.command: >
+        cargo install tealdeer
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/tldr"
+      register: tealdeer_cargo_install
+      changed_when: tealdeer_cargo_install.rc == 0
+      tags: [tealdeer, install, cargo]
+  when: 
+    - tealdeer_install is failed or tealdeer_install is skipped
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [tealdeer, install, fallback]
+
+- name: Update Tealdeer pages
+  ansible.builtin.command: >
+    tldr --update
+  environment:
+    PATH: "/usr/local/bin:/usr/bin:{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/share/tealdeer"
+  register: tealdeer_update
+  changed_when: tealdeer_update.rc == 0
+  tags: [tealdeer, update]
+  when: ansible_os_family != 'Windows'
