@@ -1,0 +1,35 @@
+---
+# FFprobe installation tasks
+# Project URL: https://ffmpeg.org/ffprobe.html
+# FFprobe is a simple multimedia stream analyzer that gathers information from multimedia streams
+# and prints it in human- and machine-readable fashion.
+# It's part of the FFmpeg project and is used for:
+# - Extracting metadata from media files
+# - Getting stream information (codec, resolution, bitrate, etc.)
+# - Validating media files
+# - Debugging media processing pipelines
+
+- name: Install FFprobe (part of FFmpeg) using levonk.common.package (primary method)
+  levonk.common.package:
+    name: "{{ 'ffmpeg' if ansible_os_family != 'Windows' else 'ffmpeg' }}"
+    state: latest
+  register: ffprobe_install
+  ignore_errors: true
+  tags: [ffprobe, install, package]
+  changed_when: ffprobe_install is changed
+
+- name: Verify FFprobe installation
+  ansible.builtin.command: >
+    ffprobe -version
+  args:
+    creates: "/usr/bin/ffprobe"
+  register: ffprobe_version
+  changed_when: false
+  tags: [ffprobe, verify]
+  when: ansible_os_family != 'Windows'
+
+- name: Display FFprobe version
+  ansible.builtin.debug:
+    msg: "FFprobe version: {{ ffprobe_version.stdout | default('FFprobe not found') }}"
+  when: ffprobe_version is defined and ffprobe_version.stdout is defined
+  tags: [ffprobe, info]
