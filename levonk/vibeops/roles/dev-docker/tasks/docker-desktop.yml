@@ -1,9 +1,29 @@
 ---
-# Docker Desktop installation tasks
-# Handles Docker Desktop installation with GUI components
+# Container runtime installation tasks
+# Handles container runtime installation with platform-specific choices
+# For macOS, uses OrbStack (https://orbstack.dev) - a fast, light, and simple alternative to Docker Desktop
+# For other platforms, falls back to Docker Desktop
 
-- name: Install Docker Desktop
+- name: Install container runtime (macOS with OrbStack)
+  block:
+    - name: Install OrbStack using Homebrew Cask
+      homebrew_cask:
+        name: orbstack
+        state: present
+      register: orbstack_install
+      tags: [docker, orbstack, graphical]
+
+    - name: Start OrbStack service (macOS)
+      command: open -a OrbStack
+      when: orbstack_install.changed
+      tags: [docker, orbstack, service]
+
+  when: ansible_os_family == 'Darwin'
+  tags: [docker, orbstack, macos]
+
+- name: Install Docker Desktop (non-macOS)
   levonk.common.package:
     name: docker-desktop
     state: latest
+  when: ansible_os_family != 'Darwin'
   tags: [docker, desktop, graphical]
