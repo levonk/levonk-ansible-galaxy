@@ -1,0 +1,38 @@
+---
+# Halp installation tasks
+# Project URL: https://github.com/natelandau/halp
+# Halp is a command-line tool that helps manage and organize shell scripts, aliases, and functions
+# It provides an easy way to document and access frequently used commands and scripts
+
+- name: Clone Halp repository
+  ansible.builtin.git:
+    repo: https://github.com/natelandau/halp.git
+    dest: "{{ ansible_env.HOME }}/.halp"
+    depth: 1
+    update: yes
+  register: halp_clone
+  tags: [halp, install]
+  when: ansible_os_family != 'Windows'
+
+- name: Create Halp symlink
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.halp/halp"
+    dest: /usr/local/bin/halp
+    state: link
+    mode: '0755'
+    force: yes
+  become: true
+  tags: [halp, install]
+  when: 
+    - ansible_os_family != 'Windows'
+    - halp_clone is changed or not ansible_check_mode
+
+- name: Initialize Halp configuration
+  ansible.builtin.command: >
+    halp --init
+  args:
+    creates: "{{ ansible_env.HOME }}/.config/halp/halp.conf"
+  environment:
+    PATH: "/usr/local/bin:{{ ansible_env.PATH }}"
+  tags: [halp, config]
+  when: ansible_os_family != 'Windows'

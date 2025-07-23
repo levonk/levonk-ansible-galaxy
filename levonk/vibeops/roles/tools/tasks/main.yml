@@ -55,6 +55,10 @@
   ansible.builtin.include_tasks: atuin.yml
   when: tools_install_atuin | default(true)
 
+- name: Install Halp command-line tool
+  ansible.builtin.include_tasks: halp.yml
+  when: tools_install_halp | default(true)
+
 - name: Install Espanso
   ansible.builtin.include_tasks: espanso.yml
   when:
