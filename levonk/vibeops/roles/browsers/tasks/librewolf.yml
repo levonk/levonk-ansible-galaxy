@@ -1,0 +1,69 @@
+---
+# LibreWolf installation and configuration
+# Project URL: https://librewolf.net/
+# LibreWolf is a fork of Firefox, focused on privacy, security, and user freedom.
+# It is the community-run successor to LibreFox and is designed to minimize data
+# collection and telemetry while maintaining compatibility with Firefox add-ons.
+
+- name: Install LibreWolf
+  block:
+    - name: Install LibreWolf on Windows
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.librewolf.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: Install LibreWolf on macOS
+      homebrew_cask:
+        name: "{{ browsers.librewolf.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: Add LibreWolf repository key for Debian/Ubuntu
+      apt_key:
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6A030B21BA07F4FB
+        state: present
+      when: ansible_os_family == 'Debian'
+      register: librewolf_key
+
+    - name: Add LibreWolf repository for Debian/Ubuntu
+      apt_repository:
+        repo: "deb [arch=amd64] http://deb.librewolf.net {{ ansible_distribution_release }} main"
+        state: present
+        filename: librewolf
+        update_cache: yes
+      when: 
+        - ansible_os_family == 'Debian'
+        - librewolf_key is success or librewolf_key is skipped
+
+    - name: Install LibreWolf on Debian/Ubuntu
+      apt:
+        name: "{{ browsers.librewolf.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: Install LibreWolf on RedHat/CentOS/Fedora
+      dnf:
+        name: "{{ browsers.librewolf.package_names.redhat }}"
+        state: present
+        enablerepo: "{{ item }}"
+      with_items: "{{ browsers.librewolf.repos.redhat }}"
+      when: ansible_os_family == 'RedHat'
+
+    - name: Install LibreWolf on Arch Linux
+      pacman:
+        name: "{{ browsers.librewolf.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: Log LibreWolf installation failure
+      debug:
+        msg: "LibreWolf installation failed, continuing with other browsers"
+
+- name: Configure LibreWolf
+  debug:
+    msg: "LibreWolf configuration will be handled by chezmoi integration"
+  when: chezmoi_integration.enabled

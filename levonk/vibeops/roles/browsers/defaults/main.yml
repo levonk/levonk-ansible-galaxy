@@ -18,9 +18,22 @@ browsers_to_install:
   - ladybird
   - opera_neon
   - perplexity_comet
+  - librewolf
 
 # Browser configuration definitions
 browsers:
+  librewolf:
+    name: "LibreWolf"
+    package_names:
+      windows: "LibreWolf.LibreWolf"
+      macos: "librewolf"
+      debian: "librewolf"
+      redhat: "librewolf"
+      arch: "librewolf"
+    repos:
+      redhat:
+        - "librewolf"
+
   firefox_dev:
     name: "Firefox Developer Edition"
     package_names:
