@@ -48,7 +48,12 @@
 - name: Install git-friendly
   ansible.builtin.include_tasks: git_friendly.yml
   when:
-    - tools_install_git_friendly | default(true)
+    - tools_install_git_friendly | default(false)
+    - ansible_os_family != 'Windows'
+
+- name: Install Atuin shell history manager
+  ansible.builtin.include_tasks: atuin.yml
+  when: tools_install_atuin | default(true)
 
 - name: Install Espanso
   ansible.builtin.include_tasks: espanso.yml

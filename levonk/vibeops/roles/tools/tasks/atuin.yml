@@ -1,0 +1,55 @@
+---
+# Atuin installation tasks
+# Project URL: https://docs.atuin.sh/
+# Atuin is a powerful shell history manager that stores your command history in a SQLite database
+# and provides enhanced search capabilities, sync functionality, and more.
+
+- name: Install Atuin using levonk.common.package (primary method)
+  levonk.common.package:
+    name: atuin
+    state: latest
+  register: atuin_install
+  ignore_errors: true
+  tags: [atuin, install, package]
+  changed_when: atuin_install is changed
+
+- name: Install Atuin using cargo (fallback for Linux/macOS)
+  block:
+    - name: Install Rust and cargo using levonk.common.package
+      levonk.common.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - rustup
+        - cargo
+      when: ansible_facts['os_family'] != 'Windows'
+      tags: [atuin, install, rust]
+
+    - name: Install Atuin using cargo
+      ansible.builtin.command: >
+        cargo install atuin
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/atuin"
+      when: ansible_facts['os_family'] != 'Windows'
+      register: atuin_cargo_install
+      changed_when: atuin_cargo_install.rc == 0
+      tags: [atuin, install, cargo]
+  when: 
+    - atuin_install is failed or atuin_install is skipped
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [atuin, install, fallback]
+
+- name: Initialize Atuin in shell
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    block: |
+      # Initialize Atuin shell integration
+      if command -v atuin 1>/dev/null 2>&1; then
+          eval "$(atuin init bash)"
+      fi
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - atuin"
+    insertafter: EOF
+    create: true
+  tags: [atuin, config]
