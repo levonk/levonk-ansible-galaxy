@@ -1,0 +1,56 @@
+---
+# Pipenv installation tasks
+# Handles Pipenv installation with pyenv integration
+# Project URL: https://pipenv.pypa.io/
+
+- name: Try to install Pipenv using levonk.common.package (primary method)
+  levonk.common.package:
+    name: pipenv
+    state: latest
+  register: pipenv_pkg_install
+  ignore_errors: true
+  tags: [pipenv, install, python]
+
+- name: Install Pipenv using pipx (Linux/macOS fallback)
+  block:
+    - name: Ensure pipx is installed
+      ansible.builtin.package:
+        name: pipx
+        state: present
+      when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Install Pipenv using pipx
+      ansible.builtin.command: >
+        pipx install pipenv
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/pipenv"
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+      when: ansible_facts['os_family'] != 'Windows'
+  when: 
+    - (pipenv_pkg_install is failed or pipenv_pkg_install is skipped)
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [pipenv, install, python]
+
+- name: Install Pipenv using pip (Windows fallback)
+  block:
+    - name: Install Pipenv using pip
+      ansible.builtin.pip:
+        name: pipenv
+        state: latest
+        executable: python -m pip
+  when: 
+    - (pipenv_pkg_install is failed or pipenv_pkg_install is skipped)
+    - ansible_facts['os_family'] == 'Windows'
+  tags: [pipenv, install, python, windows]
+
+- name: Ensure Pipenv is in PATH (Linux/macOS)
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    insertafter: EOF
+    create: true
+  when: 
+    - ansible_facts['os_family'] != 'Windows'
+    - '"$HOME/.local/bin" not in ansible_env.PATH'
+  tags: [pipenv, path, python]

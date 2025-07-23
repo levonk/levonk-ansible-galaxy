@@ -1,0 +1,53 @@
+---
+# UV (astral-sh/uv) installation tasks
+# Handles UV installation with multiple methods
+
+- name: Try to install UV using levonk.common.package (primary method)
+  levonk.common.package:
+    name: uv
+    state: latest
+  register: uv_install
+  ignore_errors: true
+  tags: [uv, install, python]
+
+- name: Install UV using official install script (fallback for Linux/macOS)
+  block:
+    - name: Download and run UV install script
+      ansible.builtin.get_url:
+        url: https://astral.sh/uv/install.sh
+        dest: /tmp/uv-install.sh
+        mode: '0755'
+      when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Run UV install script
+      ansible.builtin.command: /tmp/uv-install.sh
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/uv"
+      environment:
+        CARGO_HOME: "{{ ansible_env.HOME }}/.cargo"
+      when: ansible_facts['os_family'] != 'Windows'
+      become: true
+
+    - name: Clean up install script
+      ansible.builtin.file:
+        path: /tmp/uv-install.sh
+        state: absent
+      when: ansible_facts['os_family'] != 'Windows'
+  when: 
+    - (uv_install is failed or uv_install is skipped)
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [uv, install, python]
+
+- name: Install UV using pipx (Windows fallback)
+  block:
+    - name: Install UV using pipx
+      ansible.builtin.command: >
+        pipx install uv
+      args:
+        creates: "{{ ansible_env.LOCALAPPDATA }}\\pipx\\venvs\\uv\\Scripts\\uv.exe"
+      environment:
+        PATH: "{{ ansible_env.USERPROFILE }}\\AppData\\Roaming\\Python\\Python{{ ansible_python.version.major }}{{ ansible_python.version.minor }}\\Scripts;{{ ansible_env.PATH }}"
+  when: 
+    - (uv_install is failed or uv_install is skipped)
+    - ansible_facts['os_family'] == 'Windows'
+  tags: [uv, install, python, windows]

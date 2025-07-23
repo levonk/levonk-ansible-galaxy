@@ -1,0 +1,62 @@
+---
+# PDM (Python Development Master) installation tasks
+# Handles PDM installation with pyenv integration
+# Project URL: https://pdm.fming.dev/
+
+- name: Try to install PDM using levonk.common.package (primary method)
+  levonk.common.package:
+    name: pdm
+    state: latest
+  register: pdm_pkg_install
+  ignore_errors: true
+  tags: [pdm, install, python]
+
+- name: Install PDM using official installer (Linux/macOS fallback)
+  block:
+    - name: Download and run PDM install script
+      ansible.builtin.get_url:
+        url: https://pdm.fming.dev/install-pdm.py
+        dest: /tmp/install-pdm.py
+        mode: '0755'
+      when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Run PDM install script
+      ansible.builtin.command: python /tmp/install-pdm.py
+      args:
+        creates: "{{ ansible_env.HOME }}/.local/bin/pdm"
+      environment:
+        PDM_HOME: "{{ ansible_env.HOME }}/.local/pdm"
+      when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Clean up install script
+      ansible.builtin.file:
+        path: /tmp/install-pdm.py
+        state: absent
+      when: ansible_facts['os_family'] != 'Windows'
+  when: 
+    - (pdm_pkg_install is failed or pdm_pkg_install is skipped)
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [pdm, install, python]
+
+- name: Install PDM using pip (Windows fallback)
+  block:
+    - name: Install PDM using pip
+      ansible.builtin.pip:
+        name: pdm
+        state: latest
+        executable: python -m pip
+  when: 
+    - (pdm_pkg_install is failed or pdm_pkg_install is skipped)
+    - ansible_facts['os_family'] == 'Windows'
+  tags: [pdm, install, python, windows]
+
+- name: Ensure PDM is in PATH (Linux/macOS)
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    insertafter: EOF
+    create: true
+  when: 
+    - ansible_facts['os_family'] != 'Windows'
+    - '"$HOME/.local/bin" not in ansible_env.PATH'
+  tags: [pdm, path, python]

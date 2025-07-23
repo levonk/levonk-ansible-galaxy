@@ -1,0 +1,116 @@
+---
+# Miniconda installation tasks
+# Handles Miniconda installation with multiple methods
+
+- name: Set Miniconda version
+  ansible.builtin.set_fact:
+    miniconda_version: "py311_24.1.2-0"  # Latest stable version as of 2024-07-22
+    miniconda_install_dir: "{{ ansible_user_dir }}/miniconda3"
+  tags: [miniconda, install, python]
+
+- name: Try to install Miniconda using levonk.common.package (primary method)
+  levonk.common.package:
+    name: miniconda
+    state: latest
+  register: miniconda_pkg_install
+  ignore_errors: true
+  tags: [miniconda, install, python]
+
+- name: Install Miniconda using official installer (Linux/macOS fallback)
+  block:
+    - name: Set Miniconda download URL (Linux)
+      ansible.builtin.set_fact:
+        miniconda_installer: "Miniconda3-{{ miniconda_version }}-Linux-x86_64.sh"
+        miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
+      when: ansible_facts['os_family'] == 'RedHat' or ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Suse'
+
+    - name: Set Miniconda download URL (macOS Intel)
+      ansible.builtin.set_fact:
+        miniconda_installer: "Miniconda3-{{ miniconda_version }}-MacOSX-x86_64.sh"
+        miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
+      when: ansible_facts['os_family'] == 'Darwin' and ansible_architecture == 'x86_64'
+
+    - name: Set Miniconda download URL (macOS Apple Silicon)
+      ansible.builtin.set_fact:
+        miniconda_installer: "Miniconda3-{{ miniconda_version }}-MacOSX-arm64.sh"
+        miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
+      when: ansible_facts['os_family'] == 'Darwin' and ansible_architecture == 'arm64'
+
+    - name: Download Miniconda installer
+      ansible.builtin.get_url:
+        url: "{{ miniconda_url }}"
+        dest: "/tmp/{{ miniconda_installer }}"
+        mode: '0755'
+      when: 
+        - ansible_facts['os_family'] != 'Windows'
+        - miniconda_pkg_install is failed or miniconda_pkg_install is skipped
+
+    - name: Install Miniconda
+      ansible.builtin.command: >
+        /bin/bash /tmp/{{ miniconda_installer }} -b -p {{ miniconda_install_dir }}
+      args:
+        creates: "{{ miniconda_install_dir }}/bin/conda"
+      when: 
+        - ansible_facts['os_family'] != 'Windows'
+        - miniconda_pkg_install is failed or miniconda_pkg_install is skipped
+
+    - name: Clean up installer
+      ansible.builtin.file:
+        path: "/tmp/{{ miniconda_installer }}"
+        state: absent
+      when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Initialize conda for shell
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_user_dir }}/.bashrc"
+        line: "# Initialize conda\n. {{ miniconda_install_dir }}/etc/profile.d/conda.sh"
+        insertafter: EOF
+        create: true
+      when: 
+        - ansible_facts['os_family'] != 'Windows'
+        - miniconda_pkg_install is failed or miniconda_pkg_install is skipped
+  when: 
+    - ansible_facts['os_family'] != 'Windows'
+    - (miniconda_pkg_install is failed or miniconda_pkg_install is skipped)
+  tags: [miniconda, install, python]
+
+- name: Install Miniconda (Windows fallback)
+  block:
+    - name: Set Windows installer URL
+      ansible.builtin.set_fact:
+        miniconda_installer: "Miniconda3-{{ miniconda_version }}-Windows-x86_64.exe"
+        miniconda_url: "https://repo.anaconda.com/miniconda/{{ miniconda_installer }}"
+
+    - name: Download Miniconda installer (Windows)
+      ansible.builtin.win_get_url:
+        url: "{{ miniconda_url }}"
+        dest: "C:\\Temp\\{{ miniconda_installer }}"
+      when: ansible_facts['os_family'] == 'Windows'
+
+    - name: Install Miniconda (Windows)
+      ansible.windows.win_package:
+        path: "C:\\Temp\\{{ miniconda_installer }}"
+        arguments: 
+          - '/InstallationType=JustMe'
+          - '/AddToPath=1'
+          - '/RegisterPython=1'
+          - '/S'
+          - '/D=C:\\Miniconda3'
+        creates_path: 'C:\\Miniconda3\\Scripts\\conda.exe'
+      when: ansible_facts['os_family'] == 'Windows'
+  when: 
+    - ansible_facts['os_family'] == 'Windows'
+    - (miniconda_pkg_install is failed or miniconda_pkg_install is skipped)
+  tags: [miniconda, install, python, windows]
+
+- name: Update conda to the latest version
+  ansible.builtin.command: >
+    {{ miniconda_install_dir }}/bin/conda update -n base -c defaults conda --yes
+  environment:
+    PATH: "{{ miniconda_install_dir }}/bin:{{ ansible_env.PATH }}"
+  args:
+    creates: "{{ miniconda_install_dir }}/conda-meta/history"
+  when: 
+    - ansible_facts['os_family'] != 'Windows'
+    - (miniconda_pkg_install is failed or miniconda_pkg_install is skipped)
+  tags: [miniconda, update, python]

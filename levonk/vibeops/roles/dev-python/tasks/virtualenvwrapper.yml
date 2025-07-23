@@ -1,0 +1,60 @@
+---
+# virtualenvwrapper installation tasks
+# Handles virtualenvwrapper installation and configuration
+# Project URL: https://virtualenvwrapper.readthedocs.io/
+
+- name: Ensure virtualenv is installed first
+  ansible.builtin.include_tasks: virtualenv.yml
+  tags: [virtualenvwrapper, install, python]
+  when: install_virtualenv | default(false) | bool
+  register: virtualenv_installed
+  failed_when: virtualenv_installed is failed
+
+- name: Install virtualenvwrapper using pip
+  ansible.builtin.pip:
+    name: virtualenvwrapper
+    state: latest
+    executable: python -m pip
+  when: ansible_facts['os_family'] != 'Windows'
+  tags: [virtualenvwrapper, install, python]
+
+- name: Configure virtualenvwrapper in shell rc file (Linux/macOS)
+  block:
+    - name: Add virtualenvwrapper configuration to .bashrc
+      ansible.builtin.blockinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        block: |
+          # Virtualenvwrapper settings
+          export WORKON_HOME="$HOME/.virtualenvs"
+          export VIRTUALENVWRAPPER_PYTHON="$(which python3)"
+          source $HOME/.local/bin/virtualenvwrapper.sh
+          
+          # Alias for creating new environments with python3
+          alias mkvirtualenv='mkvirtualenv --python=$(which python3)'
+        marker: "# {mark} ANSIBLE MANAGED BLOCK - virtualenvwrapper"
+        insertafter: EOF
+        create: true
+
+    - name: Create WORKON_HOME directory if it doesn't exist
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.virtualenvs"
+        state: directory
+        mode: '0755'
+  when: ansible_facts['os_family'] != 'Windows'
+  tags: [virtualenvwrapper, config, python]
+
+- name: Install virtualenvwrapper-win (Windows)
+  block:
+    - name: Install virtualenvwrapper-win
+      ansible.builtin.win_pip:
+        name: virtualenvwrapper-win
+        state: latest
+
+    - name: Set WORKON_HOME environment variable (User)
+      ansible.windows.win_environment:
+        name: WORKON_HOME
+        value: "{{ ansible_user_dir }}\\Envs"
+        state: present
+        level: user
+  when: ansible_facts['os_family'] == 'Windows'
+  tags: [virtualenvwrapper, install, python, windows]

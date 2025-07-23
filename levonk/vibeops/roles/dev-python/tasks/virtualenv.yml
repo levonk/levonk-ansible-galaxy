@@ -1,0 +1,59 @@
+---
+# virtualenv installation tasks
+# Handles virtualenv installation with multiple methods and default environment setup
+
+- name: Try to install virtualenv using levonk.common.package (primary method)
+  levonk.common.package:
+    name: python3-venv
+    state: present
+  register: venv_pkg_install
+  ignore_errors: true
+  tags: [virtualenv, install, python]
+
+- name: Install virtualenv using pip (fallback)
+  ansible.builtin.pip:
+    name: virtualenv
+    state: latest
+    executable: python -m pip
+  when: venv_pkg_install is failed or venv_pkg_install is skipped
+  tags: [virtualenv, install, python]
+
+- name: Ensure virtualenv is available
+  ansible.builtin.command: python -m virtualenv --version
+  register: venv_check
+  changed_when: false
+  failed_when: false
+  check_mode: no
+  tags: [virtualenv, check, python]
+
+- name: Create virtualenv wrapper directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.virtualenvs"
+    state: directory
+    mode: '0755'
+  when: ansible_facts['os_family'] != 'Windows'
+  tags: [virtualenv, setup, python]
+
+- name: Create default virtual environment
+  ansible.builtin.command: >
+    python -m virtualenv "{{ ansible_env.HOME }}/.virtualenvs/default"
+  args:
+    creates: "{{ ansible_env.HOME }}/.virtualenvs/default/bin/activate"
+  when: 
+    - venv_check.rc == 0
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [virtualenv, default, python]
+
+- name: Add default virtualenv activation to .bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    block: |
+      # Default virtualenv activation
+      if [ -f "{{ ansible_env.HOME }}/.virtualenvs/default/bin/activate" ]; then
+          source "{{ ansible_env.HOME }}/.virtualenvs/default/bin/activate"
+      fi
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - default virtualenv"
+    insertafter: EOF
+    create: true
+  when: ansible_facts['os_family'] != 'Windows'
+  tags: [virtualenv, config, python]
