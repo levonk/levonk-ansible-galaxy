@@ -2,16 +2,55 @@
 # Main tasks file for Python development environment
 # This role handles Python installation and development tools
 
+# 1. Install Python Version Manager
+- name: Include pyenv installation tasks
+  ansible.builtin.include_tasks: pyenv.yml
+  tags: [pyenv, install]
+  when: install_pyenv | default(false) | bool and ansible_facts['os_family'] != 'Windows'
+
+# 2. Install Core Python
 - name: Include Python installation tasks
   ansible.builtin.include_tasks: python.yml
   tags: [python, install]
+
+# 3. Incase we're stuck with Python 2 we cant use `venv`
+- name: Include virtualenv installation tasks
+  ansible.builtin.include_tasks: virtualenv.yml
+  tags: [virtualenv, install, python]
+  when: install_virtualenv | default(false) | bool
+
+# 3a. Convenience functionaltiy for `virtualenv`
+- name: Include virtualenvwrapper installation tasks
+  ansible.builtin.include_tasks: virtualenvwrapper.yml
+  tags: [virtualenvwrapper, install, python]
+  when: install_virtualenvwrapper | default(false) | bool
+
+# 4. Install pip evolution
+- name: Include UV (astral-sh/uv) installation tasks
+  ansible.builtin.include_tasks: uv.yml
+  tags: [uv, install, python]
+  when: install_uv | default(false) | bool
+
+# 5. Install Incompatible Dependency Managers
+- name: Include PDM installation tasks
+  ansible.builtin.include_tasks: pdm.yml
+  tags: [pdm, install, python]
+  when: install_pdm | default(false) | bool
 
 - name: Include Poetry installation tasks
   ansible.builtin.include_tasks: poetry.yml
   tags: [poetry, install]
   when: install_poetry | default(true) | bool
 
-- name: Include pyenv installation tasks
-  ansible.builtin.include_tasks: pyenv.yml
-  tags: [pyenv, install]
-  when: install_pyenv | default(false) | bool and ansible_facts['os_family'] != 'Windows'
+- name: Include Pipenv installation tasks
+  ansible.builtin.include_tasks: pipenv.yml
+  tags: [pipenv, install, python]
+  when: install_pipenv | default(false) | bool
+
+# 6. Install the all-in-one
+- name: Include Miniconda installation tasks
+  ansible.builtin.include_tasks: miniconda.yml
+  tags: [miniconda, install, python]
+  when: install_miniconda | default(false) | bool
+
+

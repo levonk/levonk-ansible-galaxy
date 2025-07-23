@@ -49,6 +49,40 @@
   register: pyenv_deps_install
   ignore_errors: true
   when: ansible_facts['os_family'] in pyenv_dependencies
+  tags: [pyenv, dependencies]
+
+- name: Set pyenv environment variables
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PYENV_ROOT="$HOME/.pyenv"'
+    insertafter: EOF
+    create: true
+    state: present
+  tags: [pyenv, config]
+
+- name: Add pyenv to PATH
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$PYENV_ROOT/bin:$PATH"'
+    insertafter: EOF
+    create: true
+    state: present
+  tags: [pyenv, config]
+
+- name: Initialize pyenv in shell
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    block: |
+      # Pyenv initialization
+      if command -v pyenv 1>/dev/null 2>&1; then
+        eval "$(pyenv init -)"
+        eval "$(pyenv virtualenv-init -)"
+      fi
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - pyenv"
+    insertafter: EOF
+    create: true
+  tags: [pyenv, config]
+  when: ansible_facts['os_family'] in pyenv_dependencies
   tags: [pyenv, deps]
 
 - name: Try to install pyenv using levonk.common.package (primary method)

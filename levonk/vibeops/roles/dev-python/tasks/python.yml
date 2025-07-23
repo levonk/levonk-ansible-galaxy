@@ -12,15 +12,42 @@
     python_package: "python"
   when: ansible_facts['os_family'] == 'Windows'
 
-- name: Try to install Python using levonk.common.package
+- name: Set default Python versions if not specified
+  ansible.builtin.set_fact:
+    python_versions: "{{ python_versions | default(['3.11.0', '3.9.0']) }}"
+  tags: [python, install]
+
+- name: Install multiple Python versions using pyenv (primary method)
+  block:
+    - name: Install Python {{ item }} using pyenv
+      ansible.builtin.command: >
+        pyenv install --skip-existing {{ item }}
+      register: pyenv_install
+      ignore_errors: true
+      changed_when: false
+      environment:
+        PYENV_ROOT: "{{ ansible_env.HOME }}/.pyenv"
+        PATH: "{{ ansible_env.HOME }}/.pyenv/bin:{{ ansible_env.PATH }}"
+      with_items: "{{ python_versions }}"
+      loop_control:
+        label: "Python {{ item }}"
+  when: 
+    - install_pyenv | default(false) | bool
+    - ansible_facts['os_family'] != 'Windows'  # pyenv on Windows is different
+  tags: [python, install, pyenv]
+  register: python_pyenv_install
+
+- name: Try to install Python using levonk.common.package (fallback)
   levonk.common.package:
     name: "{{ python_package }}"
     state: latest
   register: python_install
   ignore_errors: true
-  tags: [python, install]
+  when: 
+    - python_pyenv_install is failed or python_pyenv_install is skipped
+  tags: [python, install, fallback]
 
-- name: Install Python using system package manager (fallback)
+- name: Install Python using system package manager (final fallback)
   block:
     - name: Install Python (Debian/Ubuntu)
       ansible.builtin.apt:
@@ -44,7 +71,7 @@
   tags: [python, install, fallback]
 
 - name: Install Python development tools
-  ansible.builtin.package:
+  levonk.common.package:
     name: "{{ item }}"
     state: present
   loop: "{{ dev_python_tools | default(['black', 'flake8', 'pytest']) }}"

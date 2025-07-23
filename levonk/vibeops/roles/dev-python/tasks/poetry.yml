@@ -1,6 +1,7 @@
 ---
 # Poetry installation tasks
-# Handles Poetry installation with fallback mechanism
+# Handles Poetry installation with multiple methods and pyenv integration
+# Project URL: https://python-poetry.org/
 
 - name: Try to install Poetry using levonk.common.package (primary method)
   levonk.common.package:
@@ -8,24 +9,34 @@
     state: latest
   register: poetry_install
   ignore_errors: true
-  tags: [poetry, install]
+  tags: [poetry, install, package]
+  changed_when: poetry_install is changed
 
-- name: Install Poetry using pipx (Linux/macOS fallback)
-  block:
-    - name: Ensure pipx is installed
-      ansible.builtin.package:
-        name: pipx
-        state: present
-      when: ansible_facts['os_family'] != 'Windows'
+- name: Install pipx using levonk.common.package (secondary method)
+  levonk.common.package:
+    name: pipx
+    state: present
+  register: pipx_install
+  ignore_errors: true
+  when: 
+    - poetry_install is failed or poetry_install is skipped
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [poetry, install, pipx]
 
-    - name: Install Poetry using pipx
-      ansible.builtin.command: >
-        pipx install poetry
-      args:
-        creates: "{{ ansible_env.HOME }}/.local/bin/poetry"
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
-      when: ansible_facts['os_family'] != 'Windows'
+- name: Install Poetry using pipx
+  ansible.builtin.command: >
+    pipx install --force poetry
+  args:
+    creates: "{{ ansible_env.HOME }}/.local/bin/poetry"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+  when: 
+    - poetry_install is failed or poetry_install is skipped
+    - pipx_install is succeeded or pipx_install is skipped
+    - ansible_facts['os_family'] != 'Windows'
+  register: poetry_pipx_install
+  changed_when: poetry_pipx_install.rc == 0
+  tags: [poetry, install, pipx]
   when: 
     - (poetry_install is failed or poetry_install is skipped)
     - ansible_facts['os_family'] != 'Windows'
@@ -49,10 +60,52 @@
     - name: Add Poetry to PATH
       ansible.builtin.lineinfile:
         path: "{{ ansible_env.HOME }}/.bashrc"
-        line: 'export PATH="$HOME/.local/bin:$PATH"'
-        create: yes
-        state: present
+        line: 'export PATH="{{ ansible_env.HOME }}/.local/bin:$PATH"'
+        insertafter: EOF
+        create: true
       when: ansible_facts['os_family'] != 'Windows'
+
+    - name: Configure Poetry settings
+      block:
+        - name: Check current Poetry config
+          ansible.builtin.command: >
+            poetry config --list
+          environment:
+            PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+          register: current_poetry_config
+          changed_when: false
+          check_mode: no
+          tags: [poetry, config, check]
+
+        - name: Set Poetry configuration
+          ansible.builtin.command: >
+            poetry config {{ item.key }} "{{ item.value }}"
+          environment:
+            PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+          loop:
+            - { key: 'virtualenvs.prefer-active-python', value: 'true' }
+            - { key: 'virtualenvs.in-project', value: 'true' }
+            - { key: 'virtualenvs.create', value: 'true' }
+            - { key: 'installer.parallel', value: 'true' }
+          register: poetry_config
+          changed_when: 
+            - poetry_config.rc == 0
+            - item.key not in current_poetry_config.stdout
+          loop_control:
+            label: "{{ item.key }}={{ item.value }}"
+          tags: [poetry, config]
+
+        - name: Verify Poetry configuration
+          ansible.builtin.command: >
+            poetry config --list
+          environment:
+            PATH: "{{ ansible_env.HOME }}/.local/bin:{{ ansible_env.PATH }}"
+          register: final_poetry_config
+          changed_when: false
+          check_mode: no
+          tags: [poetry, config, verify]
+      when: poetry_install is succeeded or poetry_pipx_install is succeeded
+      tags: [poetry, config]
   when: 
     - (poetry_install is failed or poetry_install is skipped)
     - not (ansible_facts['os_family'] == 'Windows' and poetry_install is failed)
