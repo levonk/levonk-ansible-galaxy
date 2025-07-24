@@ -16,6 +16,8 @@ This role installs and configures the following AI-powered tools:
   - Gemini CLI
   - Amazon Q for command line
   - Cline
+  - GitHub Copilot CLI ([docs](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-in-the-command-line))
+  *Note: GitHub Copilot CLI support is currently in development.*
 
 - **Claude & Experimental Tooling:**
   - Kiro
@@ -26,6 +28,7 @@ This role installs and configures the following AI-powered tools:
 
 *Note: Installation support for some tools is currently in development and may be provided via placeholder tasks.*
 
+*For Copilot CLI usage and setup, see the [official GitHub Copilot CLI documentation](https://docs.github.com/en/copilot/using-github-copilot/using-github-copilot-in-the-command-line).*
 ## Requirements
 
 - **Supported OS:**

@@ -6,3 +6,34 @@
     - name: "Include dev-ai-assisted role"
       include_role:
         name: "levonk.vibeops.dev-ai-assisted"
+
+    - name: "Check Copilot CLI is installed"
+      command: copilot --help
+      register: copilot_cli_result
+      changed_when: false
+      failed_when: copilot_cli_result.rc != 0
+      tags:
+        - copilot
+        - ai
+        - test
+      # Intention: Ensure Copilot CLI is available in PATH and prints help output.
+
+    - name: "Assert Node.js is installed"
+      command: node --version
+      register: node_version_result
+      changed_when: false
+      failed_when: node_version_result.rc != 0
+      tags:
+        - copilot
+        - ai
+        - test
+
+    - name: "Assert npm is installed"
+      command: npm --version
+      register: npm_version_result
+      changed_when: false
+      failed_when: npm_version_result.rc != 0
+      tags:
+        - copilot
+        - ai
+        - test

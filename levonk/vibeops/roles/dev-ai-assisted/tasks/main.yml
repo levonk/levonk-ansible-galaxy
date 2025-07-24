@@ -16,6 +16,10 @@
 - name: "Install Gemini CLI"
   include_tasks: install_gemini_cli.yml
 
+- name: "Install GitHub Copilot CLI"
+  # Intention: Provision GitHub Copilot CLI for AI-assisted shell and code workflows.
+  include_tasks: copilot-cli.yml
+
 - name: "Install AWS CLI"
   include_tasks: install_aws_cli.yml
 

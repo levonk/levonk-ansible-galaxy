@@ -1,0 +1,66 @@
+---
+# Copyright (c) 2025 the person whose account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+#
+# Tasks for installing and configuring GitHub Copilot CLI.
+# Intention: Provide secure, portable, and idempotent installation of Copilot CLI for AI-assisted development workflows.
+
+- name: Check if Node.js is installed
+  command: node --version
+  register: node_check
+  ignore_errors: yes
+  changed_when: false
+  tags:
+    - copilot
+    - ai
+    - dev
+  # Intention: Ensure Node.js is present before Copilot CLI install; auto-include dev-node role if not present.
+
+- name: Auto-include dev-node role if Node.js is missing
+  include_role:
+    name: levonk.vibeops.dev-node
+  when: node_check.rc != 0
+  tags:
+    - copilot
+    - ai
+    - dev
+    - node
+  # Intention: Modular, reusable Node.js provisioning for all dev workflows.
+
+- name: Ensure npm is installed (Copilot CLI dependency)
+  levonk.common.package:
+    name: npm
+    state: latest
+  tags:
+    - copilot
+    - ai
+    - dev
+
+- name: Install GitHub Copilot CLI globally via npm
+  ansible.builtin.npm:
+    name: '@githubnext/copilot-cli'
+    global: true
+    state: latest
+  tags:
+    - copilot
+    - ai
+    - dev
+  # Intention: Use npm to install Copilot CLI globally for all users.
+
+- name: Print Copilot CLI install info
+  ansible.builtin.command: copilot --help
+  register: copilot_cli_help
+  changed_when: false
+  ignore_errors: yes
+  tags:
+    - copilot
+    - ai
+    - dev
+
+- name: Show Copilot CLI version/help output
+  ansible.builtin.debug:
+    msg: "Copilot CLI installed. Help output: {{ copilot_cli_help.stdout | default('Not available') }}"
+  tags:
+    - copilot
+    - ai
+    - dev
