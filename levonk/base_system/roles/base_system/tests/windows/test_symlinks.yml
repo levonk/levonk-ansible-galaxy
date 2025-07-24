@@ -1,0 +1,38 @@
+---
+- name: Test Windows Symlink Support
+  hosts: windows
+  gather_facts: yes
+  tasks:
+    - name: Create test directory
+      win_file:
+        path: C:\symlink_test
+        state: directory
+
+    - name: Create test file
+      win_copy:
+        content: "Test content for symlink"
+        dest: C:\symlink_test\source.txt
+
+    - name: Create test symlink
+      win_file:
+        src: C:\symlink_test\source.txt
+        dest: C:\symlink_test\link.txt
+        state: link
+
+    - name: Verify symlink
+      win_stat:
+        path: C:\symlink_test\link.txt
+      register: symlink_stat
+
+    - name: Debug symlink info
+      debug:
+        var: symlink_stat
+
+    - name: Cleanup test files
+      win_file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - C:\symlink_test\link.txt
+        - C:\symlink_test\source.txt
+        - C:\symlink_test

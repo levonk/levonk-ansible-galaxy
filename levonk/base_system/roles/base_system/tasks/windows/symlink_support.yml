@@ -1,0 +1,38 @@
+---
+# Enable symlink support on Windows
+# Requires Administrator privileges
+- name: Check if Developer Mode is enabled
+  win_reg_stat:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock
+    name: AllowDevelopmentWithoutDevLicense
+  register: dev_mode
+  tags: ['windows', 'symlink', 'developer_mode']
+
+- name: Enable Developer Mode (requires reboot)
+  win_regedit:
+    path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock
+    name: AllowDevelopmentWithoutDevLicense
+    data: 1
+    type: dword
+  when: not dev_mode.exists or dev_mode.value_dword != 1
+  become: yes
+  tags: ['windows', 'symlink', 'developer_mode']
+
+- name: Set SeCreateSymbolicLinkPrivilege for current user
+  win_acl:
+    path: '{{ ansible_user_dir }}'
+    user: '{{ ansible_user }}'
+    type: allow
+    rights: full_control
+    inherit: container_inherit,object_inherit
+    propagation: inherit_only
+    state: present
+  tags: ['windows', 'symlink', 'permissions']
+
+- name: Create symbolic link (example)
+  win_file:
+    src: 'C:\path\to\source'
+    dest: 'C:\path\to\link'
+    state: link
+  when: dev_mode.exists and dev_mode.value_dword == 1
+  tags: ['windows', 'symlink']

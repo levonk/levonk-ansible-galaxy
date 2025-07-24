@@ -17,6 +17,10 @@
 - import_tasks: registry_backup.yml
   tags: ['windows', 'registry', 'backup']
 
+- name: Configure Windows Symlink Support
+  import_tasks: symlink_support.yml
+  tags: ['windows', 'symlink']
+
 - name: Install Chocolatey if not present
   win_shell: |
     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
