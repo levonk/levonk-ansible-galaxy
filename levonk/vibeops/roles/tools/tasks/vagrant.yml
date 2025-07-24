@@ -1,6 +1,13 @@
 ---
 # tasks file for installing Vagrant securely and idempotently
 # Tags: [vagrant, tools, install]
+#
+# Copyright (c) 2025 the person whose account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+#
+# This file ensures Vagrant and essential plugins are installed securely and idempotently across supported OSes.
+# The intention is to provide a robust, portable, and secure local development experience for all users.
+
 
 - name: Check if Vagrant is already installed
   ansible.builtin.command: vagrant --version
@@ -11,6 +18,21 @@
     - vagrant
     - tools
 
+- name: Try to install Vagrant using levonk.common.package (Debian)
+  levonk.common.package:
+    name: vagrant
+    state: latest
+  register: vagrant_pkg_result
+  when:
+    - ansible_os_family == 'Debian'
+    - vagrant_version.rc != 0
+  ignore_errors: yes
+  tags:
+    - vagrant
+    - tools
+    - package
+  # Intention: Use package manager for Vagrant if available for security, idempotency, and system integration.
+
 - name: Install dependencies for Vagrant (cross-platform)
   levonk.common.package:
     name:
@@ -18,12 +40,12 @@
       - libvirt-clients
       - qemu-kvm
       - ruby
-    state: present
+    state: latest
   tags:
     - vagrant
     - tools
 
-- name: Download Vagrant installer securely
+- name: Download Vagrant installer securely (Debian fallback)
   ansible.builtin.get_url:
     url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_{{ ansible_system | lower }}_amd64.deb"
     dest: "/tmp/vagrant_latest.deb"
@@ -32,9 +54,12 @@
   when:
     - ansible_os_family == 'Debian'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result is failed or vagrant_pkg_result is skipped
   tags:
     - vagrant
     - tools
+    - fallback
+  # Intention: Download Vagrant securely only if package manager install is unavailable or fails.
 
 - name: Vet Vagrant installer script (security)
   include_role:
@@ -44,19 +69,23 @@
   when:
     - ansible_os_family == 'Debian'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result is failed or vagrant_pkg_result is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
-- name: Install Vagrant (Debian)
+- name: Install Vagrant (Debian fallback)
   ansible.builtin.apt:
     deb: /tmp/vagrant_latest.deb
   when:
     - ansible_os_family == 'Debian'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result is failed or vagrant_pkg_result is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
 - name: Ensure Vagrant is in PATH
   ansible.builtin.command: vagrant --version
@@ -66,7 +95,34 @@
     - vagrant
     - tools
 
-- name: Download Vagrant installer for Windows
+- name: Ensure vagrant-vbguest plugin is installed (host)
+  community.general.vagrant_plugin:
+    name: vagrant-vbguest
+    state: present
+  become: false
+  tags:
+    - vagrant
+    - vagrant_plugin
+    - vbguest
+    - tools
+  # Intention: Guarantee that the vagrant-vbguest plugin is always present on the host system.
+  # This enables automatic VirtualBox Guest Additions management for Vagrant VMs, improving compatibility and user experience.
+
+- name: Try to install Vagrant using levonk.common.package (Windows)
+  levonk.common.package:
+    name: vagrant
+    state: latest
+  register: vagrant_pkg_result_win
+  when:
+    - ansible_os_family == 'Windows'
+    - vagrant_version.rc != 0
+  ignore_errors: yes
+  tags:
+    - vagrant
+    - tools
+    - package
+
+- name: Download Vagrant installer for Windows (fallback)
   ansible.builtin.get_url:
     url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_windows_amd64.msi"
     dest: "%TEMP%/vagrant_latest.msi"
@@ -74,9 +130,11 @@
   when:
     - ansible_os_family == 'Windows'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result_win is failed or vagrant_pkg_result_win is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
 - name: Vet Vagrant installer script (Windows)
   include_role:
@@ -86,22 +144,40 @@
   when:
     - ansible_os_family == 'Windows'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result_win is failed or vagrant_pkg_result_win is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
-- name: Install Vagrant (Windows)
+- name: Install Vagrant (Windows fallback)
   ansible.windows.win_package:
     path: "%TEMP%/vagrant_latest.msi"
     state: present
   when:
     - ansible_os_family == 'Windows'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result_win is failed or vagrant_pkg_result_win is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
-- name: Download Vagrant installer for macOS
+- name: Try to install Vagrant using levonk.common.package (macOS)
+  levonk.common.package:
+    name: vagrant
+    state: present
+  register: vagrant_pkg_result_mac
+  when:
+    - ansible_os_family == 'Darwin'
+    - vagrant_version.rc != 0
+  ignore_errors: yes
+  tags:
+    - vagrant
+    - tools
+    - package
+
+- name: Download Vagrant installer for macOS (fallback)
   ansible.builtin.get_url:
     url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_x86_64.dmg"
     dest: "/tmp/vagrant_latest.dmg"
@@ -109,9 +185,11 @@
   when:
     - ansible_os_family == 'Darwin'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result_mac is failed or vagrant_pkg_result_mac is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
 - name: Vet Vagrant installer script (macOS)
   include_role:
@@ -121,20 +199,24 @@
   when:
     - ansible_os_family == 'Darwin'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result_mac is failed or vagrant_pkg_result_mac is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
-- name: Install Vagrant (macOS)
+- name: Install Vagrant (macOS fallback)
   ansible.builtin.command: hdiutil attach /tmp/vagrant_latest.dmg && sudo installer -pkg /Volumes/Vagrant/Vagrant.pkg -target /
   args:
     warn: false
   when:
     - ansible_os_family == 'Darwin'
     - vagrant_version.rc != 0
+    - vagrant_pkg_result_mac is failed or vagrant_pkg_result_mac is skipped
   tags:
     - vagrant
     - tools
+    - fallback
 
 - name: Vagrant install not implemented for this OS
   ansible.builtin.fail:
