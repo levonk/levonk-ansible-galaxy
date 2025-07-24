@@ -1,0 +1,9 @@
+---
+# Debian-specific tasks for Bitwarden CLI support
+# This file ensures bw, bws, and rbw are installed on Debian-based systems.
+- name: Include bw install tasks
+  import_tasks: bw.yml
+- name: Include bws install tasks
+  import_tasks: bws.yml
+- name: Include rbw install tasks
+  import_tasks: rbw.yml

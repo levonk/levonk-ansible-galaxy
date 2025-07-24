@@ -1,0 +1,6 @@
+---
+# Windows-specific tasks for Bitwarden CLI support
+# This file ensures bw, bws, and rbw are installed on Windows systems.
+- name: TODO: Implement Windows installation for bw, bws, rbw
+  debug:
+    msg: 'Windows support for Bitwarden CLI tools is not yet implemented.'

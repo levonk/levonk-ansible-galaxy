@@ -1,0 +1,22 @@
+---
+# Task: Install Bitwarden CLI (bw)
+# The official Bitwarden CLI allows you to access and manage your Bitwarden vault from the command line.
+# It is useful for retrieving secrets, automating password management, and integrating with scripts or config management tools.
+
+- name: Ensure Bitwarden CLI (bw) is installed using levonk.common.package if available
+  levonk.common.package:
+    name: bw
+    state: present
+  register: bw_package_result
+  ignore_errors: yes
+
+- name: Download and install Bitwarden CLI (bw) if not available in package manager
+  when: bw_package_result is failed or bw_package_result is skipped
+  block:
+    - name: Download Bitwarden CLI (bw) binary
+      get_url:
+        url: "https://vault.bitwarden.com/download/?app=cli&platform=linux"
+        dest: /usr/local/bin/bw
+        mode: '0755'
+        force: yes
+      become: true

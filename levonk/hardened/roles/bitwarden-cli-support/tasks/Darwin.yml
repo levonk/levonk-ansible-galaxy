@@ -1,0 +1,6 @@
+---
+# macOS-specific tasks for Bitwarden CLI support
+# This file ensures bw, bws, and rbw are installed on macOS systems.
+- name: TODO: Implement macOS installation for bw, bws, rbw
+  debug:
+    msg: 'macOS support for Bitwarden CLI tools is not yet implemented.'
