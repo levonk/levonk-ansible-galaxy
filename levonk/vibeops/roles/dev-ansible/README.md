@@ -1,15 +1,44 @@
-# Ansible Role: dev-ansible
+# Ansible Role: levonk.vibeops.dev-ansible
 
-This role sets up a complete Ansible development environment on a target host.
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/dev-ansible)
 
-## Features
+This role sets up a complete, cross-platform Ansible development environment, including Ansible core, Molecule, linting tools, and all essential plugins for testing and best-practices development on Linux, macOS, and Windows.
 
-- Installs `ansible-core` to provide the base Ansible engine.
-- Installs essential development and testing tools via pip:
-  - `molecule` with the Docker plugin: For robust, multi-scenario testing of Ansible roles using Docker containers.
-  - `ansible-lint`: For enforcing best practices and catching common errors in Ansible content.
-  - `yamllint`: For linting YAML files to ensure syntax and style consistency.
-- Provides cross-platform support for Linux, macOS, and Windows (via Chocolatey).
+---
+
+## Features & Tasks
+
+Below is a list of all major features and tasks performed by this role, with links to the source task files in the [levonk-ansible-galaxy GitHub repo](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/dev-ansible/tasks):
+
+| Feature/Task                 | Description                                        | Required Variable(s)                | Source |
+|------------------------------|----------------------------------------------------|-------------------------------------|--------|
+| Install Ansible (Linux/macOS)| Installs Ansible via pip for Linux/macOS           | [`ansible_version`](#ansible_version) (optional) | [tasks/main.yml](tasks/main.yml) |
+| Install Ansible (Windows)    | Installs Ansible via Chocolatey for Windows        |                                     | [tasks/main.yml](tasks/main.yml) |
+| Install dev tools/plugins    | Installs Molecule, molecule-plugins[docker], ansible-lint, yamllint (via pip) | [`dev_ansible_tools`](#dev_ansible_tools) (optional) | [tasks/main.yml](tasks/main.yml) |
+
+---
+
+## Detailed Feature Documentation
+
+### Install Ansible (Linux/macOS)
+- **Description:** Installs Ansible using pip. Version can be specified via `ansible_version`.
+- **Tags:** `ansible`, `pip`, `linux`, `macos`
+- **Idempotency:** Safe to run repeatedly; only updates if not present or version mismatch.
+- **Usage:**
+  - Set `ansible_version` if a specific version is required.
+
+### Install Ansible (Windows)
+- **Description:** Installs Ansible using Chocolatey.
+- **Tags:** `ansible`, `windows`, `chocolatey`
+- **Idempotency:** Safe to run repeatedly.
+
+### Install dev tools/plugins
+- **Description:** Installs Molecule (with Docker plugin), ansible-lint, and yamllint via pip. The list can be customized with `dev_ansible_tools`.
+- **Tags:** `molecule`, `testing`, `lint`, `pip`
+- **Idempotency:** Safe to run repeatedly.
+- **Usage:**
+  - Set `dev_ansible_tools` to customize the list of Python packages installed for development.
+
 
 ## Usage Example
 

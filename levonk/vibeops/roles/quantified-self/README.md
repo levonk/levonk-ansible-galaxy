@@ -1,6 +1,143 @@
 # Ansible Role: levonk.vibeops.quantified-self
 
-This role installs and configures quantified self tools for personal productivity tracking and analytics.
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/quantified-self)
+
+This role provisions cross-platform quantified self tools, including ActivityWatch (open source), Rize, and Fathom (commercial), with best-practices variable and feature documentation.
+
+---
+
+## Features & Tasks
+
+Below is a list of all major features and tasks performed by this role, with links to the source task files in the [levonk-ansible-galaxy GitHub repo](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/quantified-self/tasks):
+
+| Feature/Task         | Description                                   | Required Variable(s)                  | Source |
+|----------------------|-----------------------------------------------|---------------------------------------|--------|
+| Install ActivityWatch| Installs ActivityWatch (open source tracker)  | `quantified_self_install_activitywatch`| [tasks/install_activitywatch.yml](tasks/install_activitywatch.yml) |
+| Install Rize         | Installs Rize (commercial tracker)            | `quantified_self_install_rize`        | [tasks/install_rize.yml](tasks/install_rize.yml) |
+| Install Fathom       | Installs Fathom (meeting recorder)            | `quantified_self_install_fathom`      | [tasks/install_fathom.yml](tasks/install_fathom.yml) |
+| Configure tools      | Sets up config, autostart, directories        | `quantified_self_configure_startup`   | [tasks/configure.yml](tasks/configure.yml) |
+
+---
+
+## Detailed Feature Documentation
+
+### Install ActivityWatch
+**Description:** Installs ActivityWatch on Windows (Chocolatey/WinGet), macOS (Homebrew), and Linux (AppImage). Controlled by `quantified_self_install_activitywatch` (opt-out, default true). Supports autostart and version selection.
+- **Supported Platforms:** Windows, macOS, Linux
+- **Tags:** `quantified-self`, `activitywatch`, `productivity`, `analytics`
+- **Idempotency:** Safe to run repeatedly.
+- **Security:** Uses official sources or GitHub releases.
+- **Usage:** Set `quantified_self_install_activitywatch: true|false` as needed.
+
+### Install Rize
+**Description:** Installs Rize on Windows (WinGet) and macOS (Homebrew). Controlled by `quantified_self_install_rize` (opt-in, default false). Commercial software.
+- **Supported Platforms:** Windows, macOS
+- **Tags:** `quantified-self`, `rize`, `productivity`, `analytics`
+- **Idempotency:** Safe to run repeatedly.
+- **Security:** Uses official sources.
+- **Usage:** Set `quantified_self_install_rize: true` to enable.
+
+### Install Fathom
+**Description:** Installs Fathom on Windows (WinGet), macOS (Homebrew), and Linux (AppImage). Controlled by `quantified_self_install_fathom` (opt-in, default false). Commercial software.
+- **Supported Platforms:** Windows, macOS, Linux
+- **Tags:** `quantified-self`, `fathom`, `productivity`, `analytics`
+- **Idempotency:** Safe to run repeatedly.
+- **Security:** Uses official sources.
+- **Usage:** Set `quantified_self_install_fathom: true` to enable.
+
+### Configure quantified-self tools
+**Description:** Creates config directories, sets up autostart, manages desktop shortcuts, and configures ActivityWatch settings. Controlled by `quantified_self_configure_startup` (opt-out, default true).
+- **Supported Platforms:** Windows, macOS, Linux
+- **Tags:** `quantified-self`, `configure`, `startup`, `desktop`
+- **Idempotency:** Safe to run repeatedly.
+- **Security:** Only modifies user config directories.
+- **Usage:** Set `quantified_self_configure_startup: true|false` as needed.
+
+---
+
+## Usage
+
+### Variables
+
+#### Variable Table Legend
+- **required**: Must be set for the role or feature to function.
+- **recommended**: Strongly encouraged for best results or security, but not strictly required.
+- **opt-in**: Feature is disabled by default; set this variable to enable it.
+- **opt-out**: Feature is enabled by default; set this variable to disable or override it.
+
+---
+
+#### Variable Reference
+
+| Variable                                | Default   | Sample Value | Type   | Activation | Purpose                                   | Used In |
+|------------------------------------------|-----------|--------------|--------|------------|-------------------------------------------|---------|
+| `quantified_self_install_activitywatch`  | `true`    | `false`      | bool   | opt-out     | Installs ActivityWatch tracker            | [tasks/install_activitywatch.yml](tasks/install_activitywatch.yml) |
+| `quantified_self_activitywatch_autostart`| `true`    | `false`      | bool   | opt-out     | Autostart ActivityWatch                   | [tasks/configure.yml](tasks/configure.yml) |
+| `quantified_self_activitywatch_version`  | `latest`  | `0.12.2`     | string | opt-out     | ActivityWatch version to install          | [tasks/install_activitywatch.yml](tasks/install_activitywatch.yml) |
+| `quantified_self_install_rize`           | `false`   | `true`       | bool   | opt-in      | Installs Rize tracker (commercial)        | [tasks/install_rize.yml](tasks/install_rize.yml) |
+| `quantified_self_rize_autostart`         | `true`    | `false`      | bool   | opt-out     | Autostart Rize                            | [tasks/configure.yml](tasks/configure.yml) |
+| `quantified_self_install_fathom`         | `false`   | `true`       | bool   | opt-in      | Installs Fathom meeting recorder          | [tasks/install_fathom.yml](tasks/install_fathom.yml) |
+| `quantified_self_fathom_autostart`       | `true`    | `false`      | bool   | opt-out     | Autostart Fathom                          | [tasks/configure.yml](tasks/configure.yml) |
+| `quantified_self_create_desktop_shortcuts`| `true`   | `false`      | bool   | opt-out     | Create desktop shortcuts                  | [tasks/configure.yml](tasks/configure.yml) |
+| `quantified_self_configure_startup`      | `true`    | `false`      | bool   | opt-out     | Configure startup for tools               | [tasks/configure.yml](tasks/configure.yml) |
+| `quantified_self_prefer_winget`          | `true`    | `false`      | bool   | opt-out     | Prefer WinGet on Windows                  | [tasks/install_activitywatch.yml](tasks/install_activitywatch.yml) |
+| `quantified_self_prefer_homebrew`        | `true`    | `false`      | bool   | opt-out     | Prefer Homebrew on macOS                  | [tasks/install_activitywatch.yml](tasks/install_activitywatch.yml) |
+| `quantified_self_prefer_apt`             | `true`    | `false`      | bool   | opt-out     | Prefer apt on Debian/Ubuntu               | [tasks/install_activitywatch.yml](tasks/install_activitywatch.yml) |
+| `quantified_self_enable_services`        | `true`    | `false`      | bool   | opt-out     | Enable services for installed tools       | [tasks/configure.yml](tasks/configure.yml) |
+| `quantified_self_start_services`         | `true`    | `false`      | bool   | opt-out     | Start services for installed tools        | [tasks/configure.yml](tasks/configure.yml) |
+
+---
+
+### Requirements
+- Ansible 2.12+
+- Python 3.6+
+- Supported platforms: Windows 10/11, macOS 10.14+, Ubuntu 18.04+/Debian 10+/EL8+
+- Platform-specific: Chocolatey/WinGet (Windows), Homebrew (macOS), AppImage/apt (Linux)
+
+---
+
+### Dependencies
+- None
+
+---
+
+### Example Playbooks
+```yaml
+- hosts: all
+  become: yes
+  vars:
+    quantified_self_install_activitywatch: true
+    quantified_self_install_rize: false
+    quantified_self_install_fathom: false
+  roles:
+    - role: levonk.vibeops.quantified-self
+```
+
+---
+
+## Best Practices for Role Documentation
+
+- **Always document every variable** in a table with: name, default, sample, type, activation (required/recommended/opt-in/opt-out), purpose, and source link.
+- **Use explicit enums** for variable activation/requirement status (`required`, `recommended`, `opt-in`, `opt-out`).
+- **Link to the source** of each feature/task and variable usage for transparency and maintainability.
+- **Provide usage examples** for all major features and variable combinations.
+- **Document tags and advanced usage patterns** for selective feature activation.
+- **Include explicit notes on idempotency and security** for each feature.
+- **Reference external specs or requirements** where relevant.
+- **Keep README.md up to date** as the role evolves.
+- **Encourage contributors** to follow this template for all new roles and features.
+
+---
+
+## Contributing
+
+Contributions should follow the documentation and variable table conventions shown above. Please update the README.md with any new features or variables.
+
+---
+
+## License
+
+Copyright (c) 2025 the person whose account is https://github.com/levonk. Licensed under the AGPL-3.0-only License. See LICENSE file in the project root for full license information.
 
 ## Features
 

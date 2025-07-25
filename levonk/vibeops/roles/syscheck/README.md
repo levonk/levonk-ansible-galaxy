@@ -1,39 +1,24 @@
-# Ansible Role: levonk.vibeops.dev-php
+# Ansible Role: levonk.vibeops.syscheck
 
-[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/dev-php)
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/syscheck)
 
-This role sets up a cross-platform PHP development environment by installing PHP on Linux and Windows. Documentation follows strict best-practices boilerplate.
+This role is a placeholder for system checks or compliance validation within the levonk.vibeops collection. No tasks or variables are currently defined.
 
 ---
 
 ## Features & Tasks
 
-Below is a list of all major features and tasks performed by this role, with links to the source task files in the [levonk-ansible-galaxy GitHub repo](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/dev-php/tasks):
+Below is a list of all major features and tasks performed by this role, with links to the source task files in the [levonk-ansible-galaxy GitHub repo](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/syscheck/tasks):
 
-| Feature/Task                | Description                          | Required Variable(s) | Source |
-|-----------------------------|--------------------------------------|----------------------|--------|
-| Install PHP (Linux)         | Installs PHP on Debian/RedHat/Ubuntu | N/A                 | [tasks/main.yml](tasks/main.yml) |
-| Install PHP (Windows)       | Installs PHP via Chocolatey          | N/A                 | [tasks/main.yml](tasks/main.yml) |
+| Feature/Task | Description | Required Variable(s) | Source |
+|--------------|-------------|----------------------|--------|
+| *(none)*     | *(no features defined)* | *(none)* | *(none)* |
 
 ---
 
 ## Detailed Feature Documentation
 
-### Install PHP (Linux)
-**Description:** Installs PHP using the native package manager on Debian, Ubuntu, and RedHat.
-- **Supported Platforms:** Debian, Ubuntu, RedHat
-- **Tags:** `dev`, `php`, `sdk`
-- **Idempotency:** Safe to run repeatedly.
-- **Security:** Uses only official repositories.
-- **Usage:** Enabled by default; no variables needed.
-
-### Install PHP (Windows)
-**Description:** Installs PHP using Chocolatey on Windows.
-- **Supported Platforms:** Windows
-- **Tags:** `dev`, `php`, `sdk`, `windows`
-- **Idempotency:** Safe to run repeatedly.
-- **Security:** Uses only official sources.
-- **Usage:** Enabled by default; no variables needed.
+*(No features are currently implemented in this role. Add features and update this section as needed.)*
 
 ---
 
@@ -53,15 +38,13 @@ Below is a list of all major features and tasks performed by this role, with lin
 
 | Variable | Default | Sample Value | Type | Activation | Purpose | Used In |
 |----------|---------|--------------|------|------------|---------|---------|
-| *(none by default)* |         |              |      |            |         |         |
+| *(none)* |         |              |      |            |         |         |
 
 ---
 
 ### Requirements
 - Ansible 2.9+
 - Python 3.6+
-- Supported platforms: Debian, Ubuntu, RedHat, MacOSX, Windows
-- Platform-specific: `apt` (Debian/Ubuntu), `yum` (RedHat), `chocolatey` (Windows)
 
 ---
 
@@ -73,9 +56,8 @@ Below is a list of all major features and tasks performed by this role, with lin
 ### Example Playbooks
 ```yaml
 - hosts: all
-  become: yes
   roles:
-    - role: levonk.vibeops.dev-php
+    - role: levonk.vibeops.syscheck
 ```
 
 ---

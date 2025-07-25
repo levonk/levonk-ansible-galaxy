@@ -1,11 +1,12 @@
 # Ansible Role: levonk.vibeops.wsl_setup
 
-This role installs and configures the Windows Subsystem for Linux (WSL2) and a specified Linux distribution on Windows systems.
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/wsl_setup)
 
-## Description
+This role provisions Windows Subsystem for Linux (WSL2) and installs a specified Linux distribution on Windows, using best-practices variable and feature documentation.
 
-The role is designed to automate the setup of a WSL2 environment. It performs the following actions:
+---
 
+## Features & Tasks
 1. Enables the `Microsoft-Windows-Subsystem-Linux` and `VirtualMachinePlatform` Windows features.
 2. Reboots the machine if required after enabling the features.
 3. Sets WSL2 as the default version for all new distributions.
