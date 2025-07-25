@@ -1,8 +1,23 @@
-# Ansible Collection - levonk.base_system
+# Ansible Role: levonk.base_system.base_system
+
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/base_system/roles/base_system)
 
 This role provides fundamental system setup and configuration across platforms, including package managers, registry backups, and essential system components.
 
-## Features
+## Features & Tasks
+
+Below is a list of all major features and tasks performed by this role, with links to the source task files in the [levonk-ansible-galaxy GitHub repo](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/base_system/roles/base_system/tasks):
+
+| Feature/Task | Description | Required Variable(s) | Source |
+|--------------|-------------|----------------------|--------|
+| Set Hostname | Sets the system hostname | [`system_hostname`](#system_hostname) | [system/hostname.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/system/hostname.yml) |
+| Set Timezone & NTP | Sets system timezone and configures NTP (cross-platform) | [`timezone`](#timezone), [`ntp_servers`](#ntp_servers) | [system/timezone.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/system/timezone.yml) |
+| Base System Packages | Installs a list of essential packages | [`base_system_packages`](#base_system_packages) | [base_packages.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/base_packages.yml) |
+| Fonts | Installs JetBrains Mono Nerd Font (all OSes) | *(none)* | [fonts.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/fonts.yml) |
+| Shell Setup | Ensures zsh is installed and default for new users (Debian/Ubuntu) | *(none)* | [shell_setup.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/shell_setup.yml) |
+| Package Manager Config | Configures APT, YUM, Homebrew, Chocolatey, AUR as needed | *(none)* | [package-managers/](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/base_system/roles/base_system/tasks/package-managers) |
+| Windows Package Manager | Installs WinGet (Windows only) | [`base_system_install_winget`](#base_system_install_winget) | [package-managers/chocolatey.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/package-managers/chocolatey.yml) |
+
 
 ### Graphical Subsystem Setup (Debian)
 
@@ -96,12 +111,51 @@ This role configures the system timezone and ensures reliable network time synch
 - `macos-ntp.conf.j2`: Used for macOS NTP configuration
 - Both templates allow dynamic server lists and advanced options
 
-## Role Variables
+## Variables
 
-- `base_system_install_winget`: Install WinGet package manager on Windows (default: `true`)
-- `base_system_packages`: List of essential packages to install (define in vars or group_vars)
-- `timezone`: System timezone (see above)
-- `ntp_servers`: List of NTP servers (see above)
+### Variable Table Legend
+
+- **required**: Must be set for the role or feature to function.
+- **recommended**: Strongly encouraged for best results or security, but not strictly required.
+- **opt-in**: Feature is disabled by default; set this variable to enable it.
+- **opt-out**: Feature is enabled by default; set this variable to disable or override it.
+
+### Variable Reference
+
+| Variable | Default | Sample Value | Type | Activation | Purpose | Used In |
+|----------|---------|--------------|------|------------|---------|---------|
+| <a name="system_hostname"></a>`system_hostname` | *(unset)* | `myhost123` | string | opt-in | System hostname to set | [system/hostname.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/system/hostname.yml) |
+| <a name="timezone"></a>`timezone` | *(OS default)* | `America/Los_Angeles` | string | opt-in | System timezone to set | [system/timezone.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/system/timezone.yml) |
+| <a name="ntp_servers"></a>`ntp_servers` | `["time.google.com", "time.cloudflare.com", "pool.ntp.org"]` | `["time.google.com", "169.254.169.123"]` | list of string | opt-out | List of NTP servers for time sync | [system/timezone.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/system/timezone.yml) |
+| <a name="base_system_install_winget"></a>`base_system_install_winget` | `true` | `false` | bool | opt-out | Install WinGet on Windows | [package-managers/chocolatey.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/package-managers/chocolatey.yml) |
+| <a name="base_system_packages"></a>`base_system_packages` | `[vim, curl, wget, git, ca-certificates]` | `[vim, curl, wget, git, htop]` | list of string | opt-out | List of base packages to install | [base_packages.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/base_packages.yml), [shell_setup.yml](https://github.com/levonk/levonk-ansible-galaxy/blob/main/levonk/base_system/roles/base_system/tasks/shell_setup.yml) |
+
+To activate a feature, set the corresponding variable in your playbook or inventory. If not set, sensible defaults are used where possible.
+
+## Example Playbook
+
+```yaml
+- hosts: all
+  roles:
+    - role: levonk.base_system.base_system
+      vars:
+        system_hostname: myhost123
+        timezone: "America/Los_Angeles"
+        ntp_servers:
+          - "time.google.com"
+          - "time.cloudflare.com"
+        base_system_packages:
+          - vim
+          - curl
+          - wget
+          - git
+          - ca-certificates
+          - htop
+```
+
+- If `system_hostname` is not set, the hostname will not be changed.
+- If `timezone` is not set, the system timezone will remain unchanged.
+- All other features use sensible defaults and are optional.
 
 ## macOS Homebrew Installation
 
@@ -149,3 +203,15 @@ roles/base_system/
 ## Migration Note
 
 All macOS-specific system and package management logic is now handled in `tasks/package-managers/homebrew.yml` and `base_packages.yml`. The old `tasks/macos.yml` is deprecated and removed.
+
+---
+
+## Contributing
+
+Contributions should follow the documentation and variable table conventions shown above. Please update the README.md with any new features or variables.
+
+---
+
+## License
+
+Copyright (c) 2025 the person whose account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License. See LICENSE file in the project root for full license information.

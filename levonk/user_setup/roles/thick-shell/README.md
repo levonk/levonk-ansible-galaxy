@@ -1,18 +1,52 @@
 # Ansible Role: levonk.user_setup.thick-shell
 
-Installs and configures various shell environments (Zsh, Bash, Fish) and advanced terminal tools like tmux, Zellij, Mosh, fzf, and modern CLI utilities.
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/user_setup/roles/thick-shell)
 
-## Description
+This role installs and configures multiple advanced shell environments (Zsh, Bash, Fish, Nushell) and a suite of modern terminal tools for power users. It supports Linux, macOS, and Windows (WSL), and is designed for highly customizable, productive shell workspaces.
 
-This role is designed to create a "thick shell" environment for power users. It handles the installation of different shells, shell frameworks (like Oh My Zsh), and essential command-line utilities across Windows, macOS, and Debian-based systems. It also installs terminal multiplexers and a remote shell to enhance productivity.
+---
 
-### Supported Shells
+## Features & Tasks
 
--   **Zsh**: Installs Zsh and the Oh My Zsh framework.
--   **Bash**: Installs Bash (where applicable) and basic configurations.
--   **Fish**: Installs the Fish shell.
+Below is a list of all major features and tasks performed by this role, with links to the source task files in the [levonk-ansible-galaxy GitHub repo](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/user_setup/roles/thick-shell/tasks):
+
+| Feature/Task                      | Description                                                           | Required Variable(s)                  | Source |
+|-----------------------------------|-----------------------------------------------------------------------|---------------------------------------|--------|
+| Set default shell stack           | Sets `thick_shells` list (defaults to `['zsh']`)                      | [`thick_shells`](#thick_shells)       | [tasks/main.yml](tasks/main.yml) |
+| Ensure Nushell stack              | Installs/configures Nushell if requested                              | `thick_shells`                        | [tasks/shells/nushell.yml](tasks/shells/nushell.yml) |
+| Ensure Zsh stack                  | Installs/configures Zsh and Oh My Zsh if requested                    | `thick_shells`                        | [tasks/shells/zsh.yml](tasks/shells/zsh.yml) |
+| Ensure Bash stack                 | Installs/configures Bash if requested                                 | `thick_shells`                        | [tasks/shells/bash.yml](tasks/shells/bash.yml) |
+| Ensure Fish stack                 | Installs/configures Fish if requested                                 | `thick_shells`                        | [tasks/shells/fish.yml](tasks/shells/fish.yml) |
+| Windows Oh My Posh + Posh-Git     | Installs Oh My Posh and Posh-Git on Windows                           | N/A                                   | [tasks/shells/windows_posh.yml](tasks/shells/windows_posh.yml) |
+| Install tmux                      | Installs tmux terminal multiplexer                                    | `thick_shell_install_tmux`            | [tasks/tools/tmux.yml](tasks/tools/tmux.yml) |
+| Install zellij                    | Installs Zellij multiplexer                                           | `thick_shell_install_zellij`          | [tasks/tools/zellij.yml](tasks/tools/zellij.yml) |
+| Install mosh                      | Installs Mosh remote shell                                            | `thick_shell_install_mosh`            | [tasks/tools/mosh.yml](tasks/tools/mosh.yml) |
+| Install fzf                       | Installs fzf fuzzy finder                                             | `thick_shell_install_fzf`             | [tasks/tools/fzf.yml](tasks/tools/fzf.yml) |
+| Install direnv                    | Installs direnv environment manager                                   | `thick_shell_install_direnv`          | [tasks/tools/direnv.yml](tasks/tools/direnv.yml) |
+| Install ripgrep                   | Installs ripgrep search tool                                          | `thick_shell_install_ripgrep`         | [tasks/tools/ripgrep.yml](tasks/tools/ripgrep.yml) |
+| Install bat                       | Installs bat syntax highlighter                                       | `thick_shell_install_bat`             | [tasks/tools/bat.yml](tasks/tools/bat.yml) |
+| Install fd                        | Installs fd file finder                                               | `thick_shell_install_fd`              | [tasks/tools/fd.yml](tasks/tools/fd.yml) |
+| Install zoxide                    | Installs zoxide smart cd                                              | `thick_shell_install_zoxide`          | [tasks/tools/zoxide.yml](tasks/tools/zoxide.yml) |
+| Install Neovim                    | Installs Neovim and ensures config directory exists                   | `thick_shell_install_neovim`          | [tasks/tools/neovim.yml](tasks/tools/neovim.yml) |
+
+---
+
+## Detailed Feature Documentation
+
+### Shell Stacks (Zsh, Bash, Fish, Nushell)
+**Description:**
+> Installs and configures each shell and its ecosystem (Oh My Zsh, completions, plugins) as requested. Defaults to Zsh if not specified.
+- **Tags:** `thick_shell`, `zsh`, `bash`, `fish`, `nushell`
+- **Usage:**
+  - Set `thick_shells` to a list of desired shells.
 
 ### Advanced Terminal Tools
+**Description:**
+> Installs tmux, zellij, mosh, and modern CLI tools for productivity.
+- **Tags:** `tmux`, `zellij`, `mosh`, `fzf`, `direnv`, `ripgrep`, `bat`, `fd`, `zoxide`, `neovim`
+- **Idempotency:** Each tool is only installed if not present.
+- **Usage:**
+  - Set `thick_shell_install_*` variables to enable installation of each tool.
 
 -   **tmux**: A popular terminal multiplexer.
 -   **Zellij**: A modern, Rust-based terminal workspace and multiplexer.

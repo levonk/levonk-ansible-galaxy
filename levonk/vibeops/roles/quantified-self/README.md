@@ -303,17 +303,6 @@ systemctl --user status activitywatch
 ls ~/.config/autostart/
 ```
 
-## Dependencies
-
-This role depends on:
-- `levonk.base_system` (for package managers)
-- `community.general` (for Homebrew)
-- `chocolatey.chocolatey` (for Windows)
-- `community.windows` (for WinGet)
-
-## License
-
-AGPL-3.0-only
 
 ## Author Information
 

@@ -1,0 +1,22 @@
+---
+dependency: []
+author: v3l8dud3@lkara.com
+description: Install and configure common communication tools (Discord, Telegram, Signal, Slack, Zoom, Teams, Google Meet) on supported platforms.
+license: MIT
+min_ansible_version: '2.9'
+platforms:
+  - name: Debian
+    versions: [all]
+  - name: Ubuntu
+    versions: [all]
+  - name: RedHat
+    versions: [all]
+  - name: MacOSX
+    versions: [all]
+  - name: Windows
+    versions: [all]
+tags:
+  - comms
+  - communication
+  - chat
+  - video

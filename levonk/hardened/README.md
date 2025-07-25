@@ -1,55 +1,77 @@
-# hardened Collection
+# levonk.hardened Collection
 
-{{ collection_description }}
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/hardened)
 
-## Installation
+A comprehensive collection of security hardening roles for Linux, Windows, and macOS. Provides baseline, moderate, paranoid, and custom hardening, Bitwarden CLI automation, and a no-op role for pipelines. Designed for clarity, compliance, and maintainability.
 
-```bash
-ansible-galaxy collection install {{ collection_namespace }}.hardened
-```
+---
 
-## Requirements
+## Overview
 
-- Ansible {{ min_ansible_version | default('2.9+') }}
-- Python {{ min_python_version | default('3.6+') }}
-- Additional requirements...
+This Ansible collection provides reusable roles for system hardening, compliance, and secure automation. Each role follows best-practices documentation and variable conventions for easy adoption and contribution.
 
-## Included Content
+---
+
+## Features & Included Content
 
 ### Roles
 
-| Name | Description |
-|------|-------------|
-| `role_name` | Brief description of the role |
+| Name                         | Description                                        | Major Features/Tasks                                                                 | Docs |
+|------------------------------|----------------------------------------------------|--------------------------------------------------------------------------------------|------|
+| bitwarden-cli-support        | Install/manage Bitwarden CLI tools (`bw`, `bws`, `rbw`) | Secure, idempotent CLI install, OS-specific logic, compliance notes                  | [README](roles/bitwarden-cli-support/README.md) |
+| harden_baseline              | Minimal baseline security hardening                | Linux/Windows/macOS baseline, GPG, firewall, secure scripting, Cloudflare WARP VPN   | [README](roles/harden_baseline/README.md) |
+| harden_custom                | Template for custom/user-defined hardening         | Imports baseline/moderate/paranoid, supports custom controls, full activation enums   | [README](roles/harden_custom/README.md) |
+| harden_moderate              | Moderate security hardening                        | Baseline + advanced firewall, password, audit, extra OS-specific controls            | [README](roles/harden_moderate/README.md) |
+| harden_noop                  | No-op hardening role for pipelines/testing         | Emits debug message, no system changes                                               | [README](roles/harden_noop/README.md) |
+| harden_paranoid              | Strictest/paranoid security hardening              | Baseline + strictest controls, compliance, high-security environments                | [README](roles/harden_paranoid/README.md) |
 
 ### Modules
 
-| Name | Description |
-|------|-------------|
-| `module_name` | Brief description of the module |
+| Name         | Description           | Key Parameters | Docs |
+|--------------|----------------------|----------------|------|
+| *(none yet)* |                      |                |      |
+
+---
 
 ## Usage
 
-### Using a role
+### Dependencies
+- See individual role READMEs for OS/package dependencies
+
+---
+
+### Example: Using Multiple Roles
 
 ```yaml
-- name: Include hardened role
-  hosts: localhost
+- hosts: all
   collections:
-    - {{ collection_namespace }}.hardened
+    - levonk.hardened
   roles:
-    - role_name
+    - harden_baseline
+    - harden_moderate
+    - harden_paranoid
+    - bitwarden-cli-support
 ```
 
-### Using a module
+### Advanced Usage Patterns
+- Use tags to selectively enable features (see role READMEs for tag docs)
+- Override variables at play, host, or group level for flexible configuration
+- Reference [role READMEs](roles/) for full variable tables, activation enums, and advanced examples
 
-```yaml
-- name: Use hardened module
-  {{ collection_namespace }}.hardened.module_name:
-    parameter: value
-```
+---
+
+### Requirements
+- Ansible 2.9+
+- Python 3.6+
+- Supported platforms: Linux, macOS, Windows (see individual roles for details)
+- Additional requirements may apply per role
+
+---
 
 ## Testing
+- Molecule scenarios: see `roles/<role>/molecule/`
+- ansible-test: `ansible-test integration`
+- Linting: `ansible-lint`
 
 ```bash
 # Install test requirements
@@ -59,16 +81,21 @@ pip install -r requirements-test.txt
 ansible-test integration
 ```
 
-## License
+---
 
-{{ license | default('AGPL-3.0') }}
+## Contributing
+Contributions should follow the documentation and variable table conventions shown above. Please update documentation for any new features, roles, or modules. See individual role READMEs for detailed contribution guidelines.
+
+---
+
+## License
+Copyright (c) 2025 the person whose account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License. See LICENSE file in the project root for full license information.
 
 ## Author Information
+levonk
 
-{{ author | default('levonk') }}
-
-*Document generated on: {{ "now" | strftime("%Y-%m-%d") }}*  
-*Version: {{ collection_version | default('1.0.0') }}*
+*Document generated on: 2025-07-25*  
+*Version: 1.0.0*
 
 Copyright (c) 2025 the owner of https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
 See LICENSE file in the project root for full license information.

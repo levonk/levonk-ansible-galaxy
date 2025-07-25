@@ -1,0 +1,23 @@
+---
+dependency: []
+author: v3l8dud3@lkara.com
+description: Install and configure AI-assisted developer tools, editors, and CLIs (VSCode, Cursor, Copilot CLI, Gemini, Claude, Amazon Q, Windsurf, Kiro, Warp, etc).
+license: MIT
+min_ansible_version: '2.9'
+platforms:
+  - name: Debian
+    versions: [all]
+  - name: Ubuntu
+    versions: [all]
+  - name: RedHat
+    versions: [all]
+  - name: MacOSX
+    versions: [all]
+  - name: Windows
+    versions: [all]
+tags:
+  - dev
+  - ai
+  - code
+  - cli
+  - editor
