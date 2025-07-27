@@ -1,0 +1,63 @@
+---
+# Install codemcp from GitHub
+- name: Ensure Python is installed
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-python
+  tags:
+    - claude
+    - claude-install
+    - codemcp
+
+- name: Create installation directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/codemcp"
+    state: directory
+    mode: '0755'
+  tags:
+    - claude
+    - claude-install
+    - codemcp
+
+- name: Clone codemcp repository
+  ansible.builtin.git:
+    repo: https://github.com/ezyang/codemcp.git
+    dest: "{{ ansible_env.HOME }}/.local/share/codemcp"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - claude
+    - claude-install
+    - codemcp
+
+- name: Install Python dependencies
+  community.general.pip:
+    requirements: "{{ ansible_env.HOME }}/.local/share/codemcp/requirements.txt"
+    executable: pip3
+    state: present
+  become: false
+  tags:
+    - claude
+    - claude-install
+    - codemcp
+
+- name: Create codemcp wrapper script
+  ansible.builtin.template:
+    src: codemcp_wrapper.j2
+    dest: "{{ ansible_env.HOME }}/.local/bin/codemcp"
+    mode: '0755'
+  tags:
+    - claude
+    - claude-install
+    - codemcp
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "codemcp has been installed to ~/.local/share/codemcp"
+      - "A wrapper script has been created at ~/.local/bin/codemcp"
+      - "Make sure ~/.local/bin is in your PATH"
+      - "Run 'codemcp --help' for usage information"
+  tags:
+    - claude
+    - claude-install
+    - codemcp

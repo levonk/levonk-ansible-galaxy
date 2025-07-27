@@ -1,0 +1,92 @@
+---
+# Install Tmux-Orchestrator
+- name: Ensure Tmux is installed
+  community.general.package:
+    name: tmux
+    state: present
+  become: true
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Create Tmux plugins directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.tmux/plugins"
+    state: directory
+    mode: '0755'
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Clone Tmux-Orchestrator repository
+  ansible.builtin.git:
+    repo: https://github.com/Jedward23/Tmux-Orchestrator.git
+    dest: "{{ ansible_env.HOME }}/.tmux/plugins/tmux-orchestrator"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Install Tmux Plugin Manager (TPM) if not present
+  block:
+    - name: Check if TPM is already installed
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.tmux/plugins/tpm/tpm"
+      register: tpm_installed
+
+    - name: Clone TPM if not installed
+      ansible.builtin.git:
+        repo: https://github.com/tmux-plugins/tpm
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+        version: master
+      when: not tpm_installed.stat.exists
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Create or update .tmux.conf with required configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.tmux.conf"
+    block: |
+      # Enable TPM
+      set -g @plugin 'tmux-plugins/tpm'
+      set -g @plugin 'tmux-plugins/tmux-sensible'
+      
+      # Add Tmux-Orchestrator
+      set -g @plugin '{{ ansible_env.HOME }}/.tmux/plugins/tmux-orchestrator'
+      
+      # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+      run '{{ ansible_env.HOME }}/.tmux/plugins/tpm/tpm'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Tmux Configuration"
+    create: yes
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Install Tmux plugins
+  ansible.builtin.command: >
+    {{ ansible_env.HOME }}/.tmux/plugins/tpm/bin/install_plugins
+  args:
+    creates: "{{ ansible_env.HOME }}/.tmux/plugins/tmux-orchestrator/README.md"
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Add Tmux-Orchestrator to PATH
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: 'export PATH="$HOME/.tmux/plugins/tmux-orchestrator/bin:$PATH"'
+    insertafter: '^# Path'  # Adjust this to match your shell configuration
+    state: present
+  tags:
+    - tmux
+    - orchestrator
+
+- name: Source the updated shell configuration
+  ansible.builtin.shell: source "{{ ansible_env.HOME }}/.zshrc"
+  args:
+    executable: /bin/zsh
+  tags:
+    - tmux
+    - orchestrator

@@ -1,0 +1,59 @@
+---
+# Install Awesome AI System Prompts collection
+- name: Ensure prompts directory exists
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/ai/prompts"
+    state: directory
+    mode: '0755'
+    recurse: yes
+  tags:
+    - ai
+    - ai-install
+    - ai-prompts
+
+- name: Clone Awesome AI System Prompts repository
+  ansible.builtin.git:
+    repo: https://github.com/dontriskit/awesome-ai-system-prompts.git
+    dest: "{{ ansible_env.HOME }}/.config/ai/prompts/awesome-ai-system-prompts"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - ai
+    - ai-install
+    - ai-prompts
+
+- name: Create symlink to prompts directory
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.config/ai/prompts/awesome-ai-system-prompts"
+    dest: "{{ ansible_env.HOME }}/.config/ai/prompts/awesome"
+    state: link
+  tags:
+    - ai
+    - ai-install
+    - ai-prompts
+
+- name: Update shell configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    block: |
+      # Awesome AI System Prompts configuration
+      export AI_PROMPTS_HOME="{{ ansible_env.HOME }}/.config/ai/prompts"
+      alias ai-prompts='cd "$AI_PROMPTS_HOME/awesome" && ls -l'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Awesome AI System Prompts"
+    create: yes
+  tags:
+    - ai
+    - ai-install
+    - ai-prompts
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "Awesome AI System Prompts have been installed to ~/.config/ai/prompts/awesome-ai-system-prompts"
+      - "A symlink has been created at ~/.config/ai/prompts/awesome"
+      - "Use 'ai-prompts' to navigate to the prompts directory"
+      - "The AI_PROMPTS_HOME environment variable has been set"
+  tags:
+    - ai
+    - ai-install
+    - ai-prompts

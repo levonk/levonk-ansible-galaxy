@@ -1,0 +1,15 @@
+[Unit]
+Description=Claude Code Proxy
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user_id | default('root') }}
+WorkingDirectory={{ ansible_env.HOME }}/.local/share/claude-code-proxy
+ExecStart={{ ansible_env.HOME }}/.local/share/pnpm/pnpm start
+Restart=always
+Environment="PORT=3000"
+Environment="NODE_ENV=production"
+
+[Install]
+WantedBy=multi-user.target

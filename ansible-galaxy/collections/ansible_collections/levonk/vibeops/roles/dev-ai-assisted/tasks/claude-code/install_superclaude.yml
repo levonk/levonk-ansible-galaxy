@@ -1,0 +1,100 @@
+---
+# Install SuperClaude Framework from GitHub
+- name: Ensure Python is installed
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-python
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Ensure Node.js is installed
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-node
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Create installation directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/superclaude"
+    state: directory
+    mode: '0755'
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Clone SuperClaude_Framework repository
+  ansible.builtin.git:
+    repo: https://github.com/SuperClaude-Org/SuperClaude_Framework.git
+    dest: "{{ ansible_env.HOME }}/.local/share/superclaude"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Install Python dependencies
+  community.general.pip:
+    requirements: "{{ ansible_env.HOME }}/.local/share/superclaude/requirements.txt"
+    executable: pip3
+    state: present
+  become: false
+  when: ansible_check_mode == false  # Skip in check mode
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Install Node.js dependencies
+  community.general.npm:
+    path: "{{ ansible_env.HOME }}/.local/share/superclaude"
+    state: present
+    executable: pnpm
+  become: false
+  when: ansible_check_mode == false  # Skip in check mode
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Create superclude wrapper script
+  ansible.builtin.template:
+    src: superclaude_wrapper.j2
+    dest: "{{ ansible_env.HOME }}/.local/bin/superclaude"
+    mode: '0755'
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Update shell configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    block: |
+      # SuperClaude Framework configuration
+      export SUPERCLAUDE_HOME="{{ ansible_env.HOME }}/.local/share/superclaude"
+      export PATH="$SUPERCLAUDE_HOME/bin:$PATH"
+      alias sc='superclaude'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - SuperClaude Framework"
+    create: yes
+  tags:
+    - claude
+    - claude-install
+    - superclaude
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "SuperClaude Framework has been installed to ~/.local/share/superclaude"
+      - "A wrapper script has been created at ~/.local/bin/superclaude"
+      - "The 'sc' alias has been added to your shell configuration"
+      - "Make sure ~/.local/bin is in your PATH"
+      - "Run 'superclaude --help' or 'sc --help' for usage information"
+  tags:
+    - claude
+    - claude-install
+    - superclaude

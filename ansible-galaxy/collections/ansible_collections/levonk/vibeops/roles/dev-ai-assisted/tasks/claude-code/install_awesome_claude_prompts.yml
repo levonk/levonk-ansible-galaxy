@@ -1,0 +1,59 @@
+---
+# Install Awesome Claude Prompts collection
+- name: Create prompts directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/claude/prompts"
+    state: directory
+    mode: '0755'
+    recurse: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-prompts
+
+- name: Clone Awesome Claude Prompts repository
+  ansible.builtin.git:
+    repo: https://github.com/langgptai/awesome-claude-prompts.git
+    dest: "{{ ansible_env.HOME }}/.config/claude/prompts/awesome-claude-prompts"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-prompts
+
+- name: Create symlink to prompts directory
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.config/claude/prompts/awesome-claude-prompts"
+    dest: "{{ ansible_env.HOME }}/.config/claude/prompts/awesome"
+    state: link
+  tags:
+    - claude
+    - claude-install
+    - claude-prompts
+
+- name: Update shell configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    block: |
+      # Awesome Claude Prompts configuration
+      export CLAUDE_PROMPTS_HOME="{{ ansible_env.HOME }}/.config/claude/prompts"
+      alias claude-prompts='cd "$CLAUDE_PROMPTS_HOME/awesome" && ls -l'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Awesome Claude Prompts"
+    create: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-prompts
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "Awesome Claude Prompts have been installed to ~/.config/claude/prompts/awesome-claude-prompts"
+      - "A symlink has been created at ~/.config/claude/prompts/awesome"
+      - "Use 'claude-prompts' to navigate to the prompts directory"
+      - "The CLAUDE_PROMPTS_HOME environment variable has been set"
+  tags:
+    - claude
+    - claude-install
+    - claude-prompts

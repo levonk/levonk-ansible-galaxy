@@ -1,0 +1,100 @@
+---
+# Install claude-code-proxy from GitHub
+- name: Create claude-code-proxy installation directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/claude-code-proxy"
+    state: directory
+    mode: '0755'
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Clone claude-code-proxy repository
+  ansible.builtin.git:
+    repo: https://github.com/1rgs/claude-code-proxy.git
+    dest: "{{ ansible_env.HOME }}/.local/share/claude-code-proxy"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Install claude-code-proxy dependencies
+  community.general.npm:
+    path: "{{ ansible_env.HOME }}/.local/share/claude-code-proxy"
+    state: present
+    executable: pnpm
+  become: false
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Build claude-code-proxy
+  ansible.builtin.command: >
+    pnpm build
+  args:
+    chdir: "{{ ansible_env.HOME }}/.local/share/claude-code-proxy"
+  become: false
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Create systemd service for claude-code-proxy
+  ansible.builtin.template:
+    src: claude-code-proxy.service.j2
+    dest: /etc/systemd/system/claude-code-proxy.service
+    mode: '0644'
+  become: true
+  when: ansible_os_family != 'Darwin'
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  become: true
+  when: ansible_os_family != 'Darwin'
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Enable and start claude-code-proxy service
+  ansible.builtin.systemd:
+    name: claude-code-proxy
+    state: started
+    enabled: yes
+  become: true
+  when: ansible_os_family != 'Darwin'
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Create launch agent for claude-code-proxy (macOS)
+  ansible.builtin.template:
+    src: com.user.claude-code-proxy.plist.j2
+    dest: "{{ ansible_env.HOME }}/Library/LaunchAgents/com.user.claude-code-proxy.plist"
+    mode: '0644'
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy
+
+- name: Load and start launch agent (macOS)
+  ansible.builtin.command: >
+    launchctl load -w {{ ansible_env.HOME }}/Library/LaunchAgents/com.user.claude-code-proxy.plist
+  args:
+    creates: "{{ ansible_env.HOME }}/Library/LaunchAgents/com.user.claude-code-proxy.plist"
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - claude
+    - claude-install
+    - claude-proxy

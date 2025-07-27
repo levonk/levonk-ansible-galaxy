@@ -1,0 +1,6 @@
+#!/bin/bash
+# Wrapper script for codemcp
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+export PYTHONPATH="{{ ansible_env.HOME }}/.local/share/codemcp:$PYTHONPATH"
+python3 "{{ ansible_env.HOME }}/.local/share/codemcp/codemcp.py" "$@"

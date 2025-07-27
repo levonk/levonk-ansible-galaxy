@@ -1,0 +1,19 @@
+#!/bin/bash
+# Wrapper script for SuperClaude Framework
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+export SUPERCLAUDE_HOME="{{ ansible_env.HOME }}/.local/share/superclaude"
+
+export PATH="$SUPERCLAUDE_HOME/node_modules/.bin:$PATH"
+export PYTHONPATH="$SUPERCLAUDE_HOME:$PYTHONPATH"
+
+# Check if running in a virtual environment
+if [ -z "$VIRTUAL_ENV" ]; then
+    # Activate the virtual environment if it exists
+    if [ -f "$SUPERCLAUDE_HOME/venv/bin/activate" ]; then
+        source "$SUPERCLAUDE_HOME/venv/bin/activate"
+    fi
+fi
+
+# Execute the main script with all arguments
+python3 "$SUPERCLAUDE_HOME/main.py" "$@"

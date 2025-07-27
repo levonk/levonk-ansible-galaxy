@@ -1,0 +1,81 @@
+---
+# Install claude-task-master from GitHub
+- name: Ensure required dependencies are installed
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-node
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Create installation directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.local/share/claude-task-master"
+    state: directory
+    mode: '0755'
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Clone claude-task-master repository
+  ansible.builtin.git:
+    repo: https://github.com/eyaltoledano/claude-task-master.git
+    dest: "{{ ansible_env.HOME }}/.local/share/claude-task-master"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Install claude-task-master dependencies
+  community.general.npm:
+    path: "{{ ansible_env.HOME }}/.local/share/claude-task-master"
+    state: present
+    executable: pnpm
+  become: false
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Build claude-task-master
+  ansible.builtin.command: >
+    pnpm build
+  args:
+    chdir: "{{ ansible_env.HOME }}/.local/share/claude-task-master"
+  become: false
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Create symlink to cli.js
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.local/share/claude-task-master/dist/cli.js"
+    dest: "{{ ansible_env.HOME }}/.local/bin/claude-task-master"
+    state: link
+    mode: '0755'
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Update shell configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    block: |
+      # claude-task-master configuration
+      export PATH="$HOME/.local/share/claude-task-master/node_modules/.bin:$PATH"
+      alias ctm='node $HOME/.local/share/claude-task-master/dist/cli.js'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - claude-task-master"
+    create: yes
+  tags:
+    - tools
+    - claude-task-master
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "claude-task-master has been installed to ~/.local/share/claude-task-master"
+      - "A symlink has been created at ~/.local/bin/claude-task-master"
+      - "You can use it with the 'ctm' alias or directly with 'claude-task-master'"
+      - "Make sure ~/.local/bin is in your PATH"
+  tags:
+    - tools
+    - claude-task-master

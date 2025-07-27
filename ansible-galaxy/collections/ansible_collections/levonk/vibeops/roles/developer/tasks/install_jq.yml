@@ -1,0 +1,26 @@
+---
+# tasks file for levonk.vibeops.developer - Install jq JSON processor
+
+- name: Install jq via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - jq
+    state: latest
+  tags:
+    - developer
+    - tools
+    - jq
+    - json
+
+- name: Verify jq installation
+  ansible.builtin.command:
+    cmd: jq --version
+  register: jq_version
+  changed_when: false
+  failed_when: false
+  tags:
+    - developer
+    - tools
+    - jq
+    - json
+    - verify

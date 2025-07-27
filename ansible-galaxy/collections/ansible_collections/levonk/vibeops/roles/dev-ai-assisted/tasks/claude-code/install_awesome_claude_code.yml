@@ -1,0 +1,59 @@
+---
+# Install Awesome Claude Code resources
+- name: Create claude code resources directory
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/claude/resources"
+    state: directory
+    mode: '0755'
+    recurse: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-resources
+
+- name: Clone Awesome Claude Code repository
+  ansible.builtin.git:
+    repo: https://github.com/hesreallyhim/awesome-claude-code.git
+    dest: "{{ ansible_env.HOME }}/.config/claude/resources/awesome-claude-code"
+    version: main  # or specify a specific version/tag if needed
+    update: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-resources
+
+- name: Create symlink to resources directory
+  ansible.builtin.file:
+    src: "{{ ansible_env.HOME }}/.config/claude/resources/awesome-claude-code"
+    dest: "{{ ansible_env.HOME }}/.config/claude/resources/awesome"
+    state: link
+  tags:
+    - claude
+    - claude-install
+    - claude-resources
+
+- name: Update shell configuration
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    block: |
+      # Awesome Claude Code Resources configuration
+      export CLAUDE_RESOURCES_HOME="{{ ansible_env.HOME }}/.config/claude/resources"
+      alias claude-resources='cd "$CLAUDE_RESOURCES_HOME/awesome" && ls -l'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - Awesome Claude Code Resources"
+    create: yes
+  tags:
+    - claude
+    - claude-install
+    - claude-resources
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "Awesome Claude Code resources have been installed to ~/.config/claude/resources/awesome-claude-code"
+      - "A symlink has been created at ~/.config/claude/resources/awesome"
+      - "Use 'claude-resources' to navigate to the resources directory"
+      - "The CLAUDE_RESOURCES_HOME environment variable has been set"
+  tags:
+    - claude
+    - claude-install
+    - claude-resources

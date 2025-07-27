@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.claude-code-proxy</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ ansible_env.HOME }}/.local/share/pnpm/pnpm</string>
+        <string>start</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>{{ ansible_env.HOME }}/.local/share/claude-code-proxy</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>{{ ansible_env.HOME }}/Library/Logs/claude-code-proxy.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ ansible_env.HOME }}/Library/Logs/claude-code-proxy.error.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>{{ ansible_env.PATH }}:{{ ansible_env.HOME }}/.local/share/pnpm</string>
+        <key>PORT</key>
+        <string>3000</string>
+        <key>NODE_ENV</key>
+        <string>production</string>
+    </dict>
+</dict>
+</plist>
