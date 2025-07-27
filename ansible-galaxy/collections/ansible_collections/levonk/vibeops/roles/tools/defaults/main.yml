@@ -31,3 +31,7 @@ tools_install_notepadplusplus: true
 tools_install_m1f: false  # Set to true to install m1f tool
 m1f_version: "latest"  # Can be set to a specific version like "v1.0.0" or "latest"
 
+# claude-task-master configuration
+tools_install_claude_task_master: true  # Set to false to skip installation
+claude_task_master_version: "main"  # Can be set to a specific version/tag/branch
+
