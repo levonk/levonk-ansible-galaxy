@@ -35,5 +35,29 @@
 - name: "Install Kiro"
   include_tasks: install_kiro.yml
 
-- name: "Install Claude Suite"
-  include_tasks: install_claude_suite.yml
+- name: "Install Claude Code (npm package)"
+  include_tasks: claude-code/install_npm.yml
+
+- name: "Install Claude Code Router"
+  include_tasks: claude-code/install_router.yml
+
+- name: "Install Claude Code Proxy"
+  include_tasks: claude-code/install_proxy.yml
+
+- name: "Install CodeMCP (Claude Code Multi-Prompt)"
+  include_tasks: claude-code/install_codemcp.yml
+
+- name: "Install SuperClaude Framework"
+  include_tasks: claude-code/install_superclaude.yml
+
+- name: "Install Awesome Claude Prompts"
+  include_tasks: claude-code/install_awesome_claude_prompts.yml
+
+- name: "Install Awesome AI System Prompts"
+  include_tasks: claude-code/install_awesome_ai_system_prompts.yml
+
+- name: "Install Awesome Claude Code Resources"
+  include_tasks: claude-code/install_awesome_claude_code.yml
+
+- name: "Install Tmux-Orchestrator"
+  include_tasks: tmux/install_orchestrator.yml

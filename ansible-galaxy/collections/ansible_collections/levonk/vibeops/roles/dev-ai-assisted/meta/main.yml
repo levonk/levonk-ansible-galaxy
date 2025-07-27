@@ -1,5 +1,7 @@
 ---
-dependency: []
+dependencies:
+  - role: levonk.vibeops.dev-node
+  - role: levonk.vibeops.dev-js
 author: v3l8dud3@lkara.com
 description: Install and configure AI-assisted developer tools, editors, and CLIs (VSCode, Cursor, Copilot CLI, Gemini, Claude, Amazon Q, Windsurf, Kiro, Warp, etc).
 license: MIT
