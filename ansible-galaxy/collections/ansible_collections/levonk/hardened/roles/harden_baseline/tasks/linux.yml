@@ -93,40 +93,6 @@
 # TODO: Expand with additional hardening tasks as needed
 pattern for any shell plugin/script installs (bash-it, starship, etc.)
 
-# Ensure etckeeper is installed and initialized before any other hardening tasks
-- name: Etckeeper | Ensure etckeeper is installed
-  levonk.common.package:
-    name: etckeeper
-    state: latest
-  become: yes
-  tags:
-    - harden_baseline
-    - etckeeper
-    - security
-
-- name: Etckeeper | Configure etckeeper to use git
-  ansible.builtin.lineinfile:
-    path: /etc/etckeeper/etckeeper.conf
-    regexp: '^#?VCS='
-    line: 'VCS="git"'
-    state: present
-    backup: yes
-  become: yes
-  notify: Commit changes to /etc
-  tags:
-    - harden_baseline
-    - etckeeper
-    - security
-
-- name: Etckeeper | Initialize etckeeper repository
-  ansible.builtin.command:
-    cmd: etckeeper init
-    creates: /etc/.git
-  become: yes
-  tags:
-    - harden_baseline
-    - etckeeper
-    - security
 
 # Now include any additional etckeeper tasks
 - name: Include etckeeper tasks

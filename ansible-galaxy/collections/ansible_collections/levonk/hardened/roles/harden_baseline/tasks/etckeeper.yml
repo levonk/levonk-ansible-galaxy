@@ -43,7 +43,71 @@
     state: present
     backup: yes
   become: yes
-  notify: Commit changes to /etc
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | Configure etckeeper to automatically react to package installs
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?HIGHLEVEL_COMMIT='
+    line: 'HIGHLEVEL_COMMIT=yes'
+    state: present
+    backup: yes
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | Dont risk partial commits by rebooting during reboot
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?AVOID_COMMIT_BEFORE_REBOOT='
+    line: 'AVOID_COMMIT_BEFORE_REBOOT=yes'
+    state: present
+    backup: yes
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | In case a commit was missed enable daily commit
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?DAILY_AUTO_COMMIT='
+    line: 'DAILY_AUTO_COMMIT=yes'
+    state: present
+    backup: yes
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | If a file wasn't added, add it
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?ALLOW_UNTRACKED='
+    line: 'ALLOW_UNTRACKED=yes'
+    state: present
+    backup: yes
+  become: yes
+  tags:
+    - harden_baseline
+    - etckeeper
+    - security
+
+- name: Etckeeper | Create initial repository
+  ansible.builtin.lineinfile:
+    path: /etc/etckeeper/etckeeper.conf
+    regexp: '^#?ALLOW_UNTRACKED='
+    line: 'ALLOW_UNTRACKED=yes'
+    state: present
+    backup: yes
+  become: yes
   tags:
     - harden_baseline
     - etckeeper
