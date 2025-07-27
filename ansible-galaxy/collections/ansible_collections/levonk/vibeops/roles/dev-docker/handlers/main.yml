@@ -1,0 +1,7 @@
+---
+# Handlers for the dev-docker role
+
+- name: restart orbstack
+  ansible.builtin.command: open -a OrbStack
+  changed_when: false
+  tags: [docker, orbstack, service]

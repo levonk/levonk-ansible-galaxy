@@ -5,25 +5,40 @@
 # For other platforms, falls back to Docker Desktop
 
 - name: Install container runtime (macOS with OrbStack)
+  when: ansible_os_family == 'Darwin'
+  tags: [docker, orbstack, macos]
   block:
     - name: Install OrbStack using Homebrew Cask
       homebrew_cask:
         name: orbstack
         state: present
       register: orbstack_install
+      notify: restart orbstack
       tags: [docker, orbstack, graphical]
 
-    - name: Start OrbStack service (macOS)
-      command: open -a OrbStack
-      when: orbstack_install.changed
-      tags: [docker, orbstack, service]
+- name: Check if running in a container
+  ansible.builtin.command: grep -q 'docker\|lxc' /proc/1/cgroup
+  register: in_container
+  ignore_errors: true
+  changed_when: false
+  check_mode: false
+  tags: [docker, desktop, graphical]
 
-  when: ansible_os_family == 'Darwin'
-  tags: [docker, orbstack, macos]
+- name: Check if running in a VM
+  ansible.builtin.command: systemd-detect-virt
+  register: in_vm
+  ignore_errors: true
+  changed_when: false
+  check_mode: false
+  tags: [docker, desktop, graphical]
 
 - name: Install Docker Desktop (non-macOS)
   levonk.common.package:
     name: docker-desktop
     state: latest
-  when: ansible_os_family != 'Darwin'
+  when:
+    - ansible_os_family != 'Darwin'
+    - not in_container.failed | bool  # Skip if we can't determine container status
+    - not in_container.rc == 0        # Skip if in container (rc=0 means found in cgroup)
+    - not (in_vm.rc == 0 | bool)      # Skip if in VM (rc=0 means running in a VM)
   tags: [docker, desktop, graphical]
