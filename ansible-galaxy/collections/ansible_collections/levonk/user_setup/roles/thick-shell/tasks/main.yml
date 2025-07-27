@@ -28,6 +28,10 @@
   include_tasks: tools/tmux.yml
   when: thick_shell_install_tmux 
 
+- name: Configure tmux clipboard support on macOS
+  include_tasks: mac/mac-support-tmux-copypaste.yml
+  when: thick_shell_install_tmux and ansible_os_family == 'Darwin'
+
 - name: Install zellij
   include_tasks: tools/zellij.yml
   when: thick_shell_install_zellij 

@@ -1,0 +1,11 @@
+---
+# Install reattach-to-user-namespace for tmux clipboard support on macOS
+- name: Install reattach-to-user-namespace for tmux clipboard support
+  levonk.common.package:
+    name: reattach-to-user-namespace
+    state: latest
+  tags:
+    - tmux
+    - clipboard
+    - macos
+  when: ansible_os_family == 'Darwin'
