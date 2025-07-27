@@ -25,6 +25,14 @@
     - tools
     - linter
 
+- name: Install jq JSON processor
+  ansible.builtin.include_tasks:
+    file: install_jq.yml
+  tags:
+    - developer
+    - tools
+    - jq
+
 - name: Install yq YAML processor
   ansible.builtin.include_tasks:
     file: install_yq.yml
