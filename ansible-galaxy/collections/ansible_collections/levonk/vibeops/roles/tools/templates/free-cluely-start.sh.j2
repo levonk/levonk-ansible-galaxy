@@ -1,0 +1,15 @@
+#!/bin/bash
+# Start script for Free Cluely
+
+# Change to the installation directory
+cd "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+
+# Check if running in development mode
+if [ "$1" = "--dev" ]; then
+    # Start in development mode
+    npm run dev -- --port 5180 &
+    NODE_ENV=development npm run electron:dev
+else
+    # Start in production mode
+    npm start
+fi
