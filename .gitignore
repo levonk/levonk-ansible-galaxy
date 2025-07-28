@@ -81,14 +81,6 @@ $RECYCLE.BIN/
 *.sql
 *.sqlite
 
-# Ansible
-*.retry
-*.log
-*.tmp
-*.swp
-*.swo
-*~
-
 # Ansible specific
 *.retry
 *.log

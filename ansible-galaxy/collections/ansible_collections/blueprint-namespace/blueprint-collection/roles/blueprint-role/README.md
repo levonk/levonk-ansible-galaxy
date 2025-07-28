@@ -2,7 +2,35 @@
 
 [Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/blueprint-namespace/blueprint-collection/roles/blueprint-role)
 
-This role is a template for best-practices Ansible role documentation, variable usage, and feature tables.
+This role is a template for best-practices Ansible role documentation, variable usage, and feature tables. It includes a Makefile for common development tasks and linting.
+
+## Development
+
+### Makefile Commands
+
+This role includes a Makefile with the following commands:
+
+| Command | Description |
+|---------|-------------|
+| `make` or `make test` | Run all tests (linting and molecule) |
+| `make lint` | Run all linters (Ansible, YAML, Markdown) |
+| `make lint-ansible` | Lint Ansible files with ansible-lint |
+| `make lint-yaml` | Lint YAML files with yamllint |
+| `make lint-markdown` | Lint Markdown files with markdownlint |
+| `make molecule` | Run molecule tests |
+
+### Linting
+
+This role includes linting for:
+- **Ansible**: Using ansible-lint to ensure best practices
+- **YAML**: Using yamllint for consistent YAML formatting
+- **Markdown**: Using markdownlint to maintain consistent documentation
+
+To install the required linters:
+```bash
+pip install ansible-lint yamllint
+npm install -g markdownlint-cli
+```
 
 ---
 

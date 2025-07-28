@@ -1,0 +1,18 @@
+---
+namespace: levonk
+name: server-llmchat
+version: 1.0.0
+readme: README.md
+authors:
+  - Levon Kachadourian
+description: Levonk server-llmchat collection
+license:
+  - MIT
+tags:
+  - levonk
+  - ansible
+  - collection
+repository: https://github.com/levonk/levonk-ansible-galaxy
+documentation: https://github.com/levonk/levonk-ansible-galaxy
+homepage: https://github.com/levonk/levonk-ansible-galaxy
+issues: https://github.com/levonk/levonk-ansible-galaxy/issues

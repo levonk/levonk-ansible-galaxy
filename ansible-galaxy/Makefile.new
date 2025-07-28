@@ -1,0 +1,276 @@
+# Top-level Makefile for levonk namespace
+# Coordinates building, testing, and publishing of all collections
+
+.PHONY: all build clean test beta prod lint list debug reset help
+.PHONY: lint-ansible lint-markdown lint-yaml lint-galaxy molecule
+.PHONY: build-collections test-collections lint-collections
+
+# Include common variables and functions
+include $(shell pwd)/common.mk
+
+# Default target
+all: build test
+
+# Build all collections
+build: $(BUILD_MARKER)
+
+$(BUILD_MARKER): $(CLEAN_MARKER) | $(MARKER_DIR)
+	@echo "Building all collections in levonk namespace..."
+	@mkdir -p $(DIST_DIR)
+	@$(MAKE) build-collections
+	@touch $(BUILD_MARKER)
+
+# Clean the dist directory
+clean: | $(MARKER_DIR)
+	@echo "Cleaning $(DIST_DIR)"
+	@mkdir -p $(DIST_DIR)
+	@rm -f $(DIST_DIR)/*.tar.gz
+	@for collection in $(COLLECTIONS); do \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/Makefile" ]; then \
+			echo "Cleaning collection: $$collection"; \
+			$(MAKE) -C "$(COLLECTIONS_DIR)/$$collection" clean; \
+		fi; \
+	done
+	@touch $(CLEAN_MARKER)
+
+# Run all tests
+test: $(TEST_MARKER)
+
+$(TEST_MARKER): $(LINT_MARKER) | $(MARKER_DIR)
+	@echo "Running all tests..."
+	@$(MAKE) test-collections
+	@touch $(TEST_MARKER)
+
+# Run all linting
+lint: $(LINT_MARKER)
+
+$(LINT_MARKER): $(BUILD_MARKER) | $(MARKER_DIR)
+	@echo "Running all linting tools..."
+	@$(MAKE) lint-collections
+	@$(MAKE) lint-ansible
+	@$(MAKE) lint-markdown
+	@$(MAKE) lint-yaml
+	@$(MAKE) lint-galaxy
+	@echo "All linting completed."
+	@touch $(LINT_MARKER)
+
+# Lint Ansible files with ansible-lint
+lint-ansible:
+	@echo "Linting Ansible files with ansible-lint..."
+	@ansible-lint $(ANSIBLE_LINT_FLAGS) $(COLLECTIONS_DIR) || echo "Warning: ansible-lint found issues"
+
+# Lint Markdown files with markdownlint
+lint-markdown:
+	@echo "Linting Markdown files with markdownlint..."
+	@find $(COLLECTIONS_DIR) -name "*.md" -exec markdownlint {} \; || echo "Warning: markdownlint found issues"
+
+# Lint YAML files with yamllint
+lint-yaml:
+	@echo "Linting YAML files with yamllint..."
+	@find $(COLLECTIONS_DIR) -name "*.yml" -exec yamllint $(YAMLLINT_FLAGS) {} \; || echo "Warning: yamllint found issues"
+
+# Lint galaxy.yml files
+lint-galaxy:
+	@echo "Linting galaxy.yml files..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Checking galaxy.yml for levonk.$$collection ==="; \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
+			# Check required fields
+			for field in namespace name version readme authors description license; do \
+				if ! grep -q "^$$field:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; then \
+					echo "ERROR: Missing required field '$$field' in galaxy.yml for $$collection"; \
+				fi; \
+			done; \
+			# Verify namespace is 'levonk'
+			if ! grep -q "^namespace: levonk" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; then \
+				echo "ERROR: Namespace must be 'levonk' in galaxy.yml for $$collection"; \
+			fi; \
+			# Verify name matches directory name
+			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
+			if [ "$$GALAXY_NAME" != "$$collection" ]; then \
+				echo "ERROR: Name '$$GALAXY_NAME' does not match directory name '$$collection'"; \
+			fi; \
+			# Validate with yamllint
+			yamllint "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" || echo "Warning: YAML syntax issues in galaxy.yml for $$collection"; \
+		else \
+			echo "Warning: No galaxy.yml found for $$collection"; \
+		fi; \
+	done
+
+# Run molecule tests for all roles
+molecule:
+	@echo "Running molecule tests for all roles..."
+	@for collection in $(COLLECTIONS); do \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/Makefile" ]; then \
+			echo "\n=== Running molecule tests for levonk.$$collection collection ==="; \
+			$(MAKE) -C "$(COLLECTIONS_DIR)/$$collection" molecule || echo "Warning: Molecule tests failed for $$collection"; \
+		else \
+			echo "\n=== Running molecule tests for levonk.$$collection collection ==="; \
+			for role_dir in $$(find "$(COLLECTIONS_DIR)/$$collection/roles" -mindepth 1 -maxdepth 1 -type d 2>/dev/null); do \
+				role_name=$$(basename "$$role_dir"); \
+				if [ -d "$$role_dir/molecule" ]; then \
+					echo "Testing role: $$role_name"; \
+					cd "$$role_dir" && molecule test || echo "Warning: Molecule tests failed for $$role_name"; \
+					cd "$(ROOT_DIR)"; \
+				else \
+					echo "No molecule tests found for role: $$role_name"; \
+				fi; \
+			done; \
+		fi; \
+	done
+
+# Base publish target - not meant to be called directly
+_publish_base:
+	$(call check_galaxy_token)
+	@if [ -z "$${GALAXY_SERVER}" ]; then \
+		echo "ERROR: GALAXY_SERVER variable is not set."; \
+		exit 1; \
+	fi
+	@echo "Using ANSIBLE_GALAXY_TOKEN for authentication to $${GALAXY_SERVER}"
+	@for collection in $$(find "$(DIST_DIR)" -name "*.tar.gz"); do \
+		echo "Publishing $$(basename $$collection) to $${GALAXY_SERVER}..."; \
+		ansible-galaxy collection publish $$collection --api-key="$${ANSIBLE_GALAXY_TOKEN}" --server="$${GALAXY_SERVER}" || \
+			echo "Failed to publish $$(basename $$collection)."; \
+	done
+
+# Publish to beta server
+beta: $(TEST_MARKER) | $(MARKER_DIR)
+	@echo "Publishing collections to beta server..."
+	@$(MAKE) _publish_base GALAXY_SERVER="$(GALAXY_BETA_SERVER)"
+	@touch $(BETA_MARKER)
+
+# Publish to production server
+prod: $(BETA_MARKER) | $(MARKER_DIR)
+	$(call check_prod_branch)
+	@echo "Publishing collections to production server from env/prod branch..."
+	@$(MAKE) _publish_base GALAXY_SERVER="$(GALAXY_PROD_SERVER)"
+
+# Build collections by calling each collection's Makefile
+build-collections:
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Building levonk.$$collection collection ==="; \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/Makefile" ]; then \
+			$(MAKE) -C "$(COLLECTIONS_DIR)/$$collection" build || exit 1; \
+		else \
+			if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
+				echo "Checking galaxy.yml for $$collection"; \
+				GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
+				if [ "$$GALAXY_NAME" != "$$collection" ]; then \
+					echo "Fixing galaxy.yml name from '$$GALAXY_NAME' to '$$collection'"; \
+					sed -i "s/^name:.*/name: $$collection/" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; \
+				fi; \
+				cd "$(COLLECTIONS_DIR)/$$collection"; \
+				ansible-galaxy collection build --output-path "$(DIST_DIR)" --force; \
+				RETVAL=$$?; \
+				if [ $$RETVAL -ne 0 ]; then \
+					echo "ERROR: Failed to build $$collection with existing galaxy.yml"; \
+					exit 1; \
+				fi; \
+				cd "$(ROOT_DIR)"; \
+			else \
+				echo "Creating galaxy.yml for $$collection"; \
+				mkdir -p "$(COLLECTIONS_DIR)/$$collection"; \
+				cat > "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" << EOF \
+namespace: levonk
+name: $$collection
+version: 0.1.0
+readme: README.md
+authors:
+  - Levon Kocharian
+description: Levonk $$collection collection
+license:
+  - MIT
+EOF
+				cd "$(COLLECTIONS_DIR)/$$collection"; \
+				ansible-galaxy collection build --output-path "$(DIST_DIR)" --force; \
+				RETVAL=$$?; \
+				if [ $$RETVAL -ne 0 ]; then \
+					echo "ERROR: Failed to build $$collection with new galaxy.yml"; \
+					exit 1; \
+				fi; \
+				cd "$(ROOT_DIR)"; \
+			fi; \
+		fi; \
+	done
+	@echo "\nBuild process complete. Artifacts in $(DIST_DIR):"
+	@find "$(DIST_DIR)" -name "*.tar.gz" | sort
+
+# Test collections by calling each collection's Makefile
+test-collections:
+	@for collection in $(COLLECTIONS); do \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/Makefile" ]; then \
+			echo "\n=== Testing levonk.$$collection collection ==="; \
+			$(MAKE) -C "$(COLLECTIONS_DIR)/$$collection" test || echo "Warning: Tests failed for $$collection"; \
+		fi; \
+	done
+
+# Lint collections by calling each collection's Makefile
+lint-collections:
+	@for collection in $(COLLECTIONS); do \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/Makefile" ]; then \
+			echo "\n=== Linting levonk.$$collection collection ==="; \
+			$(MAKE) -C "$(COLLECTIONS_DIR)/$$collection" lint || echo "Warning: Linting failed for $$collection"; \
+		fi; \
+	done
+
+# List all collections
+list:
+	@echo "Available collections in levonk namespace:"
+	@for collection in $(COLLECTIONS); do \
+		echo " - $$collection"; \
+	done
+
+# Reset all markers to force full rebuild
+reset:
+	@echo "Resetting all build markers"
+	@rm -rf $(MARKER_DIR)
+	@mkdir -p $(MARKER_DIR)
+	@echo "All markers reset. Next build will run all steps."
+
+# Debug target to print variables
+debug:
+	@echo "ROOT_DIR: $(ROOT_DIR)"
+	@echo "COLLECTIONS_DIR: $(COLLECTIONS_DIR)"
+	@echo "DIST_DIR: $(DIST_DIR)"
+	@echo "COLLECTIONS: $(COLLECTIONS)"
+	@echo "MARKER_DIR: $(MARKER_DIR)"
+	@echo "\nMarker files status:"
+	@echo "- Clean:  $$([ -f $(CLEAN_MARKER) ] && echo 'Done' || echo 'Not done')"
+	@echo "- Build:  $$([ -f $(BUILD_MARKER) ] && echo 'Done' || echo 'Not done')"
+	@echo "- Lint:   $$([ -f $(LINT_MARKER) ] && echo 'Done' || echo 'Not done')"
+	@echo "- Test:   $$([ -f $(TEST_MARKER) ] && echo 'Done' || echo 'Not done')"
+	@echo "- Beta:   $$([ -f $(BETA_MARKER) ] && echo 'Done' || echo 'Not done')"
+	@echo "\nCollection directories:"
+	@for collection in $(COLLECTIONS); do \
+		echo "- $$collection: $(COLLECTIONS_DIR)/$$collection"; \
+	done
+	@echo "\nCollection Makefiles:"
+	@for collection in $(COLLECTIONS); do \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/Makefile" ]; then \
+			echo "- $$collection: Has Makefile"; \
+		else \
+			echo "- $$collection: No Makefile"; \
+		fi; \
+	done
+	@echo "\nBuild artifacts:"
+	@find "$(DIST_DIR)" -name "*.tar.gz" -exec basename {} \; | sort 2>/dev/null || echo "No build artifacts found"
+
+# Help target
+help:
+	@echo "Available targets:"
+	@echo "  all           - Build and test all collections (default)"
+	@echo "  build         - Build all collections"
+	@echo "  clean         - Clean build artifacts"
+	@echo "  test          - Run all tests (lint + molecule)"
+	@echo "  lint          - Run all linting tools"
+	@echo "  lint-ansible  - Run ansible-lint on all collections"
+	@echo "  lint-markdown - Run markdownlint on all markdown files"
+	@echo "  lint-yaml     - Run yamllint on all YAML files"
+	@echo "  lint-galaxy   - Validate galaxy.yml files"
+	@echo "  molecule      - Run molecule tests for all roles"
+	@echo "  beta          - Publish collections to beta server"
+	@echo "  prod          - Publish collections to production server (requires beta and env/prod branch)"
+	@echo "  list          - List all collections"
+	@echo "  debug         - Print debug information"
+	@echo "  reset         - Reset all markers to force full rebuild"
+	@echo "  help          - Show this help message"

@@ -100,6 +100,8 @@ file_defaults:
   - files:
       - ./*.yml
       - ./*.yaml
+      - ./*.md
+      - ./*.j2
     rules:
       braces:
         level: "error"
