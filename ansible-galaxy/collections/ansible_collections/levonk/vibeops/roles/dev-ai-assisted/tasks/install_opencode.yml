@@ -1,0 +1,52 @@
+---
+# Install OpenCode - AI-assisted development tool
+# https://github.com/sst/opencode
+
+- name: "Check if git is installed"
+  ansible.builtin.package:
+    name: git
+    state: present
+  become: true
+
+- name: "Create OpenCode directory"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.opencode"
+    state: directory
+    mode: '0755'
+
+- name: "Clone OpenCode repository"
+  ansible.builtin.git:
+    repo: "https://github.com/sst/opencode"
+    dest: "{{ ansible_env.HOME }}/.opencode/repo"
+    version: main
+    depth: 1
+    update: yes
+
+- name: "Check if npm is installed"
+  ansible.builtin.command: which npm
+  register: npm_check
+  changed_when: false
+  failed_when: false
+
+- name: "Install OpenCode using npm"
+  ansible.builtin.command: npm install -g @sst/opencode
+  become: true
+  when: npm_check.rc == 0
+
+- name: "Create OpenCode configuration directory"
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/opencode"
+    state: directory
+    mode: '0755'
+
+- name: "Check if OpenCode is installed correctly"
+  ansible.builtin.command: opencode --version
+  register: opencode_check
+  changed_when: false
+  failed_when: false
+  ignore_errors: true
+
+- name: "Display OpenCode installation status"
+  ansible.builtin.debug:
+    msg: "OpenCode has been successfully installed"
+  when: opencode_check.rc == 0

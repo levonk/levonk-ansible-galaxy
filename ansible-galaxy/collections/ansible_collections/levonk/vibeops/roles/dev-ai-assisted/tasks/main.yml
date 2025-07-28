@@ -50,6 +50,9 @@
 - name: "Install SuperClaude Framework"
   include_tasks: claude-code/install_superclaude.yml
 
+- name: "Install OpenCode"
+  include_tasks: install_opencode.yml
+
 - name: "Install Awesome Claude Prompts"
   include_tasks: claude-code/install_awesome_claude_prompts.yml
 
