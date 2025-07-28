@@ -1,4 +1,4 @@
-.PHONY: all build clean test beta prod lint lint-ansible lint-markdown lint-yaml lint-galaxy molecule debug-galaxy
+.PHONY: all build clean test beta prod lint lint-ansible lint-markdown lint-yaml lint-galaxy molecule debug-galaxy inst-src inst-repo inst-build inst-beta inst-prod new-collection new-role
 
 # Define paths and collections
 ROOT_DIR := $(shell pwd)
@@ -214,6 +214,9 @@ _publish_base:
 		GALAXY_SERVER="$(GALAXY_BETA_SERVER)"; \
 	fi
 	@echo "Using ANSIBLE_GALAXY_TOKEN for authentication to $${GALAXY_SERVER}"
+	@echo "Testing connection to $${GALAXY_SERVER}..."
+	@curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 "$${GALAXY_SERVER}" | grep -q "^[23]" || { echo "ERROR: Cannot connect to $${GALAXY_SERVER}. Please check your internet connection and try again."; exit 1; }
+	@curl -s -o /dev/null -w "%{http_code}" --connect-timeout 10 -H "Authorization: Bearer $${ANSIBLE_GALAXY_TOKEN}" "$${GALAXY_SERVER}/api/v3/collections" | grep -q "^[23]" || { echo "ERROR: Authentication failed for $${GALAXY_SERVER}. Please check your token and try again."; exit 1; }
 	for collection in $$(find "$(DIST_DIR)" -name "*.tar.gz"); do \
 		echo "Publishing $$(basename $$collection) to $${GALAXY_SERVER}..."; \
 		ansible-galaxy collection publish $$collection --api-key="$${ANSIBLE_GALAXY_TOKEN}" --server="$${GALAXY_SERVER}" || \
@@ -224,11 +227,12 @@ _publish_base:
 beta: $(TEST_MARKER)
 	@echo "Publishing collections to beta server..."
 	@echo "Using beta server URL: https://galaxy-dev.ansible.com"
-	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
-		echo "WARNING: ANSIBLE_GALAXY_TOKEN environment variable is not set. Using dev-beta instead." ; \
+	@if [ -z "$${BETA_ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "WARNING: BETA_ANSIBLE_GALAXY_TOKEN environment variable is not set. Using dev-beta instead." ; \
 		$(MAKE) -C .. dev-beta ; \
 	else \
-		echo "Token prefix: $$(echo $${ANSIBLE_GALAXY_TOKEN} | cut -c1-3)..." ; \
+		echo "Beta token prefix: $$(echo $${BETA_ANSIBLE_GALAXY_TOKEN} | cut -c1-3)..." ; \
+		ANSIBLE_GALAXY_TOKEN="$${BETA_ANSIBLE_GALAXY_TOKEN}" ; \
 		for collection in $$(find "$(DIST_DIR)" -name "*.tar.gz"); do \
 			echo "Publishing $$(basename $$collection) to https://galaxy-dev.ansible.com..." ; \
 			ansible-galaxy collection publish $$collection --api-key="$${ANSIBLE_GALAXY_TOKEN}" --server="https://galaxy-dev.ansible.com" || \
@@ -247,7 +251,13 @@ prod: $(MARKER_DIR)/beta.marker
 		exit 1; \
 	fi
 	@echo "Publishing collections to production server from env/prod branch..."
-	@$(MAKE) _publish_base GALAXY_SERVER="https://galaxy.ansible.com"
+	@if [ -z "$${PROD_ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "ERROR: PROD_ANSIBLE_GALAXY_TOKEN environment variable is not set."; \
+		echo "You can find your token at https://galaxy.ansible.com/ui/token/ after logging in."; \
+		echo "Then set it with: export PROD_ANSIBLE_GALAXY_TOKEN=your_token"; \
+		exit 1; \
+	fi
+	@ANSIBLE_GALAXY_TOKEN="$${PROD_ANSIBLE_GALAXY_TOKEN}" $(MAKE) _publish_base GALAXY_SERVER="https://galaxy.ansible.com"
 
 # List all collections
 list:
@@ -267,6 +277,146 @@ reset:
 debug-galaxy:
 	@echo "Running Galaxy authentication debugging tool..."
 	@$(ROOT_DIR)/../bin/galaxy_auth_tool.sh --server="https://galaxy-dev.ansible.com"
+
+# Installation targets
+
+# Install from source directory
+inst-src:
+	@echo "Installing collections from source directories..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Installing levonk.$$collection from source ===" ; \
+		ansible-galaxy collection install "$(COLLECTIONS_DIR)/$$collection" --force ; \
+		if [ -f "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ]; then \
+			echo "Running test playbook for levonk.$$collection..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ; \
+		elif [ -f "$(ROOT_DIR)/../tests/test-levonk.yml" ]; then \
+			echo "Running namespace test playbook..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" ; \
+		else \
+			echo "No test playbook found for levonk.$$collection" ; \
+		fi ; \
+	done
+
+# Install from git repository
+inst-repo:
+	@echo "Installing collections from git repository..."
+	@read -p "Enter branch name (default: main): " branch; \
+	branch=$${branch:-main}; \
+	for collection in $(COLLECTIONS); do \
+		echo "\n=== Installing levonk.$$collection from git repository (branch: $$branch) ===" ; \
+		ansible-galaxy collection install git+https://github.com/levonk/levonk-ansible-galaxy.git#/collections/ansible_collections/levonk/$$collection/,$$branch --force ; \
+		if [ -f "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ]; then \
+			echo "Running test playbook for levonk.$$collection..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ; \
+		elif [ -f "$(ROOT_DIR)/../tests/test-levonk.yml" ]; then \
+			echo "Running namespace test playbook..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" ; \
+		else \
+			echo "No test playbook found for levonk.$$collection" ; \
+		fi ; \
+	done
+
+# Install from built artifacts
+inst-build: $(BUILD_MARKER)
+	@echo "Installing collections from build artifacts..."
+	@for collection_file in $$(find "$(DIST_DIR)" -name "levonk-*.tar.gz"); do \
+		echo "\n=== Installing $$(basename $$collection_file) ===" ; \
+		ansible-galaxy collection install "$$collection_file" --force ; \
+		collection_name=$$(echo $$(basename $$collection_file) | sed -E 's/levonk-(.*)-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz/\1/') ; \
+		if [ -f "$(ROOT_DIR)/../tests/test-levonk.$$collection_name.yml" ]; then \
+			echo "Running test playbook for levonk.$$collection_name..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection_name.yml" ; \
+		elif [ -f "$(ROOT_DIR)/../tests/test-levonk.yml" ]; then \
+			echo "Running namespace test playbook..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" ; \
+		else \
+			echo "No test playbook found for levonk.$$collection_name" ; \
+		fi ; \
+	done
+
+# Install from beta server
+inst-beta:
+	@echo "Installing collections from beta server..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Installing levonk.$$collection from beta server ===" ; \
+		ansible-galaxy collection install levonk.$$collection --server https://galaxy-dev.ansible.com --force ; \
+		if [ -f "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ]; then \
+			echo "Running test playbook for levonk.$$collection..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ; \
+		elif [ -f "$(ROOT_DIR)/../tests/test-levonk.yml" ]; then \
+			echo "Running namespace test playbook..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" ; \
+		else \
+			echo "No test playbook found for levonk.$$collection" ; \
+		fi ; \
+	done
+
+# Install from production server
+inst-prod:
+	@echo "Installing collections from production server..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Installing levonk.$$collection from production server ===" ; \
+		ansible-galaxy collection install levonk.$$collection --force ; \
+		if [ -f "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ]; then \
+			echo "Running test playbook for levonk.$$collection..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ; \
+		elif [ -f "$(ROOT_DIR)/../tests/test-levonk.yml" ]; then \
+			echo "Running namespace test playbook..." ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" ; \
+		else \
+			echo "No test playbook found for levonk.$$collection" ; \
+		fi ; \
+	done
+
+# Create a new collection using the blueprint template
+new-collection:
+	@echo "Creating a new collection..."
+	@read -p "Enter collection name: " collection_name; \
+	if [ -z "$$collection_name" ]; then \
+		echo "Error: Collection name cannot be empty."; \
+		exit 1; \
+	fi; \
+	if [ -d "$(COLLECTIONS_DIR)/$$collection_name" ]; then \
+		echo "Collection '$$collection_name' already exists at $(COLLECTIONS_DIR)/$$collection_name"; \
+		exit 1; \
+	fi; \
+	echo "Creating new collection: levonk.$$collection_name"; \
+	copier copy \
+		"$(ROOT_DIR)/collections/ansible_collections/blueprint-namespace/blueprint-collection" \
+		"$(COLLECTIONS_DIR)/$$collection_name" \
+		--data "collection_name=$$collection_name" \
+		--data "namespace=levonk" \
+		--force; \
+	echo "Collection created at: $(COLLECTIONS_DIR)/$$collection_name"; \
+	echo "To add this collection to the build list, update the COLLECTIONS variable in the Makefile."
+
+# Create a new role within a collection using the blueprint template
+new-role:
+	@echo "Creating a new role..."
+	@read -p "Enter collection name: " collection_name; \
+	read -p "Enter role name: " role_name; \
+	if [ -z "$$collection_name" ] || [ -z "$$role_name" ]; then \
+		echo "Error: Collection name and role name cannot be empty."; \
+		exit 1; \
+	fi; \
+	if [ ! -d "$(COLLECTIONS_DIR)/$$collection_name" ]; then \
+		echo "Collection '$$collection_name' does not exist. Creating it first..."; \
+		$(MAKE) new-collection collection_name=$$collection_name; \
+	fi; \
+	if [ -d "$(COLLECTIONS_DIR)/$$collection_name/roles/$$role_name" ]; then \
+		echo "Role '$$role_name' already exists in collection '$$collection_name'."; \
+		exit 1; \
+	fi; \
+	echo "Creating new role: levonk.$$collection_name.$$role_name"; \
+	mkdir -p "$(COLLECTIONS_DIR)/$$collection_name/roles"; \
+	copier copy \
+		"$(ROOT_DIR)/collections/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role" \
+		"$(COLLECTIONS_DIR)/$$collection_name/roles/$$role_name" \
+		--data "role_name=$$role_name" \
+		--data "collection_name=$$collection_name" \
+		--data "namespace=levonk" \
+		--force; \
+	echo "Role created at: $(COLLECTIONS_DIR)/$$collection_name/roles/$$role_name"
 
 # Debug target to print variables
 debug:
