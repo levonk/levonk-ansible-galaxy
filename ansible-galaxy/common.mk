@@ -19,7 +19,8 @@ COLLECTIONS := base_system common gamer hardened server-llmchat user_setup vibeo
 
 # Galaxy server URLs
 GALAXY_PROD_SERVER := https://galaxy.ansible.com
-GALAXY_BETA_SERVER := https://galaxy-dev.ansible.com
+# Using the correct API endpoint to avoid redirects
+GALAXY_BETA_SERVER := https://galaxy-dev.ansible.com/api/v3
 
 # Linting configuration
 ANSIBLE_LINT_FLAGS := -p

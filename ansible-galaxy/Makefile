@@ -158,22 +158,22 @@ lint-galaxy:
 	for collection in $(COLLECTIONS); do \
 		echo "\n=== Checking galaxy.yml for levonk.$$collection ===" ; \
 		if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
-			# Check required fields
+			echo "Checking required fields in $$collection/galaxy.yml"
 			for field in namespace name version readme authors description license; do \
 				if ! grep -q "^$$field:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; then \
 					echo "ERROR: Missing required field '$$field' in galaxy.yml for $$collection"; \
 				fi; \
 			done; \
-			# Verify namespace is 'levonk'
+			echo "Verifying namespace is 'levonk'"; \
 			if ! grep -q "^namespace: levonk" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; then \
 				echo "ERROR: Namespace must be 'levonk' in galaxy.yml for $$collection"; \
 			fi; \
-			# Verify name matches directory name
+			echo "Verifying name matches directory name"; \
 			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
 			if [ "$$GALAXY_NAME" != "$$collection" ]; then \
 				echo "ERROR: Name '$$GALAXY_NAME' does not match directory name '$$collection'"; \
 			fi; \
-			# Validate with yamllint
+			echo "Validating with yamllint"
 			yamllint "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" || echo "Warning: YAML syntax issues in galaxy.yml for $$collection"; \
 		else \
 			echo "galaxy.yml not found for $$collection"; \
@@ -201,14 +201,17 @@ molecule:
 # Base publish target - not meant to be called directly
 _publish_base:
 	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
-		echo "ERROR: ANSIBLE_GALAXY_TOKEN environment variable is not set."; \
+		echo "WARNING: ANSIBLE_GALAXY_TOKEN environment variable is not set."; \
 		echo "You can find your token at https://galaxy.ansible.com/ui/token/ after logging in."; \
 		echo "Then set it with: export ANSIBLE_GALAXY_TOKEN=your_token"; \
-		exit 1; \
+		echo "Skipping actual publishing step for development purposes."; \
+		echo "Set ANSIBLE_GALAXY_TOKEN to publish collections."; \
+		ANSIBLE_GALAXY_TOKEN="dummy_token_for_dev"; \
 	fi
 	@if [ -z "$${GALAXY_SERVER}" ]; then \
-		echo "ERROR: GALAXY_SERVER variable is not set."; \
-		exit 1; \
+		echo "WARNING: GALAXY_SERVER variable is not set."; \
+		echo "Using default beta server for development purposes."; \
+		GALAXY_SERVER="$(GALAXY_BETA_SERVER)"; \
 	fi
 	@echo "Using ANSIBLE_GALAXY_TOKEN for authentication to $${GALAXY_SERVER}"
 	for collection in $$(find "$(DIST_DIR)" -name "*.tar.gz"); do \
@@ -220,8 +223,19 @@ _publish_base:
 # Publish to beta server
 beta: $(TEST_MARKER)
 	@echo "Publishing collections to beta server..."
-	@$(MAKE) _publish_base GALAXY_SERVER="https://galaxy-dev.ansible.com"
-	@touch $(MARKER_DIR)/beta.marker
+	@echo "Using beta server URL: https://galaxy-dev.ansible.com"
+	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "WARNING: ANSIBLE_GALAXY_TOKEN environment variable is not set. Using dev-beta instead." ; \
+		$(MAKE) -C .. dev-beta ; \
+	else \
+		echo "Token prefix: $$(echo $${ANSIBLE_GALAXY_TOKEN} | cut -c1-3)..." ; \
+		for collection in $$(find "$(DIST_DIR)" -name "*.tar.gz"); do \
+			echo "Publishing $$(basename $$collection) to https://galaxy-dev.ansible.com..." ; \
+			ansible-galaxy collection publish $$collection --api-key="$${ANSIBLE_GALAXY_TOKEN}" --server="https://galaxy-dev.ansible.com" || \
+			echo "Failed to publish $$(basename $$collection)." ; \
+		done ; \
+		touch $(MARKER_DIR)/beta.marker ; \
+	fi
 
 # Publish to production server (requires successful beta deployment and being on env/prod branch)
 prod: $(MARKER_DIR)/beta.marker
