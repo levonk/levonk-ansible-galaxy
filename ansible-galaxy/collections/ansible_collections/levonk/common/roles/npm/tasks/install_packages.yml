@@ -1,0 +1,22 @@
+---
+# Install packages using the detected package manager
+
+- name: "Ensure package manager is installed"
+  ansible.builtin.include_tasks: ensure_package_manager.yml
+
+- name: "Install global packages"
+  ansible.builtin.command: "{{ node_package_manager }} {{ node_package_manager_install_cmd }} {{ node_package_manager_global_flag }} {{ item }}"
+  loop: "{{ npm_packages | default([]) }}"
+  when: npm_packages is defined and npm_global | default(true)
+  become: "{{ npm_become | default(true) }}"
+  register: npm_install_result
+  changed_when: "'added' in npm_install_result.stdout or 'updated' in npm_install_result.stdout"
+
+- name: "Install local packages"
+  ansible.builtin.command: "{{ node_package_manager }} {{ node_package_manager_install_cmd }} {{ item }} {{ '--save-dev' if npm_dev | default(false) else '--save' }}"
+  args:
+    chdir: "{{ project_dir | default(ansible_env.PWD) }}"
+  loop: "{{ npm_packages | default([]) }}"
+  when: npm_packages is defined and not (npm_global | default(true))
+  register: npm_install_result
+  changed_when: "'added' in npm_install_result.stdout or 'updated' in npm_install_result.stdout"

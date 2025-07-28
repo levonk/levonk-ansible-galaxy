@@ -1,0 +1,44 @@
+---
+# Install packages using the detected package manager
+
+- name: "Ensure package manager is installed"
+  ansible.builtin.include_tasks: ensure_package_manager.yml
+
+- name: "Install packages from requirements file"
+  ansible.builtin.command: >
+    {{ python_package_manager_install_cmd }} 
+    {{ python_package_manager_req_flag }} 
+    {{ requirements_file | default('requirements.txt') }}
+  args:
+    chdir: "{{ project_dir | default(ansible_env.PWD) }}"
+  when: pip_from_requirements | default(false) and requirements_txt.stat.exists
+  become: "{{ pip_become | default(false) }}"
+  register: pip_install_result
+  changed_when: pip_install_result.rc == 0
+
+- name: "Install individual packages"
+  ansible.builtin.command: >
+    {{ python_package_manager_install_cmd }} 
+    {{ '--user' if pip_user | default(false) and python_package_manager in ['pip', 'uv'] else '' }} 
+    {{ item }}
+  args:
+    chdir: "{{ project_dir | default(ansible_env.PWD) }}"
+  loop: "{{ pip_packages | default([]) }}"
+  when: pip_packages is defined and not pip_from_requirements | default(false)
+  become: "{{ pip_become | default(false) }}"
+  register: pip_install_result
+  changed_when: pip_install_result.rc == 0
+
+- name: "Install development packages"
+  ansible.builtin.command: >
+    {{ python_package_manager_install_cmd }} 
+    {{ '--dev' if python_package_manager == 'poetry' else 
+       '--dev' if python_package_manager == 'pdm' else 
+       '--dev' if python_package_manager == 'pipenv' else '' }} 
+    {{ item }}
+  args:
+    chdir: "{{ project_dir | default(ansible_env.PWD) }}"
+  loop: "{{ pip_dev_packages | default([]) }}"
+  when: pip_dev_packages is defined and python_package_manager in ['poetry', 'pdm', 'pipenv']
+  register: pip_install_result
+  changed_when: pip_install_result.rc == 0
