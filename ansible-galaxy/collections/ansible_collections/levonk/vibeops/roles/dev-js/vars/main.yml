@@ -9,3 +9,9 @@ dev_js_install_eslint: true
 dev_js_install_prettier: true
 dev_js_install_vite: true
 dev_js_install_create_react_app: true
+
+# WebStorm IDE configuration
+dev_js_install_webstorm: true
+webstorm_version: "2024.2"
+# SHA-256 checksum for WebStorm-2024.2.tar.gz
+webstorm_checksum: "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2"

@@ -13,3 +13,9 @@
 
 - name: Include JavaScript build tools (vite, CRA, typescript)
   ansible.builtin.import_tasks: js-build-tools.yml
+
+- name: Include WebStorm IDE installation
+  ansible.builtin.import_tasks: webstorm.yml
+  when: 
+    - dev_js_install_webstorm | bool
+    - '"graphical" in ansible_run_tags'

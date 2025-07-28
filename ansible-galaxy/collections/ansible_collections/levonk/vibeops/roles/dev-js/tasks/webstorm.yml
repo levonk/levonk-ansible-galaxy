@@ -1,0 +1,76 @@
+---
+# Install JetBrains WebStorm IDE
+- name: Install WebStorm dependencies
+  ansible.builtin.apt:
+    name:
+      - libxrender1
+      - libxtst6
+      - libxi6
+      - libfreetype6
+      - libfontconfig1
+      - libxext6
+      - libx11-6
+    state: present
+  when: ansible_os_family == 'Debian'
+  tags:
+    - webstorm
+    - js
+    - graphical
+
+- name: Download WebStorm
+  ansible.builtin.get_url:
+    url: https://download.jetbrains.com/webstorm/WebStorm-{{ webstorm_version }}.tar.gz
+    dest: /tmp/webstorm-{{ webstorm_version }}.tar.gz
+    checksum: "sha256:{{ webstorm_checksum }}
+    mode: '0644'
+  register: download_webstorm
+  tags:
+    - webstorm
+    - js
+    - graphical
+
+- name: Create WebStorm installation directory
+  ansible.builtin.file:
+    path: /opt/webstorm
+    state: directory
+    mode: '0755'
+  tags:
+    - webstorm
+    - js
+    - graphical
+
+- name: Extract WebStorm
+  ansible.builtin.unarchive:
+    src: /tmp/webstorm-{{ webstorm_version }}.tar.gz
+    dest: /opt/
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    creates: /opt/WebStorm/bin/webstorm.sh
+  register: extracted_webstorm
+  tags:
+    - webstorm
+    - js
+    - graphical
+
+- name: Create symlink to WebStorm binary
+  ansible.builtin.file:
+    src: /opt/WebStorm/bin/webstorm.sh
+    dest: /usr/local/bin/webstorm
+    state: link
+    force: yes
+    mode: '0755'
+  when: extracted_webstorm.changed
+  tags:
+    - webstorm
+    - js
+    - graphical
+
+- name: Create desktop entry for WebStorm
+  ansible.builtin.template:
+    src: webstorm.desktop.j2
+    dest: /usr/share/applications/webstorm.desktop
+    mode: '0644'
+  tags:
+    - webstorm
+    - js
+    - graphical
