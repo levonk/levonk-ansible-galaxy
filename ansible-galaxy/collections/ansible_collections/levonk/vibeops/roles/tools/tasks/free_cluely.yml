@@ -1,35 +1,9 @@
 ---
 # Install free-cluely - An open-source version of Cluely
 
-- name: Install Node.js and npm (Debian/Ubuntu)
-  ansible.builtin.apt:
-    name:
-      - nodejs
-      - npm
-    state: present
-    update_cache: true
-  when: ansible_os_family == 'Debian'
-  become: true
-  tags:
-    - tools
-    - free-cluely
-    - nodejs
-
-- name: Install Node.js and npm (macOS)
-  homebrew:
-    name: node
-    state: present
-  when: ansible_os_family == 'Darwin'
-  tags:
-    - tools
-    - free-cluely
-    - nodejs
-
-- name: Install Node.js and npm (Windows)
-  win_chocolatey:
-    name: nodejs
-    state: present
-  when: ansible_os_family == 'Windows'
+- name: Include Node.js and pnpm installation from dev-js
+  ansible.builtin.import_role:
+    name: levonk.vibeops.dev_js
   tags:
     - tools
     - free-cluely
@@ -50,19 +24,51 @@
     dest: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
     version: main
     update: yes
+  register: free_cluely_repo
+  tags:
+    - tools
+    - free-cluely
+
+- name: Detect package manager from lock files
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}/pnpm-lock.yaml"
+    - "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}/yarn.lock"
+    - "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}/package-lock.json"
+  register: package_manager_check
+  tags:
+    - tools
+    - free-cluely
+
+- name: Set package manager based on lock files
+  ansible.builtin.set_fact:
+    package_manager: >-
+      {% if package_manager_check.results[0].stat.exists %}
+        pnpm
+      {% elif package_manager_check.results[1].stat.exists %}
+        yarn
+      {% elif package_manager_check.results[2].stat.exists %}
+        npm
+      {% else %}
+        pnpm
+      {% endif %}
   tags:
     - tools
     - free-cluely
 
 - name: Install free-cluely dependencies
-  command: npm install
+  ansible.builtin.command: "{{ package_manager }} install"
   args:
     chdir: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+  environment:
+    PNPM_HOME: "{{ ansible_user_dir }}/.local/share/pnpm"
+    PATH: "{{ ansible_user_dir }}/.local/share/pnpm:{{ ansible_env.PATH }}"
   become: false
   tags:
     - tools
     - free-cluely
-    - npm
+    - deps
 
 - name: Create free-cluely .env file
   ansible.builtin.template:
@@ -97,9 +103,12 @@
     - free-cluely
 
 - name: Build free-cluely for production
-  command: npm run build
+  ansible.builtin.command: "{{ package_manager }} run build"
   args:
     chdir: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+  environment:
+    PNPM_HOME: "{{ ansible_user_dir }}/.local/share/pnpm"
+    PATH: "{{ ansible_user_dir }}/.local/share/pnpm:{{ ansible_env.PATH }}"
   become: false
   when: free_cluely_build | default(true) | bool
   tags:

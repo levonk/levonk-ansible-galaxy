@@ -4,12 +4,16 @@
 # Change to the installation directory
 cd "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
 
+# Set up environment
+export PNPM_HOME="{{ ansible_user_dir | default('~') }}/.local/share/pnpm"
+export PATH="$PNPM_HOME:$PATH"
+
 # Check if running in development mode
 if [ "$1" = "--dev" ]; then
     # Start in development mode
-    npm run dev -- --port 5180 &
-    NODE_ENV=development npm run electron:dev
+    {{ package_manager | default('pnpm') }} run dev -- --port 5180 &
+    NODE_ENV=development {{ package_manager | default('pnpm') }} run electron:dev
 else
     # Start in production mode
-    npm start
+    {{ package_manager | default('pnpm') }} start
 fi
