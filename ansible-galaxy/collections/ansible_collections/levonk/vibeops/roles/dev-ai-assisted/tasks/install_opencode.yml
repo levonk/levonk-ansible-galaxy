@@ -22,16 +22,14 @@
     depth: 1
     update: yes
 
-- name: "Check if npm is installed"
-  ansible.builtin.command: which npm
-  register: npm_check
-  changed_when: false
-  failed_when: false
-
-- name: "Install OpenCode using npm"
-  ansible.builtin.command: npm install -g @sst/opencode
+- name: "Install OpenCode using node-pm"
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - "@sst/opencode"
   become: true
-  when: npm_check.rc == 0
 
 - name: "Create OpenCode configuration directory"
   ansible.builtin.file:

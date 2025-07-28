@@ -38,10 +38,11 @@
     - superclaude
 
 - name: Install Python dependencies
-  community.general.pip:
-    requirements: "{{ ansible_env.HOME }}/.local/share/superclaude/requirements.txt"
-    executable: pip3
-    state: present
+  include_role:
+    name: levonk.common.py-pm
+    tasks_from: install_requirements
+  vars:
+    requirements_file: "{{ ansible_env.HOME }}/.local/share/superclaude/requirements.txt"
   become: false
   when: ansible_check_mode == false  # Skip in check mode
   tags:

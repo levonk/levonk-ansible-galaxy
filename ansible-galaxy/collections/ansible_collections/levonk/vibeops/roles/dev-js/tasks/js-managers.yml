@@ -25,17 +25,23 @@
     - lookup('ansible.builtin.env', 'SCOOP') == ''
 
 - name: Install pnpm globally
-  ansible.builtin.shell: npm install -g pnpm
-  args:
-    creates: /usr/local/bin/pnpm
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - pnpm
   when:
     - dev_js_install_pnpm | default(true)
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install pnpm globally (Windows)
-  win_shell: npm install -g pnpm
-  args:
-    creates: C:\\Program Files\\nodejs\\pnpm.cmd
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - pnpm
   when:
     - dev_js_install_pnpm | default(true)
     - ansible_facts['os_family'] == 'Windows'
@@ -48,15 +54,23 @@ yarn
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install yarn globally (fallback)
-  ansible.builtin.shell: npm install -g yarn
-  args:
-    creates: /usr/local/bin/yarn
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - yarn
   when:
     - dev_js_install_yarn | default(true)
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install yarn globally (Windows)
-  win_shell: npm install -g yarn
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - yarn
   args:
     creates: C:\\Program Files\\nodejs\\yarn.cmd
   when:

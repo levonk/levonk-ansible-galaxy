@@ -1,8 +1,8 @@
-# Ansible Role: levonk.common.pip
+# Ansible Role: levonk.common.node-pm
 
-[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/ansible-galaxy/collections/ansible_collections/levonk/common/roles/pip)
+[Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/ansible-galaxy/collections/ansible_collections/levonk/common/roles/node-pm)
 
-This role provides intelligent Python package management by detecting and using the appropriate package manager based on project files. It defaults to uv when no specific package manager is required by the project.
+This role provides intelligent Node.js package management by detecting and using the appropriate package manager based on project files. It defaults to pnpm when no specific package manager is required by the project.
 
 ## Development
 

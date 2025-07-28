@@ -1,16 +1,22 @@
 ---
 - name: Install ESLint globally (Linux/macOS)
-  ansible.builtin.shell: npm install -g eslint
-  args:
-    creates: /usr/local/bin/eslint
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - eslint
   when:
     - dev_js_install_eslint | default(true)
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install ESLint globally (Windows)
-  win_shell: npm install -g eslint
-  args:
-    creates: C:\\Program Files\\nodejs\\eslint.cmd
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - eslint
   when:
     - dev_js_install_eslint | default(true)
     - ansible_facts['os_family'] == 'Windows'

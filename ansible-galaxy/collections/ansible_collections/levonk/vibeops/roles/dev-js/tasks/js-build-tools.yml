@@ -1,48 +1,66 @@
 ---
 - name: Install TypeScript globally (Linux/macOS)
-  ansible.builtin.shell: npm install -g typescript
-  args:
-    creates: /usr/local/bin/tsc
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - typescript
   when:
     - dev_js_install_typescript | default(true)
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install TypeScript globally (Windows)
-  win_shell: npm install -g typescript
-  args:
-    creates: C:\\Program Files\\nodejs\\tsc.cmd
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - typescript
   when:
     - dev_js_install_typescript | default(true)
     - ansible_facts['os_family'] == 'Windows'
 
 - name: Install Vite globally (Linux/macOS)
-  ansible.builtin.shell: npm install -g vite
-  args:
-    creates: /usr/local/bin/vite
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - vite
   when:
     - dev_js_install_vite | default(true)
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install Vite globally (Windows)
-  win_shell: npm install -g vite
-  args:
-    creates: C:\\Program Files\\nodejs\\vite.cmd
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - vite
   when:
     - dev_js_install_vite | default(true)
     - ansible_facts['os_family'] == 'Windows'
 
 - name: Install create-react-app globally (Linux/macOS)
-  ansible.builtin.shell: npm install -g create-react-app
-  args:
-    creates: /usr/local/bin/create-react-app
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - create-react-app
   when:
     - dev_js_install_create_react_app | default(true)
     - ansible_facts['os_family'] != 'Windows'
 
 - name: Install create-react-app globally (Windows)
-  win_shell: npm install -g create-react-app
-  args:
-    creates: C:\\Program Files\\nodejs\\create-react-app.cmd
+  include_role:
+    name: levonk.common.node-pm
+    tasks_from: install_global_packages
+  vars:
+    npm_packages:
+      - create-react-app
   when:
     - dev_js_install_create_react_app | default(true)
     - ansible_facts['os_family'] == 'Windows'

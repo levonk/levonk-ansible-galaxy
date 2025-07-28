@@ -30,10 +30,11 @@
     - codemcp
 
 - name: Install Python dependencies
-  community.general.pip:
-    requirements: "{{ ansible_env.HOME }}/.local/share/codemcp/requirements.txt"
-    executable: pip3
-    state: present
+  include_role:
+    name: levonk.common.py-pm
+    tasks_from: install_requirements
+  vars:
+    requirements_file: "{{ ansible_env.HOME }}/.local/share/codemcp/requirements.txt"
   become: false
   tags:
     - claude
