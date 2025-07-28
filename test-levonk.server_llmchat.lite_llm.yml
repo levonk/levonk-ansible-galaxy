@@ -1,0 +1,78 @@
+---
+# Test playbook for levonk.server_llmchat.lite_llm role
+# This playbook tests all features of the Lite LLM role
+
+- name: Test Lite LLM role with default settings
+  hosts: localhost
+  become: true
+  gather_facts: true
+  
+  pre_tasks:
+    - name: Update apt cache (Debian/Ubuntu)
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+      tags: always
+
+  roles:
+    - role: levonk.server_llmchat.lite_llm
+      tags:
+        - lite-llm
+        - install
+        - config
+        - service
+      vars:
+        # Test with default values
+        lite_llm_host: "127.0.0.1"
+        lite_llm_port: 4000
+        lite_llm_workers: 2
+        lite_llm_model: "gpt-3.5-turbo"
+        lite_llm_api_key: "test-api-key"
+        lite_llm_venv_path: "/opt/litellm/venv"
+        lite_llm_config_dir: "/etc/litellm"
+
+  post_tasks:
+    - name: Verify Lite LLM virtual environment exists
+      ansible.builtin.stat:
+        path: "{{ lite_llm_venv_path | default('/opt/litellm/venv') }}/bin/python"
+      register: venv_check
+      tags:
+        - test
+        - verify
+
+    - name: Verify Lite LLM configuration directory exists
+      ansible.builtin.stat:
+        path: "{{ lite_llm_config_dir | default('/etc/litellm') }}"
+      register: config_dir_check
+      tags:
+        - test
+        - verify
+
+    - name: Verify Lite LLM configuration file exists
+      ansible.builtin.stat:
+        path: "{{ lite_llm_config_dir | default('/etc/litellm') }}/config.yaml"
+      register: config_file_check
+      tags:
+        - test
+        - verify
+
+    - name: Verify Lite LLM service is running
+      ansible.builtin.systemd:
+        name: litellm
+      register: service_check
+      tags:
+        - test
+        - verify
+
+    - name: Display test results
+      ansible.builtin.debug:
+        msg: |
+          Lite LLM Test Results:
+          - Virtual Environment: {{ 'OK' if venv_check.stat.exists else 'MISSING' }}
+          - Config Directory: {{ 'OK' if config_dir_check.stat.exists else 'MISSING' }}
+          - Config File: {{ 'OK' if config_file_check.stat.exists else 'MISSING' }}
+          - Service Status: {{ service_check.status }}
+      tags:
+        - test
+        - results
