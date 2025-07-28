@@ -1,4 +1,4 @@
-.PHONY: all build clean test beta prod lint lint-ansible lint-markdown lint-yaml lint-galaxy molecule
+.PHONY: all build clean test beta prod lint lint-ansible lint-markdown lint-yaml lint-galaxy molecule debug-galaxy
 
 # Define paths and collections
 ROOT_DIR := $(shell pwd)
@@ -262,6 +262,11 @@ reset:
 	@rm -rf $(MARKER_DIR)
 	@mkdir -p $(MARKER_DIR)
 	@echo "All markers reset. Next build will run all steps."
+
+# Debug target for Galaxy authentication
+debug-galaxy:
+	@echo "Running Galaxy authentication debugging tool..."
+	@$(ROOT_DIR)/../bin/galaxy_auth_tool.sh --server="https://galaxy-dev.ansible.com"
 
 # Debug target to print variables
 debug:
