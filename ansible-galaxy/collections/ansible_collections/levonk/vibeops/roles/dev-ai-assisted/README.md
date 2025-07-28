@@ -23,7 +23,8 @@ Below is a list of all major features and tasks performed by this role, with lin
 | Install Cline               | Installs Cline AI CLI                                 | N/A                 | [tasks/install_cline.yml](tasks/install_cline.yml) |
 | Install Windsurf            | Installs Windsurf CLI/agent                           | N/A                 | [tasks/install_windsurf.yml](tasks/install_windsurf.yml) |
 | Install Kiro                | Installs Kiro AI CLI                                  | N/A                 | [tasks/install_kiro.yml](tasks/install_kiro.yml) |
-| Install Claude Suite        | Installs Claude CLI & tools                           | N/A                 | [tasks/install_claude_suite.yml](tasks/install_claude_suite.yml) |
+| Install Claude Code Tools   | Installs Claude Code, Router, Proxy, and frameworks   | N/A                 | [tasks/claude-code/](tasks/claude-code/) |
+| Install Tmux-Orchestrator   | Installs terminal session manager                     | N/A                 | [tasks/tmux/install_orchestrator.yml](tasks/tmux/install_orchestrator.yml) |
 
 ---
 
@@ -69,7 +70,32 @@ Below is a list of all major features and tasks performed by this role, with lin
 - **Security:** Uses only official sources.
 - **Usage:** Enabled by default; no variables needed.
 
-*(Other tools follow similar documentation; see task files for details.)*
+### Claude Code Tools
+**Description:** Installs a suite of Claude AI development tools including:
+- Claude Code (npm package)
+- Claude Code Router
+- Claude Code Proxy
+- CodeMCP (Claude Code Multi-Prompt)
+- SuperClaude Framework
+- Awesome Claude Prompts
+- Awesome AI System Prompts
+- Awesome Claude Code Resources
+
+- **Supported Platforms:** All with Node.js
+- **Tags:** `claude`, `ai`, `code`, `dev`
+- **Dependencies:** Node.js, npm
+- **Idempotency:** Each tool checks for existing installation
+- **Security:** Uses official sources and verifies checksums
+- **Usage:** Enabled by default; no variables needed
+
+### Tmux-Orchestrator
+**Description:** Installs a terminal session manager for managing multiple terminal sessions.
+- **Supported Platforms:** Linux, macOS
+- **Tags:** `tmux`, `terminal`, `dev`
+- **Dependencies:** tmux
+- **Idempotency:** Safe to run repeatedly
+- **Security:** Uses official package managers
+- **Usage:** Enabled by default; no variables needed
 
 ---
 
