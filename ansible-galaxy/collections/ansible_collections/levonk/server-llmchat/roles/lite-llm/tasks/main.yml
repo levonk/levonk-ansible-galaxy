@@ -1,0 +1,17 @@
+---
+# tasks file for lite-llm
+- name: Include Lite LLM installation tasks
+  ansible.builtin.include_tasks: install-lite-llm.yml
+  tags:
+    - lite-llm
+    - install
+    - all
+
+- name: Include Open WebUI installation tasks
+  ansible.builtin.include_tasks: install-open-webui.yml
+  when: open_webui_enabled | bool
+  tags:
+    - open-webui
+    - webui
+    - install
+    - all

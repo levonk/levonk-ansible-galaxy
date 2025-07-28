@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  author: Your Name
+  description: Deploy and manage Lite LLM server
+  company: Your Company (optional)
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Debian
+      versions:
+        - buster
+        - bullseye
+        - bookworm
+    - name: Ubuntu
+      versions:
+        - bionic
+        - focal
+        - jammy
+  galaxy_tags:
+    - llm
+    - ai
+    - chat
+    - language-model
+    - server
+
+dependencies: []

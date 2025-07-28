@@ -1,0 +1,30 @@
+[Unit]
+Description=Open WebUI
+After=network.target
+
+[Service]
+Type=simple
+User={{ open_webui_user | default(ansible_user) }}
+Group={{ open_webui_group | default(ansible_user) }}
+WorkingDirectory={{ open_webui_install_dir | default('~/open-webui') }}
+Environment="PATH={{ open_webui_venv | default('~/.local/share/open-webui/venv') }}/bin:{{ ansible_env.PATH }}"
+ExecStart={{ open_webui_venv | default('~/.local/share/open-webui/venv') }}/bin/uvicorn app.main:app --host {{ open_webui_host | default('0.0.0.0') }} --port {{ open_webui_port | default(3000) }} --reload
+Restart=always
+RestartSec=5s
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=65535
+
+# Environment variables
+Environment="PYTHONUNBUFFERED=1"
+Environment="PYTHONPATH={{ open_webui_install_dir | default('~/open-webui') }}"
+
+[Install]
+WantedBy=multi-user.target

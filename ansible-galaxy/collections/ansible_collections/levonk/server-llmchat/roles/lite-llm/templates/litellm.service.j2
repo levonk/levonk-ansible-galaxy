@@ -1,0 +1,22 @@
+[Unit]
+Description=Lite LLM Server
+After=network.target
+
+[Service]
+Type=simple
+User={{ lite_llm_service_user }}
+Group={{ lite_llm_service_group }}
+WorkingDirectory={{ lite_llm_venv_path }}
+Environment="PATH={{ lite_llm_venv_path }}/bin:{{ ansible_env.PATH }}"
+ExecStart={{ lite_llm_venv_path }}/bin/litellm --config {{ lite_llm_config_file }}
+Restart=always
+RestartSec=5s
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,46 @@
+---
+# Lite LLM default variables
+
+# Virtual environment path
+lite_llm_venv_path: "{{ ansible_user_dir }}/.local/share/litellm/venv"
+
+# Configuration directory and file
+lite_llm_config_dir: "{{ ansible_user_dir }}/.litellm"
+lite_llm_config_file: "{{ lite_llm_config_dir }}/config.yaml"
+
+# Server configuration
+lite_llm_host: "0.0.0.0"
+lite_llm_port: 4000
+lite_llm_workers: 2
+
+# Model configuration
+lite_llm_model: "gpt-3.5-turbo"
+lite_llm_api_key: ""  # Should be set in group_vars or host_vars
+
+# Service configuration
+lite_llm_service_user: "{{ ansible_user }}"
+lite_llm_service_group: "{{ ansible_user }}"
+
+# Open WebUI Configuration
+open_webui_enabled: true
+open_webui_install_dir: "{{ ansible_user_dir }}/open-webui"
+open_webui_venv: "{{ ansible_user_dir }}/.local/share/open-webui/venv"
+open_webui_data_dir: "{{ ansible_user_dir }}/.local/share/open-webui"
+
+# Open WebUI Server Configuration
+open_webui_host: "0.0.0.0"
+open_webui_port: 3000
+
+# Open WebUI Authentication
+open_webui_auth_enabled: true
+open_webui_admin_email: "admin@example.com"
+open_webui_admin_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+open_webui_secret_key: "{{ lookup('password', '/dev/null length=64') }}"
+
+# Open WebUI Logging
+open_webui_log_level: "info"
+open_webui_log_file: "{{ open_webui_data_dir }}/open-webui.log"
+
+# Open WebUI Service User
+open_webui_user: "{{ ansible_user }}"
+open_webui_group: "{{ ansible_user }}"

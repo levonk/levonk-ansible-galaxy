@@ -1,0 +1,23 @@
+# Lite LLM Configuration
+model: "{{ lite_llm_model }}"
+api_key: "{{ lite_llm_api_key }}"
+
+# Server settings
+host: "{{ lite_llm_host }}"
+port: {{ lite_llm_port }}
+workers: {{ lite_llm_workers }}
+
+# Logging
+log_level: "info"
+log_file: "{{ lite_llm_config_dir }}/litellm.log"
+
+# Model parameters
+temperature: 0.7
+max_tokens: 1000
+top_p: 0.9
+frequency_penalty: 0.0
+presence_penalty: 0.0
+
+# Caching
+cache_enabled: true
+cache_dir: "{{ lite_llm_config_dir }}/cache"

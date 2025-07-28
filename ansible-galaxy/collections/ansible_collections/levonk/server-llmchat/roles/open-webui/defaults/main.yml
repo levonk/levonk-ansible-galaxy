@@ -1,0 +1,33 @@
+---
+# Open WebUI default variables
+
+# Installation paths
+open_webui_install_dir: "{{ ansible_user_dir }}/open-webui"
+open_webui_venv: "{{ ansible_user_dir }}/.local/share/open-webui/venv"
+open_webui_data_dir: "{{ ansible_user_dir }}/.local/share/open-webui"
+open_webui_config_dir: "{{ ansible_user_dir }}/.config/open-webui"
+open_webui_config_file: "{{ open_webui_config_dir }}/config.yaml"
+open_webui_log_file: "{{ open_webui_data_dir }}/open-webui.log"
+
+# Server configuration
+open_webui_host: "0.0.0.0"
+open_webui_port: 3000
+
+# Lite LLM integration
+open_webui_litellm_url: "http://localhost:4000"
+
+# Authentication
+open_webui_auth_enabled: true
+open_webui_admin_email: "admin@example.com"
+open_webui_admin_password: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+open_webui_secret_key: "{{ lookup('password', '/dev/null length=64') }}"
+
+# Uploads
+open_webui_max_upload_size: 100  # in MB
+
+# Logging
+open_webui_log_level: "info"
+
+# Service user/group
+open_webui_user: "{{ ansible_user }}"
+open_webui_group: "{{ ansible_user }}"

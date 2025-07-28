@@ -1,0 +1,102 @@
+---
+# Install Open WebUI
+- name: Install system dependencies for Open WebUI
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-venv
+      - build-essential
+      - python3-dev
+      - curl
+      - git
+    state: present
+  become: true
+  when: ansible_os_family == 'Debian'
+  tags:
+    - open-webui
+    - install
+    - deps
+
+- name: Create Open WebUI installation directory
+  ansible.builtin.file:
+    path: "{{ open_webui_install_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ open_webui_user }}"
+    group: "{{ open_webui_group }}"
+  become: true
+  tags:
+    - open-webui
+    - install
+
+- name: Clone Open WebUI repository
+  ansible.builtin.git:
+    repo: https://github.com/open-webui/open-webui.git
+    dest: "{{ open_webui_install_dir }}"
+    version: main
+    update: yes
+  become: true
+  become_user: "{{ open_webui_user }}"
+  tags:
+    - open-webui
+    - install
+
+- name: Create Open WebUI virtual environment
+  ansible.builtin.pip:
+    requirements: "{{ open_webui_install_dir }}/requirements.txt"
+    virtualenv: "{{ open_webui_venv }}"
+    virtualenv_python: python3
+    state: present
+  become: true
+  become_user: "{{ open_webui_user }}"
+  tags:
+    - open-webui
+    - install
+    - python
+
+- name: Create Open WebUI configuration directory
+  ansible.builtin.file:
+    path: "{{ open_webui_config_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ open_webui_user }}"
+    group: "{{ open_webui_group }}"
+  become: true
+  tags:
+    - open-webui
+    - config
+
+- name: Deploy Open WebUI configuration file
+  ansible.builtin.template:
+    src: config.j2
+    dest: "{{ open_webui_config_file }}"
+    mode: '0640'
+    owner: "{{ open_webui_user }}"
+    group: "{{ open_webui_group }}"
+  become: true
+  tags:
+    - open-webui
+    - config
+  notify: restart open-webui
+
+- name: Create Open WebUI systemd service
+  ansible.builtin.template:
+    src: open-webui.service.j2
+    dest: /etc/systemd/system/open-webui.service
+    mode: '0644'
+  become: true
+  tags:
+    - open-webui
+    - service
+  notify: reload systemd
+
+- name: Ensure Open WebUI service is enabled and started
+  ansible.builtin.systemd:
+    name: open-webui
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+  tags:
+    - open-webui
+    - service

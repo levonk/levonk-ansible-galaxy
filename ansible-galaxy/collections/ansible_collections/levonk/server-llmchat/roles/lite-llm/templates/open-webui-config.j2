@@ -1,0 +1,28 @@
+# Open WebUI Configuration
+
+# Server settings
+host: {{ open_webui_host | default('0.0.0.0') }}
+port: {{ open_webui_port | default(3000) }}
+
+# Lite LLM integration
+litellm_url: "http://{{ lite_llm_host | default('127.0.0.1') }}:{{ lite_llm_port | default(4000) }}"
+
+# Authentication
+auth:
+  enabled: {{ open_webui_auth_enabled | default(true) | bool | lower }}
+  secret_key: "{{ open_webui_secret_key | default('change-this-in-production') }}"
+  admin_email: "{{ open_webui_admin_email | default('admin@example.com') }}"
+  admin_password: "{{ open_webui_admin_password | default('admin') }}"
+
+# Database
+database:
+  url: "sqlite:///{{ open_webui_data_dir | default('~/.local/share/open-webui') }}/database.sqlite"
+
+# Uploads
+uploads:
+  max_file_size: {{ open_webui_max_upload_size | default(100) }}  # in MB
+  allowed_extensions: ['.pdf', '.txt', '.md', '.docx', '.pptx', '.csv']
+
+# Logging
+log_level: {{ open_webui_log_level | default('info') }}
+log_file: "{{ open_webui_log_file | default('~/.local/share/open-webui/open-webui.log') }}"

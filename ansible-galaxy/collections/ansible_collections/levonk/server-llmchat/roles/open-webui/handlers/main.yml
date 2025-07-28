@@ -1,0 +1,15 @@
+---
+# handlers file for open-webui
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+  listen: reload systemd
+
+- name: restart open-webui
+  ansible.builtin.systemd:
+    name: open-webui
+    state: restarted
+    daemon_reload: true
+  become: true
+  listen: restart open-webui

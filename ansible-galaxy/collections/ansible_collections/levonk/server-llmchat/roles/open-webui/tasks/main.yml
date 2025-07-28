@@ -1,0 +1,8 @@
+---
+# tasks file for open-webui
+- name: Include Open WebUI installation tasks
+  ansible.builtin.include_tasks: install.yml
+  tags:
+    - open-webui
+    - install
+    - all

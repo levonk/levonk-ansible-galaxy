@@ -1,0 +1,73 @@
+---
+# Install Lite LLM and its dependencies
+- name: Install system dependencies for Lite LLM
+  ansible.builtin.apt:
+    name:
+      - python3-pip
+      - python3-venv
+      - build-essential
+      - python3-dev
+    state: present
+  become: true
+  when: ansible_os_family == 'Debian'
+  tags:
+    - lite-llm
+    - install
+    - deps
+
+- name: Create Lite LLM virtual environment
+  ansible.builtin.pip:
+    name:
+      - litellm
+      - torch
+      - transformers
+      - sentencepiece
+    virtualenv: "{{ lite_llm_venv_path | default('~/.local/share/litellm/venv') }}"
+    virtualenv_python: python3
+    state: present
+  become: false
+  tags:
+    - lite-llm
+    - install
+    - python
+
+- name: Create Lite LLM configuration directory
+  ansible.builtin.file:
+    path: "{{ lite_llm_config_dir | default('~/.litellm') }}"
+    state: directory
+    mode: '0755'
+  become: false
+  tags:
+    - lite-llm
+    - config
+
+- name: Deploy Lite LLM configuration file
+  ansible.builtin.template:
+    src: config.j2
+    dest: "{{ lite_llm_config_dir | default('~/.litellm/config.yaml') }}"
+    mode: '0644'
+  tags:
+    - lite-llm
+    - config
+
+- name: Create systemd service for Lite LLM
+  ansible.builtin.template:
+    src: litellm.service.j2
+    dest: /etc/systemd/system/litellm.service
+    mode: '0644'
+  become: true
+  notify: reload systemd
+  tags:
+    - lite-llm
+    - service
+
+- name: Ensure Lite LLM service is enabled and started
+  ansible.builtin.systemd:
+    name: litellm
+    state: started
+    enabled: true
+    daemon_reload: true
+  become: true
+  tags:
+    - lite-llm
+    - service
