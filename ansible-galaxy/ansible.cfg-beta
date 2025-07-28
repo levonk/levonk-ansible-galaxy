@@ -1,0 +1,12 @@
+[galaxy]
+server_list = beta
+
+[galaxy_server.beta]
+url = https://beta-galaxy.ansible.com/api/
+token = 40 character hex string
+
+
+[defaults]
+collections_paths = ./collections:~/.config/ansible/collections:/usr/share/ansible/collections
+nocollections_scan_world_readable_directories_enabled = false
+
