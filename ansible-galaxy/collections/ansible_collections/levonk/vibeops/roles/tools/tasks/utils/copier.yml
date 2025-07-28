@@ -1,0 +1,49 @@
+---
+# Install copier - a project templating and scaffolding tool
+# https://copier.readthedocs.io/
+
+- name: Check if copier is installed
+  ansible.builtin.command: which copier
+  register: copier_check
+  ignore_errors: true
+  changed_when: false
+  check_mode: false
+
+- name: Install copier via pip (Linux/macOS)
+  ansible.builtin.pip:
+    name: copier
+    state: latest
+    extra_args: --user
+  when:
+    - copier_check.rc != 0
+    - ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+    - ansible_pkg_mgr != 'apt'
+
+- name: Install copier via apt (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: python3-copier
+    state: present
+  become: true
+  when:
+    - copier_check.rc != 0
+    - ansible_os_family == 'Debian'
+    - ansible_pkg_mgr == 'apt'
+
+- name: Install copier via pip (Windows)
+  ansible.builtin.pip:
+    name: copier
+    state: latest
+  when:
+    - copier_check.rc != 0
+    - ansible_os_family == 'Windows'
+
+- name: Verify copier installation
+  ansible.builtin.command: copier --version
+  register: copier_version
+  changed_when: false
+  check_mode: false
+
+- name: Display copier version
+  ansible.builtin.debug:
+    msg: "Copier version {{ copier_version.stdout | default('unknown') }} installed"
+  when: copier_version is defined and copier_version.rc == 0

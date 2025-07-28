@@ -1,0 +1,15 @@
+---
+# Install CopyQ clipboard manager (Cross-platform)
+
+- name: Install CopyQ clipboard manager
+  levonk.common.package:
+    name: copyq
+    state: latest
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Windows']
+  tags:
+    - vibeops
+    - tools
+    - clipboard
+    - copyq
+    - linux
+    - windows

@@ -1,0 +1,14 @@
+---
+# Install Windows Terminal
+
+- name: Install Windows Terminal
+  levonk.common.package:
+    name: microsoft.windowsterminal
+    state: latest
+  when: ansible_os_family == 'Windows'
+  tags:
+    - vibeops
+    - tools
+    - terminals
+    - windowsterminal
+    - windows

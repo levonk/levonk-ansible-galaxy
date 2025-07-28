@@ -1,0 +1,49 @@
+---
+# Shell and terminal tools main task file
+
+- name: Install Atuin shell history manager
+  ansible.builtin.include_tasks: atuin.yml
+  when: tools_install_atuin | default(true)
+
+- name: Install git-friendly
+  ansible.builtin.include_tasks: git_friendly.yml
+  when:
+    - tools_install_git_friendly | default(false)
+    - ansible_os_family != 'Windows'
+
+- name: Install Tealdeer (tldr) pages
+  ansible.builtin.include_tasks: tealdeer.yml
+  when: tools_install_tealdeer | default(true)
+
+- name: Install Help command-line tool
+  ansible.builtin.include_tasks: help.yml
+  when: tools_install_help | default(true)
+
+- name: Install eza (modern ls replacement)
+  ansible.builtin.include_tasks: eza.yml
+  when: tools_install_eza | default(true)
+
+# Terminal emulators
+- name: Install Windows Terminal
+  ansible.builtin.include_tasks: windows_terminal.yml
+  when: 
+    - "'graphical' in ansible_run_tags"
+    - tools_install_windows_terminal | default(true)
+
+- name: Install Tilix terminal
+  ansible.builtin.include_tasks: tilix.yml
+  when: 
+    - "'graphical' in ansible_run_tags"
+    - tools_install_tilix | default(true)
+
+- name: Install iTerm2 terminal
+  ansible.builtin.include_tasks: iterm2.yml
+  when: 
+    - "'graphical' in ansible_run_tags"
+    - tools_install_iterm2 | default(true)
+
+- name: Install Kitty terminal
+  ansible.builtin.include_tasks: kitty.yml
+  when: 
+    - "'graphical' in ansible_run_tags"
+    - tools_install_kitty | default(true)

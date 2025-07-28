@@ -1,0 +1,6 @@
+---
+# Utils tools main task file
+
+- name: Install copier
+  ansible.builtin.include_tasks: copier.yml
+  when: tools_install_copier | default(true)

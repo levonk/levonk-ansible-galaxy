@@ -1,0 +1,8 @@
+---
+# Text and code editors main task file
+
+- name: Install Sublime Text
+  ansible.builtin.include_tasks: sublime_text.yml
+  when:
+    - tools_install_sublime_text | default(false)
+    - "'graphical' in ansible_run_tags"

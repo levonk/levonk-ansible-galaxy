@@ -1,91 +1,38 @@
 ---
 # tasks file for levonk.vibeops.tools
 
-- name: Ensure SSH client/server present (Linux/macOS)
-  ansible.builtin.include_tasks: ssh_unix.yml
-  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+# OS-specific tools (macOS, Windows, clipboard managers)
+- name: Install OS-specific tools
+  ansible.builtin.include_tasks: os_specific/main.yml
 
-- name: Ensure SSH client/server present (Windows)
-  ansible.builtin.include_tasks: ssh_windows.yml
-  when: ansible_os_family == 'Windows'
+# Text and code editors (Sublime Text)
+- name: Install text and code editors
+  ansible.builtin.include_tasks: editors/main.yml
 
-- name: Install macOS-specific tools
-  ansible.builtin.include_tasks: darwin.yml
-  when:
-    - ansible_os_family == 'Darwin'
-    - "'graphical' in ansible_run_tags"
+# Shell and terminal tools (Atuin, git-friendly, tealdeer, halp, eza, terminals)
+- name: Install shell and terminal tools
+  ansible.builtin.include_tasks: shell_terminal/main.yml
 
-- name: Install Windows-specific tools
-  ansible.builtin.include_tasks: windows.yml
-  when:
-    - ansible_os_family == 'Windows'
-    - "'graphical' in ansible_run_tags"
+# AI and productivity tools (Claude Task Master, Free Cluely, m1f, Espanso)
+- name: Install AI and productivity tools
+  ansible.builtin.include_tasks: ai_productivity/main.yml
 
-- name: Install OS-specific clipboard managers
-  ansible.builtin.include_tasks: clipboard_managers.yml
-  when: "'graphical' in ansible_run_tags"
+# UI tools and application launchers (Raycast, Speech)
+- name: Install UI tools and application launchers
+  ansible.builtin.include_tasks: ui_tools/main.yml
 
-- name: Install OS-specific terminal applications
-  ansible.builtin.include_tasks: terminals.yml
-  when: "'graphical' in ansible_run_tags"
+# Diagram and visualization tools (Graphviz, MermaidJS, Archi)
+- name: Install diagram and visualization tools
+  ansible.builtin.include_tasks: diagram_viz/main.yml
 
-- name: Install Raycast launcher
-  ansible.builtin.include_tasks: raycast.yml
-  when: "'graphical' in ansible_run_tags"
+# System and file utilities (7-Zip, SSH)
+- name: Install system and file utilities
+  ansible.builtin.include_tasks: system_utils/main.yml
 
-- name: Install 7-Zip
-  ansible.builtin.include_tasks: 7zip.yml
-  when:
-    - tools_install_7zip | default(false)
-    - "'graphical' in ansible_run_tags"
+# Virtualization and development tools (Vagrant, VirtualBox)
+- name: Install virtualization and development tools
+  ansible.builtin.include_tasks: virtualization/main.yml
 
-- name: Install Sublime Text
-  ansible.builtin.include_tasks: sublime_text.yml
-  when:
-    - tools_install_sublime_text | default(false)
-    - "'graphical' in ansible_run_tags"
-
-- name: Install git-friendly
-  ansible.builtin.include_tasks: git_friendly.yml
-  when:
-    - tools_install_git_friendly | default(false)
-    - ansible_os_family != 'Windows'
-
-- name: Install Atuin shell history manager
-  ansible.builtin.include_tasks: atuin.yml
-  when: tools_install_atuin | default(true)
-
-- name: Install Halp command-line tool
-  ansible.builtin.include_tasks: halp.yml
-  when: tools_install_halp | default(true)
-
-- name: Install Tealdeer (tldr) pages
-  ansible.builtin.include_tasks: tealdeer.yml
-  when: tools_install_tealdeer | default(true)
-
-- name: Install Espanso
-  ansible.builtin.include_tasks: espanso.yml
-  when:
-    - tools_install_espanso | default(false)
-    - "'graphical' in ansible_run_tags"
-
-- name: Install Speech Tools
-  ansible.builtin.include_tasks: speech.yml
-  when:
-    - tools_install_speech_tools | default(false)
-    - "'graphical' in ansible_run_tags"
-
-- name: Install diagram tools (Graphviz, MermaidJS CLI)
-  ansible.builtin.include_tasks: diagram-tools.yml
-
-- name: Install m1f tool
-  ansible.builtin.include_tasks: m1f.yml
-  when: tools_install_m1f | default(false)
-
-- name: Install claude-task-master
-  ansible.builtin.include_tasks: claude_task_master.yml
-  when: tools_install_claude_task_master | default(true)
-
-- name: Install Free Cluely
-  ansible.builtin.include_tasks: free_cluely.yml
-  when: tools_install_free_cluely | default(true)
+# Utility tools (copier, etc.)
+- name: Install utility tools
+  ansible.builtin.include_tasks: utils/main.yml

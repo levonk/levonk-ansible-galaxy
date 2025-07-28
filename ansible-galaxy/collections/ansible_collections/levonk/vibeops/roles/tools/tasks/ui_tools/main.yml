@@ -1,0 +1,18 @@
+---
+# UI tools and application launchers main task file
+
+- name: Install Raycast launcher
+  ansible.builtin.include_tasks: raycast.yml
+  when: "'graphical' in ansible_run_tags"
+
+- name: Install Speech Tools
+  ansible.builtin.include_tasks: speech.yml
+  when:
+    - tools_install_speech_tools | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Install Espanso text expander
+  ansible.builtin.include_tasks: espanso.yml
+  when:
+    - tools_install_espanso | default(false)
+    - "'graphical' in ansible_run_tags"

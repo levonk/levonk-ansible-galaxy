@@ -1,0 +1,10 @@
+---
+# Virtualization and development tools main task file
+
+- name: Install Vagrant
+  ansible.builtin.include_tasks: vagrant.yml
+  when: tools_install_vagrant | default(false)
+
+- name: Install VirtualBox
+  ansible.builtin.include_tasks: virtualbox.yml
+  when: tools_install_virtualbox | default(false)

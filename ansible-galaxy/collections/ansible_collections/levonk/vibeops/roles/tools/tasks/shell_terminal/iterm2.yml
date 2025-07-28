@@ -1,0 +1,14 @@
+---
+# Install iTerm2 terminal emulator
+
+- name: Install iTerm2 terminal
+  levonk.common.package:
+    name: iterm2
+    state: latest
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - vibeops
+    - tools
+    - terminals
+    - iterm2
+    - macos

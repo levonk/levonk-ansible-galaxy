@@ -1,0 +1,14 @@
+---
+# Clipboard managers main task file
+
+- name: Install Ditto clipboard manager (macOS)
+  ansible.builtin.include_tasks: ditto.yml
+  when: tools_install_ditto | default(true)
+
+- name: Install CopyQ clipboard manager (Cross-platform)
+  ansible.builtin.include_tasks: copyq.yml
+  when: tools_install_copyq | default(true)
+
+- name: Install CopyClip clipboard manager (macOS)
+  ansible.builtin.include_tasks: copyclip.yml
+  when: tools_install_copyclip | default(true)

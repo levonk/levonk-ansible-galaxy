@@ -1,0 +1,14 @@
+---
+# Install Ditto clipboard manager (macOS)
+
+- name: Install Ditto clipboard manager
+  levonk.common.package:
+    name: ditto
+    state: latest
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - vibeops
+    - tools
+    - clipboard
+    - ditto
+    - macos

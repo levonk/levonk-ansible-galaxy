@@ -1,0 +1,14 @@
+---
+# Diagram and visualization tools main task file
+
+- name: Install Graphviz
+  ansible.builtin.include_tasks: graphviz.yml
+  when: tools_install_graphviz | default(true)
+
+- name: Install MermaidJS CLI
+  ansible.builtin.include_tasks: mermaidjs.yml
+  when: tools_install_mermaidjs | default(true)
+
+- name: Install Archi diagram tool
+  ansible.builtin.include_tasks: archi-diagrams.yml
+  when: tools_install_archi | default(false)

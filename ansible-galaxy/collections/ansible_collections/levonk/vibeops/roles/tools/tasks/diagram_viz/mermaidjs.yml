@@ -1,28 +1,9 @@
 ---
-# Install Graphviz and MermaidJS CLI for all supported OSes
-
-- name: Install Graphviz via levonk.common.package (cross-platform)
-  levonk.common.package:
-    name:
-      - graphviz
-    state: latest
-  tags:
-    - diagram
-    - graphviz
-    - tools
-    - vibeops
-
-    creates: C:\Program Files\Graphviz\bin\dot.exe
-  when: ansible_os_family == 'Windows'
-  tags:
-    - diagram
-    - graphviz
-    - tools
-    - windows
+# Install MermaidJS CLI for all supported OSes
 
 - name: Install MermaidJS CLI (npm, all OS)
   npm:
-    name: @mermaid-js/mermaid-cli
+    name: "@mermaid-js/mermaid-cli"
     global: yes
     state: latest
   tags:
@@ -30,19 +11,6 @@
     - mermaid
     - tools
     - all_os
-
-# Include Archi diagram tool installation
-- name: Include Archi diagram tool installation
-  include_tasks: archi-diagrams.yml
-  tags:
-    - diagram
-    - tools
-    - all_os
-    - vibeops
-    - archi
-    - archimate
-    - graphical
-
 
 - name: Ensure mmdc is in PATH (Linux/macOS)
   file:

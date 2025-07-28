@@ -1,0 +1,15 @@
+---
+# Install Kitty terminal emulator
+
+- name: Install Kitty terminal
+  levonk.common.package:
+    name: kitty
+    state: latest
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+  tags:
+    - vibeops
+    - tools
+    - terminals
+    - kitty
+    - linux
+    - macos

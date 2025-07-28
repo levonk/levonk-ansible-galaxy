@@ -1,0 +1,14 @@
+---
+# Install CopyClip clipboard manager (macOS)
+
+- name: Install CopyClip clipboard manager
+  levonk.common.package:
+    name: copyclip
+    state: latest
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - vibeops
+    - tools
+    - clipboard
+    - copyclip
+    - macos

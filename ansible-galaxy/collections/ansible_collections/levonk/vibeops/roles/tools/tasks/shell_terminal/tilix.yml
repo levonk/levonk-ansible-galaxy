@@ -1,0 +1,14 @@
+---
+# Install Tilix terminal emulator
+
+- name: Install Tilix terminal
+  levonk.common.package:
+    name: tilix
+    state: latest
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+  tags:
+    - vibeops
+    - tools
+    - terminals
+    - tilix
+    - linux

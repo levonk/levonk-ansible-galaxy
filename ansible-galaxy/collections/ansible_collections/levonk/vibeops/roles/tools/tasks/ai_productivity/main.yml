@@ -1,0 +1,14 @@
+---
+# AI and productivity tools main task file
+
+- name: Install claude-task-master
+  ansible.builtin.include_tasks: claude_task_master.yml
+  when: tools_install_claude_task_master | default(true)
+
+- name: Install Free Cluely
+  ansible.builtin.include_tasks: free_cluely.yml
+  when: tools_install_free_cluely | default(true)
+
+- name: Install m1f tool
+  ansible.builtin.include_tasks: m1f.yml
+  when: tools_install_m1f | default(false)

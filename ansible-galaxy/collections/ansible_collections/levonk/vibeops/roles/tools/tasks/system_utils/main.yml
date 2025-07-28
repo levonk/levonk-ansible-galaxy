@@ -1,0 +1,16 @@
+---
+# System and file utilities main task file
+
+- name: Install 7-Zip
+  ansible.builtin.include_tasks: 7zip.yml
+  when:
+    - tools_install_7zip | default(false)
+    - "'graphical' in ansible_run_tags"
+
+- name: Ensure SSH client/server present (Linux/macOS)
+  ansible.builtin.include_tasks: ssh_unix.yml
+  when: ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+
+- name: Ensure SSH client/server present (Windows)
+  ansible.builtin.include_tasks: ssh_windows.yml
+  when: ansible_os_family == 'Windows'
