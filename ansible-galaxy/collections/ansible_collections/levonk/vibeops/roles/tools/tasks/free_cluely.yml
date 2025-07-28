@@ -1,0 +1,108 @@
+---
+# Install free-cluely - An open-source version of Cluely
+
+- name: Install Node.js and npm (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - nodejs
+      - npm
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+  tags:
+    - tools
+    - free-cluely
+    - nodejs
+
+- name: Install Node.js and npm (macOS)
+  homebrew:
+    name: node
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - tools
+    - free-cluely
+    - nodejs
+
+- name: Install Node.js and npm (Windows)
+  win_chocolatey:
+    name: nodejs
+    state: present
+  when: ansible_os_family == 'Windows'
+  tags:
+    - tools
+    - free-cluely
+    - nodejs
+
+- name: Create free-cluely installation directory
+  ansible.builtin.file:
+    path: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+    state: directory
+    mode: '0755'
+  tags:
+    - tools
+    - free-cluely
+
+- name: Clone free-cluely repository
+  ansible.builtin.git:
+    repo: https://github.com/Prat011/free-cluely.git
+    dest: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+    version: main
+    update: yes
+  tags:
+    - tools
+    - free-cluely
+
+- name: Install free-cluely dependencies
+  command: npm install
+  args:
+    chdir: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+  become: false
+  tags:
+    - tools
+    - free-cluely
+    - npm
+
+- name: Create free-cluely .env file
+  ansible.builtin.template:
+    src: free-cluely.env.j2
+    dest: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}/.env"
+    mode: '0600'
+  when: free_cluely_gemini_api_key is defined
+  tags:
+    - tools
+    - free-cluely
+    - config
+
+- name: Create free-cluely desktop entry (Linux)
+  ansible.builtin.template:
+    src: free-cluely.desktop.j2
+    dest: /usr/share/applications/free-cluely.desktop
+    mode: '0644'
+  when: ansible_os_family == 'Debian' and '"graphical" in ansible_run_tags'
+  become: true
+  tags:
+    - tools
+    - free-cluely
+    - desktop
+
+- name: Create free-cluely start script
+  ansible.builtin.template:
+    src: free-cluely-start.sh.j2
+    dest: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}/start-free-cluely.sh"
+    mode: '0755'
+  tags:
+    - tools
+    - free-cluely
+
+- name: Build free-cluely for production
+  command: npm run build
+  args:
+    chdir: "{{ free_cluely_install_dir | default('~/.local/share/free-cluely') }}"
+  become: false
+  when: free_cluely_build | default(true) | bool
+  tags:
+    - tools
+    - free-cluely
+    - build

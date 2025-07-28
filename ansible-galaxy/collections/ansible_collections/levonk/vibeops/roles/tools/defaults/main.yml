@@ -35,3 +35,10 @@ m1f_version: "latest"  # Can be set to a specific version like "v1.0.0" or "late
 tools_install_claude_task_master: true  # Set to false to skip installation
 claude_task_master_version: "main"  # Can be set to a specific version/tag/branch
 
+# free-cluely configuration
+tools_install_free_cluely: true  # Set to false to skip installation
+free_cluely_install_dir: "~/.local/share/free-cluely"  # Installation directory
+free_cluely_gemini_api_key: ""  # Set your Gemini API key here or in group_vars/host_vars
+free_cluely_build: true  # Set to false to skip the build step (useful for development)
+free_cluely_port: 5180  # Port to run the development server on
+
