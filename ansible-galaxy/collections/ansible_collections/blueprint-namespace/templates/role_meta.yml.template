@@ -1,0 +1,25 @@
+# meta/main.yml for roles - this file is required for Ansible Galaxy
+---
+galaxy_info:
+  role_name: role_name_here
+  author: levonk
+  description: Detailed description of what this role does - THIS IS REQUIRED FOR GALAXY PUBLISHING
+  company: levonk
+  license: MIT
+  min_ansible_version: 2.9
+  
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+  
+  galaxy_tags:
+    - levonk
+    - system
+
+dependencies: []
