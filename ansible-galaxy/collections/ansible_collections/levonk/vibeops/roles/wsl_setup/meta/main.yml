@@ -1,9 +1,9 @@
 ---
 galaxy_info:
-  author: Brillarc, LLC
+  author: levonk
   description: Installs WSL2 and a specified Linux distribution on Windows.
-  company: Brillarc, LLC
-  license: Copyright (c) 2025, Brillarc, LLC
+  company: levonk
+  license: Copyright (c) 2025, levonk
 
   min_ansible_version: '2.9'
 
