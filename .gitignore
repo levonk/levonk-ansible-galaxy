@@ -107,4 +107,5 @@ downloads/
 *.tar.gz
 roles/external/
 collections/ansible_collections/*
+*.info/
 .markers
