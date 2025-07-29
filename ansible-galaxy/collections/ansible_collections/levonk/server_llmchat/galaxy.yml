@@ -1,6 +1,6 @@
 ---
 namespace: levonk
-name: server-llmchat
+name: server_llmchat
 version: 1.0.0
 readme: README.md
 authors:
