@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for thick_shell role
+requires_ansible: "2.9"

@@ -1,0 +1,32 @@
+---
+galaxy_info:
+  role_name: thick_shell
+  namespace: levonk
+  author: levonk
+  description: Configures a feature-rich shell environment with various tools and plugins
+  company: levonk
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+  galaxy_tags:
+    - shell
+    - zsh
+    - bash
+    - terminal
+    - user_setup
+    - configuration
+
+dependencies:
+  - role: levonk.common.fonts
