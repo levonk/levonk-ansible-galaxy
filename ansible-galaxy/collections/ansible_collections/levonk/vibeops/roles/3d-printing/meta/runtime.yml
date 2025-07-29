@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for {{ role_name }} role
+requires_ansible: "{{ min_ansible_version }}"
