@@ -1,6 +1,8 @@
 #!/bin/bash
-# Script to set up a new Ansible collection with all required files
+# Script to set up a new Ansible collection with all required files using copier
 # Usage: ./setup_new_collection.sh <collection_name>
+
+set -e  # Exit immediately if a command exits with a non-zero status
 
 # Check if collection name is provided
 if [ -z "$1" ]; then
@@ -10,86 +12,48 @@ if [ -z "$1" ]; then
 fi
 
 COLLECTION_NAME="$1"
-BASE_DIR="/mnt/d/p/gh/lrepo52/mrepo/proj/homenet/deployment-operations/3rdparty/gh/levonk/levonk-ansible-galaxy/ansible-galaxy"
-COLLECTION_DIR="$BASE_DIR/collections/ansible_collections/levonk/$COLLECTION_NAME"
-TEMPLATES_DIR="$BASE_DIR/collections/ansible_collections/blueprint-namespace/templates"
+
+# Use relative paths based on script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+BASE_DIR="$ROOT_DIR/ansible-galaxy"
+COLLECTIONS_DIR="$BASE_DIR/collections/ansible_collections/levonk"
+BLUEPRINT_COLLECTION="$BASE_DIR/collections/ansible_collections/blueprint-namespace/blueprint-collection"
 
 echo "Setting up new collection: levonk.$COLLECTION_NAME"
 
-# Create collection directory structure
-mkdir -p "$COLLECTION_DIR"/{meta,roles,plugins,docs,playbooks,files,defaults,tests}
+# Check if collection already exists
+if [ -d "$COLLECTIONS_DIR/$COLLECTION_NAME" ]; then
+  echo "Warning: Collection 'levonk.$COLLECTION_NAME' already exists at $COLLECTIONS_DIR/$COLLECTION_NAME"
+  read -p "Do you want to overwrite it? (y/N): " confirm
+  if [[ ! $confirm =~ ^[Yy]$ ]]; then
+    echo "Operation cancelled."
+    exit 1
+  fi
+fi
 
-# Create galaxy.yml file
-cat > "$COLLECTION_DIR/galaxy.yml" << EOF
----
-namespace: levonk
-name: $COLLECTION_NAME
-version: 1.0.0
-readme: README.md
-authors:
-  - levonk
-description: Levonk $COLLECTION_NAME collection
-license:
-  - MIT
-tags:
-  - levonk
-  - ansible
-  - collection
-repository: https://github.com/levonk/levonk-ansible-galaxy
-documentation: https://github.com/levonk/levonk-ansible-galaxy
-homepage: https://github.com/levonk/levonk-ansible-galaxy
-issues: https://github.com/levonk/levonk-ansible-galaxy/issues
-EOF
+# Use copier to create the collection from the blueprint template
+echo "Creating collection using copier template..."
+copier copy \
+  "$BLUEPRINT_COLLECTION" \
+  "$COLLECTIONS_DIR/$COLLECTION_NAME" \
+  --data "collection_name=$COLLECTION_NAME" \
+  --data "namespace=levonk" \
+  --force
 
-# Create README.md
-cat > "$COLLECTION_DIR/README.md" << EOF
-# levonk.$COLLECTION_NAME collection
+echo "Collection has been created with all necessary Galaxy metadata files"
 
-Documentation for the $COLLECTION_NAME collection.
-
-## Roles
-
-This collection contains the following roles:
-
-(Add role descriptions here)
-
-## Usage
-
-Example playbook:
-
-\`\`\`yaml
----
-- name: Use $COLLECTION_NAME collection
-  hosts: all
-  roles:
-    - role: levonk.$COLLECTION_NAME.role_name
-\`\`\`
-EOF
-
-# Create meta/runtime.yml - REQUIRED for Galaxy publishing
-cat > "$COLLECTION_DIR/meta/runtime.yml" << EOF
-#SPDX-License-Identifier: MIT-0
----
-# Collections must specify a minimum required ansible version to upload
-# to galaxy - THIS IS MANDATORY FOR GALAXY PUBLISHING
-requires_ansible: '>=2.9.10'
-
-# Content that Ansible needs to load from another location or that has
-# been deprecated/removed
-# plugin_routing:
-#   action:
-EOF
-
-# Create Makefile for the collection
-cp "$TEMPLATES_DIR/Makefile.collection.template" "$COLLECTION_DIR/Makefile"
-
-echo "Collection structure created at: $COLLECTION_DIR"
+echo "Collection structure created at: $COLLECTIONS_DIR/$COLLECTION_NAME"
 echo ""
 echo "Next steps:"
-echo "1. Add roles to the collection in $COLLECTION_DIR/roles/"
+echo "1. Add roles to the collection in $COLLECTIONS_DIR/$COLLECTION_NAME/roles/"
 echo "2. Make sure each role has a meta/main.yml file with a proper description"
 echo "3. Update the README.md with specific information about your collection"
 echo "4. Build the collection with: make build"
 echo ""
-echo "IMPORTANT: When creating roles, ensure each role has a meta/main.yml file with a proper description"
-echo "to avoid Galaxy import warnings."
+echo "REMINDER: Ansible Galaxy requirements for collections:"
+echo "- All roles must have meta/main.yml with proper description"
+echo "- All roles must have meta/runtime.yml with requires_ansible field"
+echo "- Role names must use lowercase letters, numbers, and underscores only (no hyphens)"
+echo "- Collection version strings must follow semantic versioning"
+echo "- Galaxy tags must use lowercase letters, numbers, and underscores only (no hyphens)"

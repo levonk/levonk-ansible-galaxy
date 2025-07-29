@@ -1,6 +1,8 @@
 #!/bin/bash
-# Script to set up a new Ansible role with all required files
+# Script to set up a new Ansible role with all required files using copier
 # Usage: ./setup_new_role.sh <collection_name> <role_name>
+
+set -e  # Exit immediately if a command exits with a non-zero status
 
 # Check if collection and role names are provided
 if [ -z "$1" ] || [ -z "$2" ]; then
@@ -11,9 +13,12 @@ fi
 
 COLLECTION_NAME="$1"
 ROLE_NAME="$2"
-BASE_DIR="/mnt/d/p/gh/lrepo52/mrepo/proj/homenet/deployment-operations/3rdparty/gh/levonk/levonk-ansible-galaxy/ansible-galaxy"
-ROLE_DIR="$BASE_DIR/collections/ansible_collections/levonk/$COLLECTION_NAME/roles/$ROLE_NAME"
-TEMPLATES_DIR="$BASE_DIR/collections/ansible_collections/blueprint-namespace/templates"
+
+# Use relative paths based on script location
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+BASE_DIR="$ROOT_DIR/ansible-galaxy"
+BLUEPRINT_ROLE="$BASE_DIR/collections/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role"
 
 echo "Setting up new role: $ROLE_NAME in collection levonk.$COLLECTION_NAME"
 
@@ -24,97 +29,34 @@ if [ ! -d "$BASE_DIR/collections/ansible_collections/levonk/$COLLECTION_NAME" ];
   exit 1
 fi
 
-# Create role directory structure
-mkdir -p "$ROLE_DIR"/{defaults,files,handlers,meta,tasks,templates,vars}
+# Create the role directory if it doesn't exist
+COLLECTION_DIR="$BASE_DIR/collections/ansible_collections/levonk/$COLLECTION_NAME"
+ROLE_DIR="$COLLECTION_DIR/roles/$ROLE_NAME"
+mkdir -p "$COLLECTION_DIR/roles"
 
-# Create meta/main.yml - REQUIRED for Galaxy publishing to avoid warnings
-cat > "$ROLE_DIR/meta/main.yml" << EOF
-# meta/main.yml for roles - this file is required for Ansible Galaxy
----
-galaxy_info:
-  role_name: $ROLE_NAME
-  author: levonk
-  description: Role for $ROLE_NAME functionality in the $COLLECTION_NAME collection
-  company: levonk
-  license: MIT
-  min_ansible_version: 2.9
-  
-  platforms:
-    - name: Ubuntu
-      versions:
-        - focal
-        - jammy
-    - name: Debian
-      versions:
-        - bullseye
-        - bookworm
-  
-  galaxy_tags:
-    - levonk
-    - $COLLECTION_NAME
+# Check if role already exists
+if [ -d "$ROLE_DIR" ]; then
+  echo "Warning: Role '$ROLE_NAME' already exists in collection '$COLLECTION_NAME'."
+  read -p "Do you want to overwrite it? (y/N): " confirm
+  if [[ ! $confirm =~ ^[Yy]$ ]]; then
+    echo "Operation cancelled."
+    exit 1
+  fi
+fi
 
-dependencies: []
-EOF
+echo "Creating role using copier template..."
+# Use copier to create the role from the blueprint template
+copier copy \
+  "$BLUEPRINT_ROLE" \
+  "$ROLE_DIR" \
+  --data "role_name=$ROLE_NAME" \
+  --data "collection_name=$COLLECTION_NAME" \
+  --data "namespace=levonk" \
+  --force
 
-# Create README.md
-cat > "$ROLE_DIR/README.md" << EOF
-# $ROLE_NAME
+echo "Role has been created with all necessary Galaxy metadata files"
 
-Role for $ROLE_NAME functionality in the $COLLECTION_NAME collection.
-
-## Requirements
-
-Any prerequisites that may not be covered by Ansible itself or the role.
-
-## Role Variables
-
-A description of the variables used by this role:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| example_var | default_value | Description of the variable |
-
-## Dependencies
-
-None.
-
-## Example Playbook
-
-\`\`\`yaml
-- hosts: servers
-  roles:
-    - role: levonk.$COLLECTION_NAME.$ROLE_NAME
-      vars:
-        example_var: value
-\`\`\`
-EOF
-
-# Create default tasks/main.yml
-cat > "$ROLE_DIR/tasks/main.yml" << EOF
----
-# tasks file for $ROLE_NAME
-- name: Include variables
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version }}.yml"
-    - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version }}.yml"
-    - "{{ ansible_distribution | lower }}.yml"
-    - "{{ ansible_os_family | lower }}.yml"
-    - "default.yml"
-  ignore_errors: true
-  tags:
-    - always
-EOF
-
-# Create default defaults/main.yml
-cat > "$ROLE_DIR/defaults/main.yml" << EOF
----
-# defaults file for $ROLE_NAME
-EOF
-
-# Create Makefile for the role
-cp "$TEMPLATES_DIR/Makefile.role.template" "$ROLE_DIR/Makefile"
-sed -i "s/ROLE_NAME=.*/ROLE_NAME=$ROLE_NAME/" "$ROLE_DIR/Makefile"
+ROLE_DIR="$BASE_DIR/collections/ansible_collections/levonk/$COLLECTION_NAME/roles/$ROLE_NAME"
 
 echo "Role structure created at: $ROLE_DIR"
 echo ""
@@ -126,3 +68,9 @@ echo "4. Update the README.md with specific information about your role"
 echo ""
 echo "IMPORTANT: Make sure the description in meta/main.yml is detailed and accurate"
 echo "to avoid Galaxy import warnings."
+echo ""
+echo "REMINDER: Ansible Galaxy requirements for roles:"
+echo "- All roles must have meta/main.yml with proper description"
+echo "- All roles must have meta/runtime.yml with requires_ansible field"
+echo "- Role names must use lowercase letters, numbers, and underscores only (no hyphens)"
+echo "- Galaxy tags must use lowercase letters, numbers, and underscores only (no hyphens)"

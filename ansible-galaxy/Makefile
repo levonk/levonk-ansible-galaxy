@@ -368,7 +368,7 @@ inst-prod:
 		fi ; \
 	done
 
-# Create a new collection using the blueprint template
+# Create a new collection using the setup_new_collection.sh script
 new-collection:
 	@echo "Creating a new collection..."
 	@read -p "Enter collection name: " collection_name; \
@@ -376,21 +376,11 @@ new-collection:
 		echo "Error: Collection name cannot be empty."; \
 		exit 1; \
 	fi; \
-	if [ -d "$(COLLECTIONS_DIR)/$$collection_name" ]; then \
-		echo "Collection '$$collection_name' already exists at $(COLLECTIONS_DIR)/$$collection_name"; \
-		exit 1; \
-	fi; \
 	echo "Creating new collection: levonk.$$collection_name"; \
-	copier copy \
-		"$(ROOT_DIR)/collections/ansible_collections/blueprint-namespace/blueprint-collection" \
-		"$(COLLECTIONS_DIR)/$$collection_name" \
-		--data "collection_name=$$collection_name" \
-		--data "namespace=levonk" \
-		--force; \
-	echo "Collection created at: $(COLLECTIONS_DIR)/$$collection_name"; \
+	$(ROOT_DIR)/../bin/setup_new_collection.sh $$collection_name; \
 	echo "To add this collection to the build list, update the COLLECTIONS variable in the Makefile."
 
-# Create a new role within a collection using the blueprint template
+# Create a new role within a collection using the setup_new_role.sh script
 new-role:
 	@echo "Creating a new role..."
 	@read -p "Enter collection name: " collection_name; \
@@ -403,20 +393,8 @@ new-role:
 		echo "Collection '$$collection_name' does not exist. Creating it first..."; \
 		$(MAKE) new-collection collection_name=$$collection_name; \
 	fi; \
-	if [ -d "$(COLLECTIONS_DIR)/$$collection_name/roles/$$role_name" ]; then \
-		echo "Role '$$role_name' already exists in collection '$$collection_name'."; \
-		exit 1; \
-	fi; \
 	echo "Creating new role: levonk.$$collection_name.$$role_name"; \
-	mkdir -p "$(COLLECTIONS_DIR)/$$collection_name/roles"; \
-	copier copy \
-		"$(ROOT_DIR)/collections/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role" \
-		"$(COLLECTIONS_DIR)/$$collection_name/roles/$$role_name" \
-		--data "role_name=$$role_name" \
-		--data "collection_name=$$collection_name" \
-		--data "namespace=levonk" \
-		--force; \
-	echo "Role created at: $(COLLECTIONS_DIR)/$$collection_name/roles/$$role_name"
+	$(ROOT_DIR)/../bin/setup_new_role.sh $$collection_name $$role_name
 
 # Debug target to print variables
 debug:
