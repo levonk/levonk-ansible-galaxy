@@ -1,6 +1,6 @@
 ---
 # tasks file for levonk.user_setup.chezmoi
-# Copyright (c) 2025, Brillarc, LLC
+# Copyright (c) 2025, levonk
 
 - name: Pre-flight checks
   block:

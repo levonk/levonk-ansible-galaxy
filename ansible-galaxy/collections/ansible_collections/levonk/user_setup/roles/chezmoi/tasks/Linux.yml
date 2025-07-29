@@ -1,6 +1,6 @@
 ---
 # tasks file for levonk.user_setup.chezmoi on Linux
-# Copyright (c) 2025, Brillarc, LLC
+# Copyright (c) 2025, levonk
 
 - name: "Install | chezmoi (Linux)"
   block:
