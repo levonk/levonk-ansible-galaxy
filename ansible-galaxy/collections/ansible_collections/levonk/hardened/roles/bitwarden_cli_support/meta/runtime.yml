@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for bitwarden_cli_support role
+requires_ansible: "2.9"

@@ -1,0 +1,22 @@
+---
+# Task: Install rbw (Rust Bitwarden CLI)
+# rbw is an unofficial, fast Bitwarden CLI written in Rust. It is popular for scripting and automation due to its speed and flexibility.
+# Use rbw if you want a scriptable, lightweight Bitwarden CLI alternative.
+
+- name: Ensure rbw is installed using levonk.common.package if available
+  levonk.common.package:
+    name: rbw
+    state: present
+  register: rbw_package_result
+  ignore_errors: yes
+
+- name: Download and install rbw if not available in package manager
+  when: rbw_package_result is failed or rbw_package_result is skipped
+  block:
+    - name: Download rbw binary (latest release from GitHub)
+      get_url:
+        url: "https://github.com/doy/rbw/releases/latest/download/rbw-linux-x86_64"
+        dest: /usr/local/bin/rbw
+        mode: '0755'
+        force: yes
+      become: true

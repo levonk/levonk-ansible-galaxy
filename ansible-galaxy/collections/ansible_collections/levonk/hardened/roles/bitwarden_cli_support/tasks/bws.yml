@@ -1,0 +1,22 @@
+---
+# Task: Install Bitwarden Secrets CLI (bws)
+# Bitwarden Secrets CLI is used for Bitwarden's Secrets Manager, focusing on managing and retrieving secrets for automation and CI/CD.
+# Use this tool if you need to fetch secrets for infrastructure, pipelines, or code deployments.
+
+- name: Ensure Bitwarden Secrets CLI (bws) is installed using levonk.common.package if available
+  levonk.common.package:
+    name: bws
+    state: present
+  register: bws_package_result
+  ignore_errors: yes
+
+- name: Download and install Bitwarden Secrets CLI (bws) if not available in package manager
+  when: bws_package_result is failed or bws_package_result is skipped
+  block:
+    - name: Download Bitwarden Secrets CLI (bws) binary
+      get_url:
+        url: "https://vault.bitwarden.com/download/?app=secrets-cli&platform=linux"
+        dest: /usr/local/bin/bws
+        mode: '0755'
+        force: yes
+      become: true

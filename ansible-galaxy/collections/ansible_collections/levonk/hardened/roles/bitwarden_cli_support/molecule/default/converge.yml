@@ -1,0 +1,39 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  vars:
+    bitwarden_cli_tools: ["bw", "bws", "rbw"]
+  roles:
+    - role: bitwarden-cli-support
+
+- name: Verify Bitwarden CLI tools are installed
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check bw CLI is present
+      command: bw --version
+      register: bw_result
+      ignore_errors: yes
+    - name: Assert bw CLI installed
+      assert:
+        that: bw_result.rc == 0
+        fail_msg: "bw CLI is not installed or not in PATH"
+
+    - name: Check bws CLI is present
+      command: bws --version
+      register: bws_result
+      ignore_errors: yes
+    - name: Assert bws CLI installed
+      assert:
+        that: bws_result.rc == 0
+        fail_msg: "bws CLI is not installed or not in PATH"
+
+    - name: Check rbw CLI is present
+      command: rbw --version
+      register: rbw_result
+      ignore_errors: yes
+    - name: Assert rbw CLI installed
+      assert:
+        that: rbw_result.rc == 0
+        fail_msg: "rbw CLI is not installed or not in PATH"
