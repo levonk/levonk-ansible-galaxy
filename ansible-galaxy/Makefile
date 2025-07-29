@@ -427,12 +427,11 @@ promote: promote-build
 # Promote collections by incrementing the major version number
 promote-major: $(TEST_MARKER)
 	@echo "Promoting collections with MAJOR version increment..."
-	@if [ ! -f "$(ROOT_DIR)/bin/promote-major" ]; then \
-		echo "ERROR: promote-major script not found in $(ROOT_DIR)/bin"; \
-		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-major.sh" ]; then \
+		echo "ERROR: promote-major.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
-	@"$(ROOT_DIR)/bin/promote-major" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@"$(ROOT_DIR)/bin/promote-major.sh" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
 	@echo "Rebuilding collections with the new versions..."
 	@rm -f $(BUILD_MARKER)
 	@$(MAKE) build
@@ -440,12 +439,11 @@ promote-major: $(TEST_MARKER)
 # Promote collections by incrementing the minor version number
 promote-minor: $(TEST_MARKER)
 	@echo "Promoting collections with MINOR version increment..."
-	@if [ ! -f "$(ROOT_DIR)/bin/promote-minor" ]; then \
-		echo "ERROR: promote-minor script not found in $(ROOT_DIR)/bin"; \
-		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-minor.sh" ]; then \
+		echo "ERROR: promote-minor.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
-	@"$(ROOT_DIR)/bin/promote-minor" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@"$(ROOT_DIR)/bin/promote-minor.sh" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
 	@echo "Rebuilding collections with the new versions..."
 	@rm -f $(BUILD_MARKER)
 	@$(MAKE) build
@@ -453,12 +451,11 @@ promote-minor: $(TEST_MARKER)
 # Promote collections by incrementing the build (patch) version number
 promote-build: $(TEST_MARKER)
 	@echo "Promoting collections with BUILD version increment..."
-	@if [ ! -f "$(ROOT_DIR)/bin/promote-build" ]; then \
-		echo "ERROR: promote-build script not found in $(ROOT_DIR)/bin"; \
-		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-build.sh" ]; then \
+		echo "ERROR: promote-build.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
-	@"$(ROOT_DIR)/bin/promote-build" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@"$(ROOT_DIR)/bin/promote-build.sh" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
 	@echo "Rebuilding collections with the new versions..."
 	@rm -f $(BUILD_MARKER)
 	@$(MAKE) build
