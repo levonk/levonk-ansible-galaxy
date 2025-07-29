@@ -1,0 +1,9 @@
+---
+# tasks file for pip role
+
+- name: "Detect Python package manager from project files"
+  ansible.builtin.include_tasks: detect_package_manager.yml
+
+- name: "Install packages using detected package manager"
+  ansible.builtin.include_tasks: install_packages.yml
+  when: pip_packages is defined

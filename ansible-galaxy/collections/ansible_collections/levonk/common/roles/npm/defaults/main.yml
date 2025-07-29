@@ -1,0 +1,19 @@
+---
+# defaults file for npm role
+
+# Default to global installation
+npm_global: true
+
+# Default to not using --save-dev flag
+npm_dev: false
+
+# Default to using sudo for global installations
+npm_become: true
+
+# Default project directory (current working directory if not specified)
+# project_dir: "/path/to/project"
+
+# Example package list
+# npm_packages:
+#   - typescript
+#   - eslint

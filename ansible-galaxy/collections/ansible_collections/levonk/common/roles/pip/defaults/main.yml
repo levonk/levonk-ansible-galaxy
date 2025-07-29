@@ -1,0 +1,27 @@
+---
+# defaults file for pip role
+
+# Default to not using sudo for installations
+pip_become: false
+
+# Default to not installing in user mode
+pip_user: false
+
+# Default to not installing from requirements file
+pip_from_requirements: false
+
+# Default requirements file name (if pip_from_requirements is true)
+requirements_file: "requirements.txt"
+
+# Default project directory (current working directory if not specified)
+# project_dir: "/path/to/project"
+
+# Example package list
+# pip_packages:
+#   - requests
+#   - pandas
+
+# Example development package list (only used with poetry, pdm, pipenv)
+# pip_dev_packages:
+#   - pytest
+#   - black

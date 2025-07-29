@@ -1,0 +1,79 @@
+---
+# Detect which Python package manager to use based on project files
+
+- name: "Set default package manager to uv"
+  ansible.builtin.set_fact:
+    python_package_manager: "uv"
+    python_package_manager_install_cmd: "uv pip install"
+    python_package_manager_req_flag: "-r"
+
+- name: "Check for poetry.lock file"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/poetry.lock"
+  register: poetry_lock
+
+- name: "Check for Pipfile.lock file"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/Pipfile.lock"
+  register: pipenv_lock
+
+- name: "Check for pdm.lock file"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/pdm.lock"
+  register: pdm_lock
+
+- name: "Check for conda-meta directory"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/conda-meta"
+  register: conda_meta
+
+- name: "Check for environment.yml file"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/environment.yml"
+  register: conda_env
+
+- name: "Check for requirements.txt file"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/requirements.txt"
+  register: requirements_txt
+
+- name: "Check for pyproject.toml file"
+  ansible.builtin.stat:
+    path: "{{ project_dir | default(ansible_env.PWD) }}/pyproject.toml"
+  register: pyproject_toml
+
+- name: "Read pyproject.toml if it exists"
+  ansible.builtin.slurp:
+    src: "{{ project_dir | default(ansible_env.PWD) }}/pyproject.toml"
+  register: pyproject_content
+  when: pyproject_toml.stat.exists
+
+- name: "Set package manager based on detection"
+  ansible.builtin.set_fact:
+    python_package_manager: "{{ 'poetry' if poetry_lock.stat.exists else 
+                               'pipenv' if pipenv_lock.stat.exists else 
+                               'pdm' if pdm_lock.stat.exists else 
+                               'conda' if conda_meta.stat.exists or conda_env.stat.exists else 
+                               'uv' if requirements_txt.stat.exists else 
+                               'pip' }}"
+
+- name: "Set package manager install command"
+  ansible.builtin.set_fact:
+    python_package_manager_install_cmd: "{{ 'poetry add' if python_package_manager == 'poetry' else 
+                                           'pipenv install' if python_package_manager == 'pipenv' else 
+                                           'pdm add' if python_package_manager == 'pdm' else 
+                                           'conda install' if python_package_manager == 'conda' else 
+                                           'uv pip install' if python_package_manager == 'uv' else 
+                                           'pip install' }}"
+
+- name: "Set package manager requirements flag"
+  ansible.builtin.set_fact:
+    python_package_manager_req_flag: "{{ '' if python_package_manager == 'poetry' else 
+                                        '' if python_package_manager == 'pipenv' else 
+                                        '' if python_package_manager == 'pdm' else 
+                                        '--file' if python_package_manager == 'conda' else 
+                                        '-r' }}"
+
+- name: "Display detected package manager"
+  ansible.builtin.debug:
+    msg: "Detected Python package manager: {{ python_package_manager }}"
