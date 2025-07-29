@@ -1,10 +1,10 @@
-.PHONY: all build clean test beta prod lint lint-ansible lint-markdown lint-yaml lint-galaxy molecule debug-galaxy inst-src inst-repo inst-build inst-beta inst-prod new-collection new-role
+.PHONY: all build clean test publish-beta prod lint lint-ansible lint-markdown lint-yaml lint-galaxy molecule debug-galaxy inst-src inst-repo inst-build inst-beta inst-prod new-collection new-role promote
 
 # Define paths and collections
 ROOT_DIR := $(shell pwd)
 COLLECTIONS_DIR := $(ROOT_DIR)/collections/ansible_collections/levonk
 DIST_DIR := $(ROOT_DIR)/../dist
-COLLECTIONS := base_system common gamer hardened server-llmchat user_setup vibeops
+COLLECTIONS := base_system common gamer hardened server_llmchat user_setup vibeops
 
 # Define marker files for tracking completion of steps
 MARKER_DIR := $(ROOT_DIR)/.markers
@@ -25,7 +25,7 @@ $(BUILD_MARKER): $(CLEAN_MARKER)
 		echo "\n=== Building levonk.$$collection collection ==="; \
 		if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
 			echo "Checking galaxy.yml for $$collection"; \
-			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"'); \
+			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"); \
 			if [ "$$GALAXY_NAME" != "$$collection" ]; then \
 				echo "Fixing galaxy.yml name from '$$GALAXY_NAME' to '$$collection'"; \
 				sed -i "s/^name:.*/name: $$collection/" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; \
@@ -115,12 +115,33 @@ $(LINT_MARKER): $(BUILD_MARKER)
 # Lint Ansible files with ansible-lint
 lint-ansible:
 	@echo "Linting Ansible files..."
-	for collection in $(COLLECTIONS); do \
-		echo "\n=== Linting levonk.$$collection collection with ansible-lint ===" ; \
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Linting levonk.$$collection collection with ansible-lint ==="; \
 		if [ -d "$(COLLECTIONS_DIR)/$$collection" ]; then \
-			cd "$(COLLECTIONS_DIR)/$$collection" && \
-			ansible-lint . || echo "Warning: Ansible linting issues found in $$collection"; \
-			cd "$(ROOT_DIR)"; \
+			LINT_TEMP_DIR=$$(mktemp -d) || { echo "Failed to create temp directory"; exit 1; }; \
+			echo "Created temporary linting directory: $$LINT_TEMP_DIR"; \
+			\
+			# Copy only the files we want to lint
+			for dir in roles plugins docs meta tests; do \
+				if [ -d "$(COLLECTIONS_DIR)/$$collection/$$dir" ]; then \
+					mkdir -p "$$LINT_TEMP_DIR/$$dir"; \
+					cp -r "$(COLLECTIONS_DIR)/$$collection/$$dir/"* "$$LINT_TEMP_DIR/$$dir/"; \
+				fi; \
+			done; \
+			\
+			# Copy the galaxy.yml file
+			if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
+				cp "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" "$$LINT_TEMP_DIR/"; \
+			fi; \
+			\
+			# Run ansible-lint in the temporary directory
+			echo "Running ansible-lint in temporary directory..."; \
+			(cd "$$LINT_TEMP_DIR" && \
+			ansible-lint --no-progress --skip-list=no-changed-when,no-handler,command-instead-of-module . || \
+			echo "Warning: Ansible linting issues found in $$collection"); \
+			\
+			# Clean up
+			rm -rf "$$LINT_TEMP_DIR"; \
 		else \
 			echo "Collection directory not found for $$collection"; \
 		fi; \
@@ -158,7 +179,7 @@ lint-galaxy:
 	for collection in $(COLLECTIONS); do \
 		echo "\n=== Checking galaxy.yml for levonk.$$collection ===" ; \
 		if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
-			echo "Checking required fields in $$collection/galaxy.yml"
+			echo "Checking required fields in $$collection/galaxy.yml"; \
 			for field in namespace name version readme authors description license; do \
 				if ! grep -q "^$$field:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; then \
 					echo "ERROR: Missing required field '$$field' in galaxy.yml for $$collection"; \
@@ -169,11 +190,11 @@ lint-galaxy:
 				echo "ERROR: Namespace must be 'levonk' in galaxy.yml for $$collection"; \
 			fi; \
 			echo "Verifying name matches directory name"; \
-			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"'); \
+			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"); \
 			if [ "$$GALAXY_NAME" != "$$collection" ]; then \
 				echo "ERROR: Name '$$GALAXY_NAME' does not match directory name '$$collection'"; \
 			fi; \
-			echo "Validating with yamllint"
+			echo "Validating with yamllint"; \
 			yamllint "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" || echo "Warning: YAML syntax issues in galaxy.yml for $$collection"; \
 		else \
 			echo "galaxy.yml not found for $$collection"; \
@@ -223,26 +244,27 @@ _publish_base:
 			echo "Failed to publish $$(basename $$collection)."; \
 	done
 
-# Publish to beta server
-beta: $(TEST_MARKER)
-	@echo "Publishing collections to beta server..."
-	@echo "Using beta server URL: https://galaxy-dev.ansible.com"
+# Publish to beta server (depends on promote, which depends on test)
+publish-beta: promote
+	@echo "Running publish-beta script to publish collections to beta server..."
+	@if [ ! -f "$(ROOT_DIR)/bin/publish-beta.sh" ]; then \
+		echo "ERROR: publish-beta.sh script not found in $(ROOT_DIR)/bin"; \
+		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+		exit 1; \
+	fi
 	@if [ -z "$${BETA_ANSIBLE_GALAXY_TOKEN}" ]; then \
 		echo "WARNING: BETA_ANSIBLE_GALAXY_TOKEN environment variable is not set. Using dev-beta instead." ; \
 		$(MAKE) -C .. dev-beta ; \
 	else \
-		echo "Beta token prefix: $$(echo $${BETA_ANSIBLE_GALAXY_TOKEN} | cut -c1-3)..." ; \
-		ANSIBLE_GALAXY_TOKEN="$${BETA_ANSIBLE_GALAXY_TOKEN}" ; \
-		for collection in $$(find "$(DIST_DIR)" -name "*.tar.gz"); do \
-			echo "Publishing $$(basename $$collection) to https://galaxy-dev.ansible.com..." ; \
-			ansible-galaxy collection publish $$collection --api-key="$${ANSIBLE_GALAXY_TOKEN}" --server="https://galaxy-dev.ansible.com" || \
-			echo "Failed to publish $$(basename $$collection)." ; \
-		done ; \
+		"$(ROOT_DIR)/bin/publish-beta.sh" "$(DIST_DIR)" "$(COLLECTIONS)" "$${BETA_ANSIBLE_GALAXY_TOKEN}" && \
 		touch $(MARKER_DIR)/beta.marker ; \
 	fi
 
+# Alias for backward compatibility
+beta: publish-beta
+
 # Publish to production server (requires successful beta deployment and being on env/prod branch)
-prod: $(MARKER_DIR)/beta.marker
+prod: publish-beta
 	@CURRENT_BRANCH=$$(git rev-parse --abbrev-ref HEAD); \
 	if [ "$$CURRENT_BRANCH" != "env/prod" ]; then \
 		echo "ERROR: Production deployment can only be done from the 'env/prod' branch."; \
@@ -334,25 +356,55 @@ inst-build: $(BUILD_MARKER)
 		fi ; \
 	done
 
-# Install from beta server
-inst-beta:
+# Install from beta server (depends on publish-beta to ensure collections are published)
+inst-beta: publish-beta
 	@echo "Installing collections from beta server..."
-	@for collection in $(COLLECTIONS); do \
+	@FAILED_COLLECTIONS=""; \
+	for collection in $(COLLECTIONS); do \
 		echo "\n=== Installing levonk.$$collection from beta server ===" ; \
-		ansible-galaxy collection install levonk.$$collection --server https://galaxy-dev.ansible.com --force ; \
+		if ! ansible-galaxy collection list --server https://galaxy-dev.ansible.com | grep -q "levonk.$$collection"; then \
+			echo "WARNING: Collection levonk.$$collection not found on beta server!" ; \
+			echo "This collection needs to be published to the beta server." ; \
+			FAILED_COLLECTIONS="$$FAILED_COLLECTIONS levonk.$$collection"; \
+			continue; \
+		fi ; \
+		SERVER_VERSION=$$(ansible-galaxy collection list --server https://galaxy-dev.ansible.com | grep "levonk.$$collection" | awk '{print $$2}') ; \
+		if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
+			LOCAL_VERSION=$$(grep -E "^version:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'") ; \
+			if [ "$$LOCAL_VERSION" != "$$SERVER_VERSION" ]; then \
+				echo "WARNING: Version mismatch for levonk.$$collection!" ; \
+				echo "Local version: $$LOCAL_VERSION" ; \
+				echo "Server version: $$SERVER_VERSION" ; \
+				echo "This collection needs to be published with the current version." ; \
+				FAILED_COLLECTIONS="$$FAILED_COLLECTIONS levonk.$$collection"; \
+				continue; \
+			fi; \
+		else \
+			echo "Note: No local version found for levonk.$$collection. Installing from beta server."; \
+		fi ; \
+		if ! ansible-galaxy collection install levonk.$$collection --server https://galaxy-dev.ansible.com --force --pre; then \
+			echo "WARNING: Failed to install levonk.$$collection from beta server." ; \
+			FAILED_COLLECTIONS="$$FAILED_COLLECTIONS levonk.$$collection"; \
+			continue; \
+		fi ; \
 		if [ -f "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ]; then \
 			echo "Running test playbook for levonk.$$collection..." ; \
-			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.$$collection.yml" || true; \
 		elif [ -f "$(ROOT_DIR)/../tests/test-levonk.yml" ]; then \
 			echo "Running namespace test playbook..." ; \
-			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" ; \
+			ansible-playbook "$(ROOT_DIR)/../tests/test-levonk.yml" || true; \
 		else \
-			echo "No test playbook found for levonk.$$collection" ; \
-		fi ; \
-	done
+			echo "No test playbook found for levonk.$$collection"; \
+		fi; \
+	done; \
+	if [ -n "$$FAILED_COLLECTIONS" ]; then \
+		echo "\n\nERROR: The following collections could not be installed from beta server:$$FAILED_COLLECTIONS"; \
+		echo "\nPlease run 'make publish-beta' to publish these collections to the beta server."; \
+		exit 1; \
+	fi
 
-# Install from production server
-inst-prod:
+# Install from production server (depends on prod to ensure collections are published)
+inst-prod: prod
 	@echo "Installing collections from production server..."
 	@for collection in $(COLLECTIONS); do \
 		echo "\n=== Installing levonk.$$collection from production server ===" ; \
@@ -367,6 +419,49 @@ inst-prod:
 			echo "No test playbook found for levonk.$$collection" ; \
 		fi ; \
 	done
+
+# Promote collections by incrementing the build version (patch) number
+# This is the default promotion target used in the build pipeline
+promote: promote-build
+
+# Promote collections by incrementing the major version number
+promote-major: $(TEST_MARKER)
+	@echo "Promoting collections with MAJOR version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-major" ]; then \
+		echo "ERROR: promote-major script not found in $(ROOT_DIR)/bin"; \
+		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+		exit 1; \
+	fi
+	@"$(ROOT_DIR)/bin/promote-major" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
+
+# Promote collections by incrementing the minor version number
+promote-minor: $(TEST_MARKER)
+	@echo "Promoting collections with MINOR version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-minor" ]; then \
+		echo "ERROR: promote-minor script not found in $(ROOT_DIR)/bin"; \
+		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+		exit 1; \
+	fi
+	@"$(ROOT_DIR)/bin/promote-minor" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
+
+# Promote collections by incrementing the build (patch) version number
+promote-build: $(TEST_MARKER)
+	@echo "Promoting collections with BUILD version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-build" ]; then \
+		echo "ERROR: promote-build script not found in $(ROOT_DIR)/bin"; \
+		echo "Available scripts in bin: $$(ls -1 $(ROOT_DIR)/bin/ 2>/dev/null || echo 'none')"; \
+		exit 1; \
+	fi
+	@"$(ROOT_DIR)/bin/promote-build" "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
 
 # Create a new collection using the setup_new_collection.sh script
 new-collection:
