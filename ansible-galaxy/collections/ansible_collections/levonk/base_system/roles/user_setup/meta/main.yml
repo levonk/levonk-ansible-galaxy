@@ -1,5 +1,5 @@
 ---
-dependency: []
+dependencies: []
 galaxy_info:
   author: levonk
   description: User account creation, SSH/GPG key, chezmoi

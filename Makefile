@@ -11,8 +11,8 @@ all:
 	@cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) all
 
 # Forward common targets
-.PHONY: clean build test lint beta prod reset
-clean build test lint beta prod reset:
+.PHONY: clean build test lint beta prod reset inst-beta inst-prod molecule lint-ansible lint-markdown lint-yaml lint-galaxy new-collection new-role debug
+clean build test lint beta prod reset inst-beta inst-prod molecule lint-ansible lint-markdown lint-yaml lint-galaxy new-collection new-role debug:
 	@echo "Forwarding '$@' target to $(ANSIBLE_GALAXY_DIR)/Makefile"
 	@cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) $@
 

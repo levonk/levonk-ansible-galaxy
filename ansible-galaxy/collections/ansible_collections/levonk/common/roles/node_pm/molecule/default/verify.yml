@@ -1,7 +1,0 @@
----
-- name: Verify
-  hosts: all
-  tasks:
-    - name: Check role result
-      assert:
-        that: true  # Replace with real checks

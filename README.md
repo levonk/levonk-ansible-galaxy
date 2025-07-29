@@ -7,6 +7,131 @@ See LICENSE file in the project root for full license information.
 
 This repository contains a collection of Ansible roles for managing and provisioning development and operational environments.
 
+## Repository Structure
+
+```
+.
+├── ansible-galaxy/                 # Main project directory
+│   ├── bin/                       # Executable scripts for the project
+│   │   ├── promote-versions.sh    # Script to increment collection versions
+│   │   └── publish-beta.sh        # Script to publish to beta server
+│   ├── collections/               # Ansible collections
+│   │   └── ansible_collections/
+│   │       └── levonk/           # Our collection namespace
+│   │           ├── collection1/   # Individual collection
+│   │           │   ├── roles/    # Roles within the collection
+│   │           │   └── galaxy.yml
+│   │           └── ...
+│   ├── dist/                      # Built collection artifacts (*.tar.gz)
+│   ├── .markers/                  # Marker files for build tracking
+│   └── Makefile                   # Main Makefile for project operations
+├── docs/                          # Documentation files
+└── tests/                         # Test playbooks and test data
+```
+
+### Key Directories
+
+- **ansible-galaxy/bin/**: Contains executable scripts for various operations like version promotion and publishing.
+- **ansible-galaxy/collections/ansible_collections/levonk/**: Houses all collections under the `levonk` namespace.
+  - Each subdirectory represents a collection (e.g., `vibeops/`, `server_llmchat/`).
+  - Each collection contains its `roles/` directory and `galaxy.yml`.
+- **ansible-galaxy/dist/**: Stores built collection artifacts (`.tar.gz` files) ready for publishing.
+- **ansible-galaxy/.markers/**: Tracks build state with marker files for incremental builds.
+- **tests/**: Contains test playbooks and related files for testing collections.
+
+### Important Files
+
+- **Makefile**: The main interface for all project operations (building, testing, publishing).
+- **galaxy.yml**: Defines collection metadata and requirements.
+- **ansible.cfg**: Local Ansible configuration (if present).
+
+## Development Workflow
+
+1. **Collection Development**: Work within `ansible-galaxy/collections/ansible_collections/levonk/{collection_name}`
+2. **Building**: Use `make build` to create distribution artifacts in `dist/`
+3. **Testing**: Run `make test` to execute tests
+4. **Versioning**: Use `make promote` to increment versions before publishing
+5. **Publishing**: Use `make publish-beta` or `make prod` to publish to respective servers
+
+## Makefile Targets
+
+The project uses a Makefile to automate various tasks. Here are the available targets:
+
+### Build and Test
+
+- `build`: Build all collections and create distribution artifacts
+- `clean`: Clean the distribution directory
+- `test`: Run tests for all collections
+- `lint`: Run all linting checks
+- `lint-ansible`: Lint Ansible roles and playbooks
+- `lint-markdown`: Lint Markdown files
+- `lint-yaml`: Lint YAML files
+- `lint-galaxy`: Lint galaxy.yml files
+- `molecule`: Run molecule tests for roles
+
+### Version Management and Publishing
+
+- `promote`: Increment minor version numbers for collections that already exist on the beta server
+- `publish-beta`: Publish collections to the beta server (depends on promote)
+- `beta`: Alias for publish-beta
+- `prod`: Publish collections to the production server (requires being on env/prod branch)
+
+### Installation
+
+- `inst-src`: Install collections from source directories
+- `inst-repo`: Install collections from git repository
+- `inst-build`: Install collections from built artifacts
+- `inst-beta`: Install collections from beta server
+- `inst-prod`: Install collections from production server
+
+### Development
+
+- `new-collection`: Create a new collection
+- `new-role`: Create a new role within a collection
+- `debug`: Run debugging tools
+
+### Target Dependencies
+
+```mermaid
+graph TD
+    %% Main build pipeline
+    clean --> build
+    build --> lint
+    lint --> test
+    test --> promote
+    promote -- "rebuilds collections" --> build
+    promote --> publish-beta
+    publish-beta --> prod
+    
+    %% Installation dependencies
+    build --> inst-build
+    build --> inst-src
+    publish-beta --> inst-beta
+    prod --> inst-prod
+    
+    %% Development workflow - depends on tests passing
+    test --> new-collection
+    test --> new-role
+    test --> debug
+    new-collection --> build
+    new-role --> build
+    
+    subgraph "Installation Options"
+        inst-src
+        inst-repo
+        inst-build
+        inst-beta
+        inst-prod
+    end
+    
+    subgraph "Linting"
+        lint --> lint-ansible
+        lint --> lint-markdown
+        lint --> lint-yaml
+        lint --> lint-galaxy
+    end
+```
+
 
 ## Use your collections
 

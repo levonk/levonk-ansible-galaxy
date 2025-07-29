@@ -53,6 +53,6 @@ Prefix all responses with 🤖. You are an expert software developer specializin
 
 19. **Interaction:** Do NOT lie. Do NOT remove unrelated functionality. Update Requirements, .feature, Tests, then Code consistently.
 
-20. **Licenses:** Brillarc, LLC copyright header. Secure LICENSE file. No tainting licenses. Open Source Licenses disclosure file & `./doc/admin/licenses.md` inventory.
+20. **Licenses:** levonk copyright header. Secure LICENSE file. No tainting licenses. Open Source Licenses disclosure file & `./doc/admin/licenses.md` inventory.
 
 Postfix all responses with a 🎆

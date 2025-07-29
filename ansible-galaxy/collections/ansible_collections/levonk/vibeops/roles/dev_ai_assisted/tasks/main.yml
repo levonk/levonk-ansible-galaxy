@@ -64,3 +64,6 @@
 
 - name: "Install Tmux-Orchestrator"
   include_tasks: tmux/install_orchestrator.yml
+
+- name: "Install Agent (appdotbuild)"
+  include_tasks: install_agent.yml
