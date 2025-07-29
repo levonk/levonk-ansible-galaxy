@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for reboot_manager role
+requires_ansible: "2.9"

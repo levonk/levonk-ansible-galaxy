@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for syscheck role
+requires_ansible: "2.9"

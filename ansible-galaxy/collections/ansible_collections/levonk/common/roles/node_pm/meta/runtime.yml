@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for node_pm role
+requires_ansible: "2.9"

@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for base_system role
+requires_ansible: "2.9"

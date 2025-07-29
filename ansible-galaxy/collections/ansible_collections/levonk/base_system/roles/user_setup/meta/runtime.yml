@@ -1,0 +1,3 @@
+---
+# meta/runtime.yml for user_setup role
+requires_ansible: "2.9"
