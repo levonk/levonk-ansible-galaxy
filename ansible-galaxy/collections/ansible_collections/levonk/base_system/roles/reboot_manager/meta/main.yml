@@ -1,0 +1,29 @@
+---
+galaxy_info:
+  role_name: reboot_manager
+  namespace: levonk
+  author: levonk
+  description: Manages system reboots and ensures services restart properly
+  company: levonk
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+    - name: EL
+      versions:
+        - all
+    - name: Fedora
+      versions:
+        - all
+  galaxy_tags:
+    - system
+    - reboot
+    - management
+    - base_system
+
+dependencies: []
