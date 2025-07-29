@@ -1,0 +1,59 @@
+---
+- name: "Install Agent (macOS)"
+  block:
+    - name: "Install Agent with Homebrew (macOS)"
+      community.general.homebrew:
+        name: appdotbuild/tap/agent
+        state: present
+  when: ansible_facts['os_family'] == "Darwin"
+
+- name: "Install Agent (Linux)"
+  block:
+    - name: "Create temporary directory for Agent installation"
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: agent
+      register: agent_temp_dir
+
+    - name: "Download Agent installation script"
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/appdotbuild/agent/main/install.sh
+        dest: "{{ agent_temp_dir.path }}/install.sh"
+        mode: '0755'
+
+    - name: "Run Agent installation script"
+      ansible.builtin.shell:
+        cmd: "{{ agent_temp_dir.path }}/install.sh"
+      args:
+        creates: /usr/local/bin/agent
+
+    - name: "Clean up temporary directory"
+      ansible.builtin.file:
+        path: "{{ agent_temp_dir.path }}"
+        state: absent
+  when: ansible_facts['os_family'] in ["Debian", "RedHat"]
+
+- name: "Install Agent (Windows)"
+  block:
+    - name: "Create temporary directory for Agent installation (Windows)"
+      ansible.windows.win_tempfile:
+        state: directory
+        suffix: agent
+      register: agent_win_temp_dir
+
+    - name: "Download Agent installation script (Windows)"
+      ansible.windows.win_get_url:
+        url: https://raw.githubusercontent.com/appdotbuild/agent/main/install.ps1
+        dest: "{{ agent_win_temp_dir.path }}\\install.ps1"
+
+    - name: "Run Agent installation script (Windows)"
+      ansible.windows.win_shell:
+        script: "{{ agent_win_temp_dir.path }}\\install.ps1"
+      args:
+        creates: '%LOCALAPPDATA%\Programs\agent\agent.exe'
+
+    - name: "Clean up temporary directory (Windows)"
+      ansible.windows.win_file:
+        path: "{{ agent_win_temp_dir.path }}"
+        state: absent
+  when: ansible_facts['os_family'] == "Windows"
