@@ -32,7 +32,7 @@ license:
 EOF \
 	else \
 		echo "Checking galaxy.yml for $(COLLECTION_NAME)"; \
-		GALAXY_NAME=$$(grep -E "^name:" "galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
+		GALAXY_NAME=$$(grep -E "^name:" "galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"'); \
 		if [ "$$GALAXY_NAME" != "$(COLLECTION_NAME)" ]; then \
 			echo "Fixing galaxy.yml name from '$$GALAXY_NAME' to '$(COLLECTION_NAME)'"; \
 			sed -i "s/^name:.*/name: $(COLLECTION_NAME)/" "galaxy.yml"; \
@@ -77,7 +77,7 @@ lint-galaxy:
 			echo "ERROR: Namespace must be 'levonk' in galaxy.yml for $(COLLECTION_NAME)"; \
 		fi; \
 		# Verify name matches directory name
-		GALAXY_NAME=$$(grep -E "^name:" "galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
+		GALAXY_NAME=$$(grep -E "^name:" "galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"'); \
 		if [ "$$GALAXY_NAME" != "$(COLLECTION_NAME)" ]; then \
 			echo "ERROR: Name '$$GALAXY_NAME' does not match directory name '$(COLLECTION_NAME)'"; \
 		fi; \

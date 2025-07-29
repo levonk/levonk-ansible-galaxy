@@ -25,7 +25,7 @@ $(BUILD_MARKER): $(CLEAN_MARKER)
 		echo "\n=== Building levonk.$$collection collection ==="; \
 		if [ -f "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" ]; then \
 			echo "Checking galaxy.yml for $$collection"; \
-			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
+			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"'); \
 			if [ "$$GALAXY_NAME" != "$$collection" ]; then \
 				echo "Fixing galaxy.yml name from '$$GALAXY_NAME' to '$$collection'"; \
 				sed -i "s/^name:.*/name: $$collection/" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml"; \
@@ -169,7 +169,7 @@ lint-galaxy:
 				echo "ERROR: Namespace must be 'levonk' in galaxy.yml for $$collection"; \
 			fi; \
 			echo "Verifying name matches directory name"; \
-			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"\'''); \
+			GALAXY_NAME=$$(grep -E "^name:" "$(COLLECTIONS_DIR)/$$collection/galaxy.yml" | awk '{print $$2}' | tr -d '"' | tr -d "'"'); \
 			if [ "$$GALAXY_NAME" != "$$collection" ]; then \
 				echo "ERROR: Name '$$GALAXY_NAME' does not match directory name '$$collection'"; \
 			fi; \
