@@ -1,0 +1,20 @@
+---
+- name: Ensure jq is installed
+  ansible.builtin.package:
+    name: jq
+    state: present
+
+- name: Install jqfmt
+  ansible.builtin.copy:
+    src: jqfmt/
+    dest: /usr/local/bin/jqfmt
+    mode: '0755'
+    remote_src: yes
+
+- name: Create symlink for jqfmt
+  ansible.builtin.file:
+    src: /usr/local/bin/jqfmt/jqfmt.py
+    dest: /usr/local/bin/jqfmt
+    state: link
+    force: yes
+    mode: '0755'

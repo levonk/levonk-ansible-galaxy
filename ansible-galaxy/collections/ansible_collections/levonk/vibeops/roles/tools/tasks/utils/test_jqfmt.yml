@@ -1,0 +1,13 @@
+---
+- name: Test jqfmt installation
+  ansible.builtin.command: jqfmt --version
+  register: jqfmt_test
+  changed_when: false
+  check_mode: no
+  ignore_errors: yes
+
+- name: Verify jqfmt installation
+  ansible.builtin.debug:
+    msg: "jqfmt is not installed or not in PATH"
+  when: jqfmt_test.rc != 0
+  failed_when: jqfmt_test.rc != 0
