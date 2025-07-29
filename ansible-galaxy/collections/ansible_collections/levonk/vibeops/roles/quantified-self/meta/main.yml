@@ -1,13 +1,13 @@
 ---
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+# Copyright (c) 2025 levonk. All rights reserved.
 
 galaxy_info:
   role_name: quantified-self
   namespace: levonk.vibeops
   author: levonk
   description: Install and configure quantified self tools (ActivityWatch, Rize, Fathom)
-  company: Brillarc, LLC
+  company: levonk
   license: AGPL-3.0-only
   min_ansible_version: "2.12"
   

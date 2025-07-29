@@ -1,6 +1,6 @@
 ---
 # SPDX-License-Identifier: AGPL-3.0-only
-# Copyright (c) 2025 Brillarc, LLC. All rights reserved.
+# Copyright (c) 2025 levonk. All rights reserved.
 
 - name: Create quantified-self configuration directory
   file:
