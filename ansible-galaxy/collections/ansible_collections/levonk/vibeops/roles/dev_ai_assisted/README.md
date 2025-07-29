@@ -1,4 +1,4 @@
-# Ansible Role: levonk.vibeops.dev-ai-assisted
+# Ansible Role: levonk.vibeops.dev_ai_assisted
 
 [Source on GitHub](https://github.com/levonk/levonk-ansible-galaxy/tree/main/levonk/vibeops/roles/dev-ai-assisted)
 
@@ -137,7 +137,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 - hosts: all
   become: yes
   roles:
-    - role: levonk.vibeops.dev-ai-assisted
+    - role: levonk.vibeops.dev_ai_assisted
 ```
 
 ---

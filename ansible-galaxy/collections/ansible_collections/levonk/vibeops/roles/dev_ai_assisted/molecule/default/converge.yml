@@ -3,9 +3,9 @@
   hosts: all
   become: true
   tasks:
-    - name: "Include dev-ai-assisted role"
+    - name: "Include dev_ai_assisted role"
       include_role:
-        name: "levonk.vibeops.dev-ai-assisted"
+        name: "levonk.vibeops.dev_ai_assisted"
 
     - name: "Check Copilot CLI is installed"
       command: copilot --help

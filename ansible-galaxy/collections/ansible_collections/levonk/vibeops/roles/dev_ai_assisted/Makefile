@@ -1,4 +1,4 @@
-# Role-level Makefile for dev-ai-assisted role
+# Role-level Makefile for dev_ai_assisted role
 # Handles linting and molecule testing for this role
 
 .PHONY: all test lint molecule

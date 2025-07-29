@@ -1,5 +1,5 @@
 ---
-# tasks file for dev-ai-assisted
+# tasks file for dev_ai_assisted
 
 - name: "Install Visual Studio Code"
   include_tasks: install_vscode.yml

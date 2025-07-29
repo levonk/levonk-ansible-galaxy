@@ -51,7 +51,7 @@ This Ansible collection provides reusable roles for foundational system setup, s
 | vibeops/devops              | DevOps tools and pipeline setup            | Install, configure CI/CD, tools                                           | [README](vibeops/roles/devops/README.md) |
 | vibeops/dev-go              | Go development environment                 | Install Go, tools, lint, test                                             | [README](vibeops/roles/dev-go/README.md) |
 | vibeops/dev-cpp             | C++ development environment                | Install compilers, tools, lint, test                                      | [README](vibeops/roles/dev-cpp/README.md) |
-| vibeops/dev-ai-assisted     | AI-assisted dev tools                      | Install Copilot, TabNine, etc.                                            | [README](vibeops/roles/dev-ai-assisted/README.md) |
+| vibeops/dev_ai_assisted     | AI-assisted dev tools                      | Install Copilot, TabNine, etc.                                            | [README](vibeops/roles/dev_ai_assisted/README.md) |
 | vibeops/dev-rust            | Rust development environment               | Install Rust, tools, lint, test                                           | [README](vibeops/roles/dev-rust/README.md) |
 | vibeops/browsers            | Browser setup                             | Install browsers, extensions                                              | [README](vibeops/roles/browsers/README.md) |
 | vibeops/quantified-self     | Quantified self tools                      | Install self-tracking tools                                               | [README](vibeops/roles/quantified-self/README.md) |
