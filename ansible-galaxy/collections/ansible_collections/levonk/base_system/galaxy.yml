@@ -1,7 +1,7 @@
 ---
 namespace: levonk
 name: base_system
-version: 1.1.0
+version: 1.1.3
 readme: README.md
 authors:
   - Levon Kachadourian
