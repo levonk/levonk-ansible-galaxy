@@ -246,7 +246,7 @@ echo -e "\n${BLUE}=== Next Steps ===${NC}"
 if [ "$AUTH_OK" = true ]; then
   echo "1. Run 'make build' to build your collections"
   echo "2. Run 'make beta' to publish to the beta server"
-  echo "3. Or run 'bin/publish_beta.sh' to explicitly publish all collections"
+  echo "3. Or run 'bin/publish10-beta.sh' to explicitly publish all collections"
 else
   echo "1. Fix the authentication issues mentioned above"
   echo "2. Run this script again with --fix to attempt automatic fixes"
