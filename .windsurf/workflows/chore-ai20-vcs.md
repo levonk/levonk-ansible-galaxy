@@ -2,7 +2,9 @@
 description: commit the changesets to VCS
 ---
 
-0. Do a `git status --untracked-files=all --porcelain` in the current directory, OR the directory I tell you to use. Do not rely on your internal index.
+If a path is NOT specified, then operate on the current project in the current window, you can check the repository so you know where to limit the work. Don't NOT climb up the tree until there are no more git repositories!
+
+0. Do a `git status --untracked-files=all --porcelain` in the CURRENT directory, OR the directory I tell you to use. Do not rely on your internal index.
 1. Look at the files within all repositories that have been changed and not committed OR that are new to the project.
 2. run any linter, formatter, and finally unit tests that are available on the system, if not stop trying to run that tool.
 3. if the user is configured to sign commits, don't forget to sign the commit when doing it. If not don't try signing again, and repeat.

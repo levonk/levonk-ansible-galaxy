@@ -14,8 +14,10 @@ This repository contains a collection of Ansible roles for managing and provisio
 ├── ansible-galaxy/                 # Main project directory
 │   ├── bin/                       # Executable scripts for the project
 │   │   ├── promote-versions.sh    # Script to increment collection versions
-│   │   └── publish-beta.sh        # Script to publish to beta server
+│   │   └── publish-*.sh        # Script to publish on galaxy servers
+│   │   └── install-*.sh        # Script to install
 │   ├── collections/               # Ansible collections
+│   │   └── blueprint_collections/ # A template collection
 │   │   └── ansible_collections/
 │   │       └── levonk/           # Our collection namespace
 │   │           ├── collection1/   # Individual collection
@@ -60,6 +62,7 @@ The project uses a Makefile to automate various tasks. Here are the available ta
 ### Build and Test
 
 - `build`: Build all collections and create distribution artifacts
+  - Run with `V=1` for verbose output (e.g., `make V=1 build`)
 - `clean`: Clean the distribution directory
 - `test`: Run tests for all collections
 - `lint`: Run all linting checks
@@ -133,24 +136,109 @@ graph TD
 ```
 
 
-## Use your collections
+## Installation Methods
 
-### Publish publicly
+This project provides several ways to install collections, each suitable for different use cases. All installation methods are available as Makefile targets in `ansible-galaxy/Makefile` and as individual scripts in `ansible-galaxy/bin/`.
 
-You'll access it at https://galaxy.ansible.com/
+### Available Installation Methods
 
-But we want to do local testing first, right?
+1. **From Source**
+   - **Use case**: Development and testing of local changes
+   - **Make target**: `make inst-src [collection1 collection2 ...]`
+   - **Script**: `./bin/install-from-src.sh [collection1 collection2 ...]`
+   - **Description**: Installs collections directly from the source directories. This is the fastest way to test local changes without building or publishing.
 
-### CLI method
+2. **From Git Repository**
+   - **Use case**: Installing from a specific branch or tag
+   - **Make target**: `make inst-repo [branch] [collection1 collection2 ...]`
+   - **Script**: `./bin/install-from-repo.sh [branch] [collection1 collection2 ...]`
+   - **Description**: Clones the repository (or a specific branch) and installs collections from it. Useful for testing changes from a feature branch or specific version.
 
-This tells Ansible to only search the specified path, overriding the ansible.cfg setting. This is useful for one-off tests.
+3. **From Build Artifacts**
+   - **Use case**: Testing built collections before publishing
+   - **Make target**: `make inst-build [collection1 collection2 ...]`
+   - **Script**: `./bin/install-from-build.sh [collection1 collection2 ...]`
+   - **Description**: Installs collections from the built artifacts in the `dist/` directory. This verifies that the built packages work as expected.
+
+4. **From Beta Server**
+   - **Use case**: Testing collections in a staging environment
+   - **Make target**: `make inst-beta [collection1 collection2 ...]`
+   - **Script**: `./bin/install-from-beta.sh [collection1 collection2 ...]`
+   - **Description**: Installs collections from the beta server (galaxy-dev.ansible.com). Requires authentication if the collections are not public.
+
+5. **From Production Server**
+   - **Use case**: Production deployment
+   - **Make target**: `make inst-prod [collection1 collection2 ...]`
+   - **Script**: `./bin/install-from-prod.sh [collection1 collection2 ...]`
+   - **Description**: Installs collections from the production Ansible Galaxy server (galaxy.ansible.com).
+
+### Examples
+
+```bash
+# Install all collections from source (development)
+make inst-src
+
+# Install specific collections from source
+make inst-src common gamer
+
+# Install all collections from a specific git branch
+make inst-repo feature/new-feature
+
+# Install specific collections from build artifacts
+make inst-build base_system user_setup
+
+# Install all collections from beta server
+make inst-beta
+
+# Install specific collections from production
+make inst-prod common base_system
+```
+
+### Configuration
+
+For server-based installations (beta/production), you may need to set up authentication:
+
+1. Get your API token from [Ansible Galaxy](https://galaxy.ansible.com/me/preferences)
+2. Set the token as an environment variable:
+   ```bash
+   export ANSIBLE_GALAXY_TOKEN=your_token_here
+   ```
+
+### Testing After Installation
+
+All installation methods will automatically run any available test playbooks after installation. Test playbooks should be named following these conventions:
+- Collection-specific: `tests/test-levonk.{collection_name}.yml`
+- Namespace-wide: `tests/test-levonk.yml`
+
+## Publishing Collections
+
+### Publish to Beta Server
+
+Publish collections to the beta server for testing:
+
+```bash
+make beta
+```
+
+### Publish to Production
+
+Publish collections to the production Ansible Galaxy server:
+
+```bash
+make prod
+```
+
+## Local Development
+
+### CLI Method for Testing
+
+For one-off testing without installation, you can tell Ansible to use a specific collections path:
 
 ```bash
 ansible-playbook your_playbook.yml -c {repo-root}/ansible-galaxy/collections/
 ```
 
-
-### Modeify Your cfg
+### Modify Your ansible.cfg
 
 This is what the repo structure looks like:
 
