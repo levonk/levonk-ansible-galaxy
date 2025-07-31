@@ -110,6 +110,90 @@ ansible-test integration
 
 ---
 
+# Makefile Documentation
+
+This project uses a Makefile to automate common development tasks. The targets are organized hierarchically below.
+
+## Target Hierarchy
+
+### Build & Test Targets
+
+- `all`: Build the entire collection (alias for build)
+- `archive`: Create an archive of the collection
+- `build`: Build the collection
+- `clean`: Remove generated files
+- `format`: Format code according to standards
+- `test`: Run tests on the collection
+
+### Lint Targets
+
+- `lint-ansible`: Run ansible-lint
+- `lint`: Run all linting tools
+- `lint-markdown`: Run markdownlint
+- `lint-yaml`: Run yamllint
+
+### Installation Targets
+
+- `install-beta`: Install collection from beta server
+- `install-build`: Install collection from build artifact
+- `install`: Install collection (alias for install-src)
+- `install-prod`: Install collection from production server
+- `install-repo`: Install collection from git repository
+- `install-src`: Install collection from source
+
+### Documentation Targets
+
+- `docs`: Generate documentation
+- `help`: Show this help message
+- `usage`: Show help message (alias for help)
+
+### Utility Targets
+
+- `status`: Show the collection status
+- `version`: Display the collection version
+
+## Target Dependencies
+
+The following diagram shows the dependencies between Makefile targets:
+
+```mermaid
+graph TD
+all->build
+archive->build
+build->help
+install-build->build
+install->install-src
+lint->lint-ansible
+lint->lint-markdown
+lint->lint-yaml
+test->lint
+usage->help
+```
+
+## Using the Makefile
+
+To use the Makefile, run `make <target>` where `<target>` is one of the targets listed above.
+
+For example:
+
+```bash
+# Show help
+make help
+
+# Build the project
+make build
+
+# Run all linting tools
+make lint
+
+# Run a specific linting tool
+make lint-ansible
+```
+
+Running `make` without a target will show the help message and then build the project.
+
+---
+
 ## Contributing
 
 Contributions should follow the documentation and variable table conventions shown above. Please update documentation for any new features, roles, or modules. See individual role READMEs for detailed contribution guidelines.

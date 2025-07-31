@@ -6,18 +6,88 @@ This role is a template for best-practices Ansible role documentation, variable 
 
 ## Development
 
-### Makefile Commands
+# Makefile Documentation
 
-This role includes a Makefile with the following commands:
+This project uses a Makefile to automate common development tasks. The targets are organized hierarchically below.
 
-| Command | Description |
-|---------|-------------|
-| `make` or `make test` | Run all tests (linting and molecule) |
-| `make lint` | Run all linters (Ansible, YAML, Markdown) |
-| `make lint-ansible` | Lint Ansible files with ansible-lint |
-| `make lint-yaml` | Lint YAML files with yamllint |
-| `make lint-markdown` | Lint Markdown files with markdownlint |
-| `make molecule` | Run molecule tests |
+## Target Hierarchy
+
+### Build & Test Targets
+
+- `all`: Run tests for this role (alias for test)
+- `archive`: Create an archive of the role via the collection
+- `build`: Build the collection containing this role
+- `clean`: Remove generated files
+- `format`: Format code according to standards
+- `test`: Run all tests for this role
+
+### Lint Targets
+
+- `lint-ansible`: Run ansible-lint
+- `lint`: Run all linting tools
+- `lint-markdown`: Run markdownlint
+- `lint-yaml`: Run yamllint
+
+### Installation Targets
+
+- `install-beta`: Install role from beta server
+- `install-build`: Install role from build artifact
+- `install`: Install role (alias for install-src)
+- `install-prod`: Install role from production server
+- `install-repo`: Install role from git repository
+- `install-src`: Install role from source
+
+### Documentation Targets
+
+- `docs`: Generate documentation
+- `help`: Show this help message
+- `usage`: Show help message (alias for help)
+
+### Utility Targets
+
+- `status`: Show the role status
+- `version`: Display the role version via the collection
+
+## Target Dependencies
+
+The following diagram shows the dependencies between Makefile targets:
+
+```mermaid
+graph TD
+all->test
+archive->build
+build->help
+install-build->build
+install->install-src
+lint->lint-ansible
+lint->lint-markdown
+lint->lint-yaml
+test->lint
+test->molecule
+usage->help
+```
+
+## Using the Makefile
+
+To use the Makefile, run `make <target>` where `<target>` is one of the targets listed above.
+
+For example:
+
+```bash
+# Show help
+make help
+
+# Build the project
+make build
+
+# Run all linting tools
+make lint
+
+# Run a specific linting tool
+make lint-ansible
+```
+
+Running `make` without a target will show the help message and then build the project.
 
 ### Linting
 
