@@ -1,0 +1,64 @@
+---
+# Install charmbracelet/crush - A command-line tool for AI pair programming
+# Reference: https://github.com/charmbracelet/crush
+#
+# Dependencies:
+# - levonk.vibeops.dev_go role for Go installation
+
+- name: Include dev-go role to ensure Go is installed
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev_go
+  tags: ['crush', 'ai']
+
+- name: Set Go environment variables
+  ansible.builtin.set_fact:
+    go_path: "{{ ansible_env.HOME }}/go"
+    go_bin: "{{ ansible_env.HOME }}/go/bin"
+  tags: ['crush', 'ai']
+
+- name: Ensure Go bin directory exists
+  ansible.builtin.file:
+    path: "{{ go_bin }}"
+    state: directory
+    mode: '0755'
+  tags: ['crush', 'ai']
+
+- name: Install charmbracelet/crush
+  ansible.builtin.command: "{{ go_bin }}/go install github.com/charmbracelet/crush@latest"
+  environment:
+    GOPATH: "{{ go_path }}"
+    PATH: "{{ go_bin }}:{{ ansible_env.PATH }}"
+  args:
+    creates: "{{ go_bin }}/crush"
+  tags: ['crush', 'ai']
+
+- name: Add Go bin to PATH
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH=$HOME/go/bin:$PATH'
+    regexp: '^export PATH=.*go/bin'
+    state: present
+  when: ansible_os_family != 'Darwin'
+  tags: ['crush', 'ai']
+
+- name: Add Go bin to PATH on macOS
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: 'export PATH=$HOME/go/bin:$PATH'
+    regexp: '^export PATH=.*go/bin'
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags: ['crush', 'ai']
+
+- name: Verify crush installation
+  ansible.builtin.command: "{{ go_bin }}/crush --version"
+  register: crush_version
+  changed_when: false
+  ignore_errors: yes
+  tags: ['crush', 'ai', 'verification']
+
+- name: Display crush version
+  ansible.builtin.debug:
+    msg: "crush version: {{ crush_version.stdout | default('Not found') }}"
+  when: crush_version is defined
+  tags: ['crush', 'ai', 'verification']

@@ -1,0 +1,98 @@
+---
+# Install Ollama AI platform
+# Only runs when 'graphical' tag is set
+
+- name: Set Ollama download URLs and Linux install script
+  ansible.builtin.set_fact:
+    ollama_windows_url: "https://ollama.com/download/windows"
+    ollama_mac_url: "https://ollama.com/download/mac"
+    ollama_linux_script: "https://ollama.com/install.sh"
+  tags:
+    - ollama
+    - ai
+    - graphical
+
+- name: Install Ollama on Windows (when graphical tag is set)
+  ansible.windows.win_package:
+    path: "{{ ollama_windows_url }}"
+    product_id: "Ollama"
+    state: present
+    create_home_dir: yes
+  when: ansible_os_family == 'Windows'
+  tags:
+    - ollama
+    - ai
+    - graphical
+    - windows
+
+- name: Install Ollama on macOS (when graphical tag is set)
+  community.general.homebrew_cask:
+    name: ollama
+    state: present
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - ollama
+    - ai
+    - graphical
+    - macos
+
+- name: Install Ollama on Linux (when graphical tag is set)
+  block:
+    - name: Download Ollama install script
+      ansible.builtin.get_url:
+        url: "{{ ollama_linux_script }}"
+        dest: "/tmp/install-ollama.sh"
+        mode: '0755'
+
+    - name: Run Ollama install script
+      ansible.builtin.command: /bin/bash /tmp/install-ollama.sh
+      args:
+        creates: "/usr/local/bin/ollama"
+
+    - name: Ensure Ollama service is enabled and running (Linux)
+      ansible.builtin.systemd:
+        name: ollama
+        state: started
+        enabled: yes
+        daemon_reload: yes
+  when: 
+    - ansible_os_family == 'Debian' or ansible_os_family == 'RedHat'
+    - '"graphical" in ansible_run_tags'
+  tags:
+    - ollama
+    - ai
+    - graphical
+    - linux
+
+- name: Ensure Ollama service is running (macOS)
+  ansible.builtin.command: launchctl start ollama
+  when: 
+    - ansible_os_family == 'Darwin'
+    - '"graphical" in ansible_run_tags'
+  changed_when: false
+  tags:
+    - ollama
+    - ai
+    - graphical
+    - macos
+
+- name: Verify Ollama installation
+  ansible.builtin.command: ollama --version
+  register: ollama_version
+  changed_when: false
+  ignore_errors: yes
+  tags:
+    - ollama
+    - ai
+    - graphical
+    - verification
+
+- name: Display Ollama version
+  ansible.builtin.debug:
+    msg: "Ollama version: {{ ollama_version.stdout | default('Not found') }}"
+  when: ollama_version is defined
+  tags:
+    - ollama
+    - ai
+    - graphical
+    - verification
