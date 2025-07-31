@@ -11,13 +11,15 @@ If a path is NOT specified, then operate on the current project in the current w
 4. Understand the changes, and try to group them in unique changesets that make sense so multiple changes get multiple commits. e.g. changes to login page, and it's associated documentation is one commit, and changes to catalog browsing and it's associated database files is a different commit.
 5. Title each commit with the following
   a. a short prefix to identify the type of change e.g. is it a feat[ure], fix, new, doc, test, chore, refactor
-  b. a hyphen to separate the the type, from the scope which follows
-  c. a short name that represents scope of the change. e.g. feat-build, fix-login, etc..
+  b. a parens to wrap the the type, from the scope which follows
+  c. a short name that represents scope of the change. e.g. feat(build), fix(auth), test(preferences), etc..
   d. a colon followed by a space, an a short synopsis of the change
   e. the title should be no longer that 50 characters. Use contractions, and other tricks to shorten the title to below <50 characters. An example would be `feat(search): added filters for user`
-6. A body that explains the change in more detail, wrapped at 72 characters per line
-7. A footer that references any bug base tickets, story IDs
-8. summarize what you did, and if anything needs the USER's attention.
+6. A linefeed on a blank line to clearly separate the title from the body.
+7. A body that explains the change in more detail, wrapped at 72 characters per 7ine
+8. A linefeed on a blank line to clearly separate the title from the body.
+9. A footer that references any bug base tickets, story IDs
+10. summarize what you did, and if anything needs the USER's attention.
 
 ## Guidelines
 - Use the imperitive mood: "Add checkbox" not "Added checkbox"
@@ -26,9 +28,7 @@ If a path is NOT specified, then operate on the current project in the current w
 - Avoid filler Skip vague phrases like "oops" or "maybe fixed"
 - Capitalize the subject and omit punctuation
 - Avoid commiting half done work
+- Avoid bundling unrelated changes into the same commit.
 - If you aren't 96% confident you understand the change, ask for clarification.
 - Always use LF for commit messages, NOT CRLF
 - DO NOT `git push`, unless specifically asked to
-
-
-4. After all commits are processed, summarize what you did, and which comments need the USER's attention.

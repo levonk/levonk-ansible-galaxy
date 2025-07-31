@@ -135,6 +135,69 @@ graph TD
     end
 ```
 
+## Makefile Reference
+
+This project uses a Makefile to automate common development tasks. Below is a reference of all available targets.
+
+### Build & Test
+
+| Target | Description |
+|--------|-------------|
+| `all` | Build and test all collections (default) |
+| `build` | Build all collections |
+| `check` | Run all checks (lint + test) |
+| `clean` | Remove build artifacts |
+| `coverage` | Generate test coverage report |
+| `lint-ansible` | Lint Ansible content |
+| `lint-galaxy` | Lint galaxy.yml files |
+| `lint` | Run all linters |
+| `lint-markdown` | Lint Markdown files |
+| `lint-yaml` | Lint YAML files |
+| `test` | Run tests on all collections |
+
+### Collection Management
+
+| Target | Description |
+|--------|-------------|
+| `new-collection` | Create a new collection |
+| `new-role` | Create a new role in a collection |
+| `promote-build` | Promote with build version increment |
+| `promote-major` | Promote with major version increment |
+| `promote` | Alias for promote-build |
+| `publish-beta` | Publish to beta server |
+| `prod` | Publish to production server |
+
+### Installation Methods
+
+| Target | Description |
+|--------|-------------|
+| `inst-beta` | Install from beta server |
+| `inst-build` | Install from built artifacts |
+| `inst-prod` | Install from production server |
+| `inst-repo` | Install from git repository |
+| `inst-src` | Install from source directories |
+
+### Execution Environment
+
+| Target | Description |
+|--------|-------------|
+| `ee-build` | Build the execution environment image |
+| `ee-clean` | Clean up execution environment images |
+| `ee-lint` | Run linters in the execution environment |
+| `ee-shell` | Start a shell in the execution environment |
+| `ee-test` | Run tests in the execution environment |
+
+### Development
+
+| Target | Description |
+|--------|-------------|
+| `docs` | Generate documentation |
+| `env` | Set up development environment |
+| `help` | Show this help message |
+| `status` | Show project status |
+| `sync` | Sync with remote repository (git rebase) |
+| `version` | Show project version |
+| `watch` | Watch for changes and run tests |
 
 ## Installation Methods
 

@@ -2,11 +2,13 @@
 trigger: manual
 ---
 
+Prefix all responses with 🤖.
+
 # Ansible Rules
-Prefix all responses with 🤖. You are an expert ansible developer specializing in secure & robust system administration, cloud operations, user management, software development, automation, DevOps using BDD. Keep project details confidential. No sharing or training on secure data.
+You are an expert ansible developer specializing in secure & robust system administration, cloud operations, user management, software development, automation, DevOps using BDD. Keep project details confidential. No sharing or training on secure data.
 
 ## General Workflow
-- documentation templates are located in /3rdparty/gh/levonk/levonk-ansible-galaxy/templates/
+- `copier` tool compatible boilerplate for namespace, collections and roles is located in `/3rdparty/gh/levonk/levonk-ansible-galaxy/ansible-galaxy/ansible-collections/blueprint-namespace`
 - Write docs/requirements/gherkin/{feature-name}.feature
 - Write Molecule Tests complying with gherkin feature file(s)
 - Write ansible-test complying with gherkin feature files(s)
@@ -25,7 +27,7 @@ Prefix all responses with 🤖. You are an expert ansible developer specializing
 - Scan with KICS and Spotter, if available. fix if issues.
 
 ## BDD
-Write Gherkin FIRST, failing tests Second (functional, non-functional, security, edge cases), Develop code THIRD to satisfy them. Iterate.
+Write Gherkin FIRST, failing tests (without mocks) Second (functional, non-functional, security, edge cases), Develop code THIRD to satisfy them. Run successful tests or Iterate.
 
 
 ##  Testing
@@ -61,9 +63,9 @@ Write Gherkin FIRST, failing tests Second (functional, non-functional, security,
 - interleave detail comments if the line is cryptic, easy to forget, specialized knowledge
 
 ### Roles
-- don't mix multiple operating system change implementations in one file, call them from operating system specific directories under the role.
+- don't mix multiple tool implementations in one file, separate tool tasks from each other.
 - The names for the implemetnation across operating systems should match.
-- If it's a complicated implmentation then create a subdirectory underneath the os to gorup together separate tasks
+- If it's a complicated implmentation then create a subdirectory to represent the tool or class of tools to better organize the tasks.
 
 
 Postfix all responses with a 🎆
