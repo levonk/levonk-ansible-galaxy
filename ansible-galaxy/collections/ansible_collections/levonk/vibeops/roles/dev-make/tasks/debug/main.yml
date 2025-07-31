@@ -1,0 +1,8 @@
+---
+# Main debug tasks file for dev-make role
+
+- name: Include remake debugger installation
+  ansible.builtin.include_tasks: remake.yml
+  tags:
+    - debug
+    - remake

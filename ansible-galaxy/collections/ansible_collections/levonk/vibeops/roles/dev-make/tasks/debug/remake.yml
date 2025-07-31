@@ -1,0 +1,79 @@
+---
+# Install and configure remake (GNU Make with debugging)
+# Reference: https://bashdb.sourceforge.net/remake/
+
+- name: Install build dependencies for remake
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - libreadline-dev
+      - texinfo
+      - guile-3.0-dev
+      - libelf-dev
+    state: present
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install build dependencies for remake (RedHat)
+  ansible.builtin.dnf:
+    name:
+      - gcc
+      - make
+      - readline-devel
+      - texinfo
+      - guile30-devel
+      - elfutils-libelf-devel
+    state: present
+  when: ansible_os_family == 'RedHat'
+  become: true
+
+- name: Clone remake repository
+  ansible.builtin.git:
+    repo: https://git.savannah.gnu.org/git/remake.git
+    dest: /tmp/remake
+    version: master
+    force: yes
+
+- name: Build and install remake
+  ansible.builtin.command: >
+    ./autogen.sh &&
+    ./configure --with-guile &&
+    make &&
+    make install
+  args:
+    chdir: /tmp/remake
+    creates: /usr/local/bin/remake
+  become: true
+
+- name: Create alias for remake with debugger
+  ansible.builtin.lineinfile:
+    path: /etc/profile.d/remake.sh
+    line: 'alias remakedbg="remake --debugger"'
+    mode: '0644'
+    create: yes
+  become: true
+  notify: update_shell_aliases
+
+- name: Display remake usage instructions
+  ansible.builtin.debug:
+    msg: |
+      Remake (GNU Make with debugging) has been installed.
+      
+      Basic usage:
+        remake -f Makefile target     # Run make with remake
+        remake --debugger -f Makefile # Start remake in debugger mode
+        
+      Common debugger commands:
+        break <target>  # Set a breakpoint at target
+        run            # Start/continue execution
+        next           # Step over to next line
+        step           # Step into target
+        where          # Show call stack
+        list           # Show source code
+        print VAR      # Print make variable
+        help           # Show help
+
+- name: Clean up build directory
+  ansible.builtin.file:
+    path: /tmp/remake
+    state: absent

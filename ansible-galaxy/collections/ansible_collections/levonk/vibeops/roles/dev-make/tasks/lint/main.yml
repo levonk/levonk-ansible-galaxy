@@ -1,0 +1,8 @@
+---
+# Main linting tasks for dev-make role
+
+- name: Include bake linting
+  ansible.builtin.include_tasks: bake.yml
+
+- name: Include checkmake linting
+  ansible.builtin.include_tasks: checkmake.yml

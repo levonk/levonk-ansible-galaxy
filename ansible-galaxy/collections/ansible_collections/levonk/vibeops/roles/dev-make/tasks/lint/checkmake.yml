@@ -1,0 +1,25 @@
+---
+# Install and configure checkmake for Makefile linting
+# Reference: https://github.com/checkmake/checkmake
+
+- name: Install checkmake
+  block:
+    - name: Download checkmake
+      ansible.builtin.get_url:
+        url: https://github.com/checkmake/checkmake/releases/latest/download/checkmake-Linux-x86_64
+        dest: /usr/local/bin/checkmake
+        mode: '0755'
+  when: ansible_os_family == "Debian" or ansible_os_family == "RedHat"
+
+- name: Run checkmake
+  ansible.builtin.command: checkmake Makefile
+  args:
+    chdir: "{{ project_root | default(playbook_dir) }}"
+  register: checkmake_result
+  changed_when: false
+  failed_when: false
+
+- name: Display checkmake results
+  ansible.builtin.debug:
+    var: checkmake_result.stdout_lines
+  when: checkmake_result.stdout_lines | length > 0

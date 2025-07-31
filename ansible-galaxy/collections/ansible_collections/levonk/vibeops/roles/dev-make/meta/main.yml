@@ -1,0 +1,25 @@
+---
+# meta/main.yml for {{ role_name }} role
+galaxy_info:
+  role_name: "{{ role_name }}"
+  author: "{{ author_name }}"
+  description: "{{ role_description }}"
+  company: "{{ company_name }}"
+  license: "{{ license_type }}"
+  min_ansible_version: "{{ min_ansible_version }}"
+  
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: Debian
+      versions:
+        - bullseye
+        - bookworm
+  
+  galaxy_tags:
+    - "{{ collection_name }}"
+    - "{{ role_name }}"
+
+dependencies: []

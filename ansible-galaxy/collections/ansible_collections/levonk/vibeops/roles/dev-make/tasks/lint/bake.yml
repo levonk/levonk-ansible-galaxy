@@ -1,0 +1,21 @@
+---
+# Install and configure bake for linting
+# Reference: https://github.com/EbodShojaei/bake
+
+- name: Install bake
+  ansible.builtin.pip:
+    name: bake
+    state: present
+
+- name: Run bake lint
+  ansible.builtin.command: bake lint
+  args:
+    chdir: "{{ project_root | default(playbook_dir) }}"
+  register: bake_result
+  changed_when: false
+  failed_when: false
+
+- name: Display bake lint results
+  ansible.builtin.debug:
+    var: bake_result.stdout_lines
+  when: bake_result.stdout_lines | length > 0

@@ -1,0 +1,15 @@
+---
+# Main tasks file for dev-make role
+
+- name: Include linting tasks
+  ansible.builtin.include_tasks: lint/main.yml
+  tags:
+    - lint
+    - bake
+    - checkmake
+
+- name: Include debugging tools
+  ansible.builtin.include_tasks: debug/main.yml
+  tags:
+    - debug
+    - remake
