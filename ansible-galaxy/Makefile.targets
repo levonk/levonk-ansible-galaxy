@@ -1,40 +1,139 @@
 # Makefile.targets - Additional targets for the Ansible Galaxy collection
-# This file contains installation targets that delegate to scripts in the bin/ directory.
+# This file contains additional targets that are included by the main Makefile.
 # See README.md for detailed documentation on each target.
 
-# Get the root directory of the project
-ROOT_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-BIN_DIR := $(ROOT_DIR)/../bin
+# ====================================================================
+# Execution Environment Targets
+# ====================================================================
+
+# Build the execution environment image
+ee-build: check-container-runtime check-ansible-builder
+	@echo "[EE] Building execution environment..."
+	ansible-builder build -t $(EE_FULL_IMAGE) -f execution-environment.yml
+
+# Run tests in execution environment
+ee-test: ee-build
+	@echo "[EE] Running tests in execution environment..."
+	$(CONTAINER_RUNTIME) run --rm -v $(PWD):/runner $(EE_FULL_IMAGE) \
+		ansible-test sanity --docker
+
+# Run linters in execution environment
+ee-lint: ee-build
+	@echo "[EE] Running linters in execution environment..."
+	$(CONTAINER_RUNTIME) run --rm -v $(PWD):/runner $(EE_FULL_IMAGE) \
+		ansible-lint .
+
+# Get a shell in the execution environment
+ee-shell: ee-build
+	@echo "[EE] Starting shell in execution environment..."
+	$(CONTAINER_RUNTIME) run -it --rm -v $(PWD):/runner $(EE_FULL_IMAGE) /bin/bash
+
+# Clean execution environment images
+ee-clean:
+	@echo "[EE] Cleaning up execution environment..."
+	-$(CONTAINER_RUNTIME) rmi $(EE_FULL_IMAGE) 2>/dev/null || true
+
+# Check if container runtime is available
+check-container-runtime:
+	@if [ -z "$(CONTAINER_RUNTIME)" ]; then \
+		echo "ERROR: Neither podman nor docker is installed. Please install one of them."; \
+		exit 1; \
+	fi
+
+# Check if ansible-builder is available
+check-ansible-builder:
+	@if [ -z "$(HAS_ANSIBLE_BUILDER)" ]; then \
+		echo "ERROR: ansible-builder is not installed. Please install it with 'pip install ansible-builder'"; \
+		exit 1; \
+	fi
+
+# ====================================================================
+# Installation Targets (moved from main Makefile)
+# ====================================================================
 
 # Install from source directories
 inst-src:
 	@echo "Installing collections from source directories..."
-	@$(BIN_DIR)/install-from10-src.sh $(filter-out $@,$(MAKECMDGOALS))
+	@if [ -f "$(BIN_DIR)/install-from10-src.sh" ]; then \
+		$(BIN_DIR)/install-from10-src.sh $(filter-out $@,$(MAKECMDGOALS)); \
+	else \
+		echo "Error: install-from10-src.sh not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
 
 # Install from git repository
 inst-repo:
 	@echo "Installing collections from git repository..."
-	@$(BIN_DIR)/install-from20-repo.sh $(filter-out $@,$(MAKECMDGOALS))
+	@if [ -f "$(BIN_DIR)/install-from20-repo.sh" ]; then \
+		$(BIN_DIR)/install-from20-repo.sh $(filter-out $@,$(MAKECMDGOALS)); \
+	else \
+		echo "Error: install-from20-repo.sh not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
 
 # Install from built artifacts
 inst-build:
 	@echo "Installing collections from build artifacts..."
-	@$(BIN_DIR)/install-from30-build.sh $(filter-out $@,$(MAKECMDGOALS))
+	@if [ -f "$(BIN_DIR)/install-from30-build.sh" ]; then \
+		$(BIN_DIR)/install-from30-build.sh $(filter-out $@,$(MAKECMDGOALS)); \
+	else \
+		echo "Error: install-from30-build.sh not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
 
 # Install from beta server
 inst-beta:
 	@echo "Installing collections from beta server..."
-	@$(BIN_DIR)/install-from40-beta.sh $(filter-out $@,$(MAKECMDGOALS))
+	@if [ -f "$(BIN_DIR)/install-from40-beta.sh" ]; then \
+		$(BIN_DIR)/install-from40-beta.sh $(filter-out $@,$(MAKECMDGOALS)); \
+	else \
+		echo "Error: install-from40-beta.sh not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
 
 # Install from production server
 inst-prod:
 	@echo "Installing collections from production server..."
-	@$(BIN_DIR)/install-from50-prod.sh $(filter-out $@,$(MAKECMDGOALS))
+	@if [ -f "$(BIN_DIR)/install-from50-prod.sh" ]; then \
+		$(BIN_DIR)/install-from50-prod.sh $(filter-out $@,$(MAKECMDGOALS)); \
+	else \
+		echo "Error: install-from50-prod.sh not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
 
-# Debug target to show variables
+# ====================================================================
+# Debug Target
+# ====================================================================
+
 debug:
-	@echo "ROOT_DIR: $(ROOT_DIR)"
-	@echo "BIN_DIR: $(BIN_DIR)"
-	@echo "COLLECTIONS_DIR: $(ROOT_DIR)/collections/ansible_collections/levonk"
-	@echo "DIST_DIR: $(ROOT_DIR)/../dist"
-	@echo "COLLECTIONS: $(shell ls $(ROOT_DIR)/collections/ansible_collections/levonk 2>/dev/null || echo "No collections found")
+	@echo "=== Debug Information ==="
+	@echo "Project: $(PROJECT_NAME)"
+	@echo "Version: $(VERSION)"
+	@echo "Root Directory: $(ROOT_DIR)"
+	@echo "Bin Directory: $(BIN_DIR)"
+	@echo "Container Runtime: $(CONTAINER_RUNTIME)"
+	@echo "Execution Environment: $(EE_FULL_IMAGE)"
+	@echo "\n=== Tools ==="
+	@echo "Ansible Lint: $(if $(HAS_ANSIBLE_LINT),Installed,Not Found)"
+	@echo "Molecule: $(if $(HAS_MOLECULE),Installed,Not Found)"
+	@echo "YAML Lint: $(if $(HAS_YAMLLINT),Installed,Not Found)"
+	@echo "Ansible Builder: $(if $(HAS_ANSIBLE_BUILDER),Installed,Not Found)"
+	@echo "\n=== Collections ==="
+	@ls -la collections/ansible_collections/levonk/ 2>/dev/null || echo "No collections found in collections/ansible_collections/levonk/"
+	@echo "\n=== Distribution ==="
+	@ls -la dist/ 2>/dev/null || echo "No distribution files found in dist/"
+
+# ====================================================================
+# Help Generation
+# ====================================================================
+
+# This target is used by the main help target to include additional help text
+help-targets::
+	@echo "\nInstallation Methods:"
+	@echo "  inst-src         - Install from source directories"
+	@echo "  inst-repo        - Install from git repository"
+	@echo "  inst-build       - Install from built artifacts"
+	@echo "  inst-beta        - Install from beta server"
+	@echo "  inst-prod        - Install from production server"
+	@echo "\nDebugging:"
+	@echo "  debug            - Show debug information about the environment"
