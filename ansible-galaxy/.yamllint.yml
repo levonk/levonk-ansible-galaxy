@@ -1,0 +1,142 @@
+---
+# YAML Lint Configuration
+# Reference: https://yamllint.readthedocs.io/en/stable/
+
+extends: default
+
+rules:
+  # Line length
+  line-length:
+    max: 120
+    level: warning
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+  
+  # Indentation
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
+  
+  # Document start
+  document-start: disable  # Allow missing document start
+  
+  # Comments
+  comments:
+    require-starting-space: true
+    min-spaces-from-content: 1
+  
+  # Trailing spaces
+  trailing-spaces: enable
+  
+  # Empty lines
+  empty-lines:
+    max: 3
+    max-start: 1
+    max-end: 1
+  
+  # Quoted strings
+  quoted-strings:
+    quote-type: single
+    required: false
+    extra-required: ['^http://', '^https://', '^ftp://', '^sftp://', '^git@']
+  
+  # Braces
+  braces:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+    max-spaces-inside-empty: -1
+    min-spaces-inside-empty: -1
+  
+  # Brackets
+  brackets:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+    max-spaces-inside-empty: -1
+    min-spaces-inside-empty: -1
+  
+  # Commas
+  commas:
+    max-spaces-after: 1
+    min-spaces-after: 0
+    max-spaces-before: 0
+  
+  # Colons
+  colons:
+    max-spaces-before: 0
+    max-spaces-after: 1
+  
+  # Document end
+  document-end: disable
+  
+  # Hyphens
+  hyphens:
+    max-spaces-after: 1
+  
+  # Indentation of sequences
+  key-duplicates: enable
+  new-line-at-end-of-file: enable
+  new-lines:
+    type: unix
+  
+  # Trailing zeros
+  trailing-zeros: disable
+  
+  # Truthy
+  truthy:
+    check-keys: false
+    allowed-values: [true, false, yes, no, on, off, null]
+    
+# Ignore specific files/directories
+ignore: |
+  .git
+  .github
+  .gitlab
+  .tox
+  .venv
+  __pycache__
+  node_modules
+  docs
+  tests
+  molecule
+  .cache
+  .vscode
+  .idea
+  *.retry
+  *.pyc
+  *.pyo
+  *.pyd
+  *.so
+  *.egg-info
+  .pytest_cache
+  .mypy_cache
+  .coverage
+  coverage.xml
+  htmlcov
+  .pytest
+  .eggs
+  env
+  venv
+  ENV
+  env.bak
+  venv.bak
+  dist
+  build
+  *.egg
+  *.egg-info
+  .pytest_cache
+  .mypy_cache
+  .coverage
+  coverage.xml
+  htmlcov
+  .pytest
+  .eggs
+  env
+  venv
+  ENV
+  env.bak
+  venv.bak
+  dist
+  build
+  *.egg
+  *.egg-info

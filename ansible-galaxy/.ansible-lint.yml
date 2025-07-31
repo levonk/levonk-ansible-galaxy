@@ -1,0 +1,183 @@
+---
+# Ansible Lint Configuration
+# Reference: https://ansible-lint.readthedocs.io/en/latest/configuring.html
+
+# Enable all rules by default
+extend_download_path: .cache/ansible-lint
+warn_list: []
+skip_list: []
+
+# Custom rules
+tags:
+  - production  # checks that run in production
+  - style       # rules related to code style
+  - safety      # rules related to security and safety
+  - deprecations  # rules for deprecated features
+
+# Customize specific rules
+rules:
+  # File formatting
+  yaml:
+    line-length:
+      max: 120
+      allow-non-breakable-inline-mappings: true
+  
+  # Variable naming
+  var-naming: {}
+  
+  # Task naming
+  name: {}
+  
+  # Deprecations
+  no-tabs: {}
+  no-jinja-when: {}
+  no-log-password: {}
+  
+  # Security
+  no-login-password: {}
+  no-same-owner: {}
+  no-free-form: {}
+  
+  # Best practices
+  command-instead-of-module: {}
+  command-instead-of-shell: {}
+  no-handler-for-task: {}
+  no-relative-paths: {}
+  no-timestamp-regex: {}
+  partial-become: {}
+  risky-shell-pipe: {}
+  unsafe-looping: {}
+  
+  # Style
+  fqcn-builtins: {level: warning}
+  no-jinja-nesting: {}
+  no-mixed-spaces-and-tabs: {}
+  no-tabs: {}
+  trailing-whitespace: {}
+  truthy: {}
+  
+# Exclude files and directories
+exclude_paths:
+  - .git/
+  - .github/
+  - .gitlab/
+  - .tox/
+  - .venv/
+  - __pycache__/
+  - node_modules/
+  - docs/
+  - tests/
+  - molecule/
+  - .cache/
+  - .vscode/
+  - .idea/
+  - *.retry
+  - *.pyc
+  - *.pyo
+  - *.pyd
+  - *.so
+  - *.egg-info/
+  - .pytest_cache/
+  - .mypy_cache/
+  - .pytest_cache/
+  - .eggs/
+  - .coverage
+  - .coverage.*
+  - coverage.xml
+  - *.cover
+  - .hypothesis/
+  - .pytest/
+  - .tox/
+  - .venv/
+  - env/
+  - venv/
+  - ENV/
+  - env.bak/
+  - venv.bak/
+  - dist/
+  - build/
+  - *.egg-info/
+  - *.egg
+  - .pytest_cache/
+  - .mypy_cache/
+  - .coverage
+  - coverage.xml
+  - htmlcov/
+  - .pytest_cache/
+  - .hypothesis/
+  - .pytest/
+  - .tox/
+  - .venv/
+  - env/
+  - venv/
+  - ENV/
+  - env.bak/
+  - venv.bak/
+  - dist/
+  - build/
+  - *.egg-info/
+  - *.egg
+
+# Custom rules directory
+rulesdir:
+  - .ansible-lint-rules
+
+# Enable/disable rules
+enable_list: []
+disabled_rules: []
+
+# Custom rule configuration
+rule_defaults:
+  # Allow some common command modules
+  command-instead-of-module:
+    commands:
+      - ansible.builtin.command
+      - ansible.builtin.shell
+      - ansible.builtin.raw
+      - ansible.builtin.script
+  
+  # Allow some common local actions
+  no-local-action:
+    local_action_whitelist:
+      - ansible.builtin.include_vars
+      - ansible.builtin.set_fact
+      - ansible.builtin.include_tasks
+      - ansible.builtin.import_tasks
+  
+  # Allow some common debug tasks
+  no-debug:
+    debug_whitelist:
+      - name: Debug output
+        debug:
+          msg: "{{ item }}"
+        with_items: "{{ some_list }}"
+  
+  # Allow some common shell commands
+  no-free-form:
+    free_form_whitelist:
+      - name: Run a command
+        command: /usr/bin/true
+  
+  # Allow some common shell pipes
+  risky-shell-pipe:
+    pipe_whitelist:
+      - name: Pipe to grep
+        shell: ps aux | grep -v grep | grep some_process
+  
+  # Allow some common loop variables
+  var-naming:
+    patterns:
+      - "^[a-z_][a-z0-9_]*$"
+    ignore_patterns:
+      - "^ansible_"
+      - "^_"
+      - "^role_"
+      - "^default_"
+  
+  # Allow some common variable names
+  var-spacing:
+    ignore_variables:
+      - ansible_
+      - _
+      - role_
+      - default_

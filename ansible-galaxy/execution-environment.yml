@@ -1,0 +1,28 @@
+---
+version: 3
+
+dependencies:
+  galaxy: requirements.yml
+  python: requirements.txt
+  system: bindep.txt
+
+additional_build_steps:
+  prepend: |
+    RUN pip install --upgrade pip setuptools wheel
+    RUN pip install ansible-builder molecule yamllint ansible-lint
+  append:
+    - COPY . /runner
+    - WORKDIR /runner
+    - ENV ANSIBLE_COLLECTIONS_PATH=/runner/collections
+    - ENV ANSIBLE_ROLES_PATH=/runner/collections/ansible_collections/levonk/vibeops/roles:/runner/collections/ansible_collections/levonk
+
+images:
+  base_image:
+    name: quay.io/ansible/ansible-runner:stable-2.12-latest
+
+  builder_image:
+    name: quay.io/ansible/ansible-builder:latest
+
+  final_image:
+    name: levonk/ansible-galaxy:latest
+    tag: latest
