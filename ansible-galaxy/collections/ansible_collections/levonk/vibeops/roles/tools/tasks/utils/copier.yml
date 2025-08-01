@@ -19,11 +19,12 @@
     - ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
     - ansible_pkg_mgr != 'apt'
 
-- name: Install copier via apt (Debian/Ubuntu)
-  ansible.builtin.apt:
-    name: python3-copier
+- name: Install copier via package manager (Debian/Ubuntu)
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: python3-copier
     state: present
-  become: true
   when:
     - copier_check.rc != 0
     - ansible_os_family == 'Debian'
