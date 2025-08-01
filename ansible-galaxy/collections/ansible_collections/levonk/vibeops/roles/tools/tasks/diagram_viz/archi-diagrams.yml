@@ -128,9 +128,11 @@
 
 - name: Install Archi (Debian/Ubuntu)
   block:
-    - name: Install Archi using apt
-      ansible.builtin.apt:
-        deb: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
+    - name: Install Archi using common package role
+      include_role:
+        name: levonk.common.package
+      vars:
+        deb_package: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
         state: present
   rescue:
     - name: Set fallback to tarball on package install failure
@@ -143,9 +145,11 @@
 
 - name: Install Archi (RHEL/CentOS/Fedora)
   block:
-    - name: Install Archi using dnf
-      ansible.builtin.dnf:
-        name: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
+    - name: Install Archi using common package role
+      include_role:
+        name: levonk.common.package
+      vars:
+        rpm_package: "{{ archi_tempdir.path }}/{{ archi_package_file }}"
         state: present
   rescue:
     - name: Set fallback to tarball on package install failure
