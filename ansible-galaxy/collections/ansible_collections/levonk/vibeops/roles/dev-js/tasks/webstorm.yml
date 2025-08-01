@@ -1,16 +1,24 @@
 ---
 # Install JetBrains WebStorm IDE
-- name: Install WebStorm dependencies
-  ansible.builtin.apt:
-    name:
-      - libxrender1
-      - libxtst6
-      - libxi6
-      - libfreetype6
-      - libfontconfig1
-      - libxext6
-      - libx11-6
-    state: present
+- name: Install WebStorm dependencies (Debian/Ubuntu)
+  include_role:
+    name: levonk.common.package
+  vars:
+    packages:
+      - name: libxrender1
+        state: present
+      - name: libxtst6
+        state: present
+      - name: libxi6
+        state: present
+      - name: libfreetype6
+        state: present
+      - name: libfontconfig1
+        state: present
+      - name: libxext6
+        state: present
+      - name: libx11-6
+        state: present
   when: ansible_os_family == 'Debian'
   tags:
     - webstorm

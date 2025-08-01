@@ -9,33 +9,21 @@
 
 # Linux (Debian/Ubuntu)
 - name: Install Dive (Debian/Ubuntu)
-  block:
-    - name: Download Dive .deb package
-      ansible.builtin.get_url:
-        url: "https://github.com/wagoodman/dive/releases/download/v{{ dive_version }}/dive_{{ dive_version }}_linux_amd64.deb"
-        dest: /tmp/dive.deb
-        mode: '0644'
-
-    - name: Install Dive
-      ansible.builtin.apt:
-        deb: /tmp/dive.deb
-        state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    deb_package: "https://github.com/wagoodman/dive/releases/download/v{{ dive_version }}/dive_{{ dive_version }}_linux_amd64.deb"
+    state: present
   tags: [docker, tools, dive]
   when: ansible_facts['os_family'] in ['Debian', 'Ubuntu']
 
 # Linux (RedHat/CentOS)
 - name: Install Dive (RedHat/CentOS)
-  block:
-    - name: Download Dive .rpm package
-      ansible.builtin.get_url:
-        url: "https://github.com/wagoodman/dive/releases/download/v{{ dive_version }}/dive_{{ dive_version }}_linux_amd64.rpm"
-        dest: /tmp/dive.rpm
-        mode: '0644'
-
-    - name: Install Dive
-      ansible.builtin.dnf:
-        name: /tmp/dive.rpm
-        state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    rpm_package: "https://github.com/wagoodman/dive/releases/download/v{{ dive_version }}/dive_{{ dive_version }}_linux_amd64.rpm"
+    state: present
   tags: [docker, tools, dive]
   when: ansible_facts['os_family'] == 'RedHat'
 
