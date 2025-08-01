@@ -10,13 +10,17 @@
     mode: '0600'
 
 - name: Enable automatic security updates (Debian/Ubuntu)
-  ansible.builtin.apt:
-    name: unattended-upgrades
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: unattended-upgrades
     state: present
   when: ansible_facts['os_family'] == 'Debian'
 
 - name: Enable automatic security updates (RedHat/Fedora)
-  ansible.builtin.yum:
-    name: dnf-automatic
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: dnf-automatic
     state: present
   when: ansible_facts['os_family'] == 'RedHat'
