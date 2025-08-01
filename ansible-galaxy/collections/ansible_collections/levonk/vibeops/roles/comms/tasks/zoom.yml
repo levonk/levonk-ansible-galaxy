@@ -9,12 +9,12 @@
   when: ansible_os_family == 'Windows'
 
 - name: Install Zoom on Debian-based systems
-  ansible.builtin.apt:
-    name: zoom
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: zoom
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'
-  become: true
 
 - name: Install Zoom on macOS
   community.general.homebrew_cask:
