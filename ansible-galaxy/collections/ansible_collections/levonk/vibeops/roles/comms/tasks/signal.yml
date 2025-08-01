@@ -9,12 +9,12 @@
   when: ansible_os_family == 'Windows'
 
 - name: Install Signal on Debian-based systems
-  ansible.builtin.apt:
-    name: signal-desktop
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: signal-desktop
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'
-  become: true
 
 - name: Install Signal on macOS
   community.general.homebrew_cask:
