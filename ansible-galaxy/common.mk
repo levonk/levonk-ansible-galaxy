@@ -15,7 +15,8 @@ TEST_MARKER := $(MARKER_DIR)/test.marker
 BETA_MARKER := $(MARKER_DIR)/beta.marker
 
 # Collection list - used by the top-level Makefile
-COLLECTIONS := base_system common gamer hardened server-llmchat user_setup vibeops
+# Note: Directory names use underscores, not hyphens
+COLLECTIONS := base_system common gamer hardened server_llmchat user_setup vibeops
 
 # Galaxy server URLs
 GALAXY_PROD_SERVER := https://galaxy.ansible.com

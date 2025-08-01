@@ -1,20 +1,65 @@
+# ====================================================================
 # Root Makefile for levonk-ansible-galaxy
 # This file forwards commands to the ansible-galaxy subdirectory
+# ====================================================================
 
 # Define the subdirectory containing the actual Makefile
 ANSIBLE_GALAXY_DIR := ansible-galaxy
 
-# Default target
-.PHONY: all
-all:
-	@echo "Forwarding to $(ANSIBLE_GALAXY_DIR)/Makefile"
-	@cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) all
+# ====================================================================
+# Default Target
+# ====================================================================
 
-# Forward common targets
-.PHONY: clean build test lint beta prod reset inst-beta inst-prod molecule lint-ansible lint-markdown lint-yaml lint-galaxy new-collection new-role debug
-clean build test lint beta prod reset inst-beta inst-prod molecule lint-ansible lint-markdown lint-yaml lint-galaxy new-collection new-role debug:
-	@echo "Forwarding '$@' target to $(ANSIBLE_GALAXY_DIR)/Makefile"
-	@cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) $@
+.PHONY: all
+default: help
+
+# ====================================================================
+# Target Forwarding
+# ====================================================================
+
+# Forward all targets to the ansible-galaxy directory, except for list and help which we handle specially
+%: FORCE
+	@if [ "$@" = "list" ]; then \
+		$(MAKE) --no-print-directory list-collections; \
+	elif [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
+		cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) $@; \
+	else \
+		echo "Error: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
+		exit 1; \
+	fi
+
+# Special handling for help to show both root and subdirectory help
+.PHONY: help
+help: FORCE
+	@echo "\n\033[1mRoot Makefile - Available Targets\033[0m"
+	@echo "================================================="
+	@echo "  help            - Show this help message"
+	@echo "  list            - List available collections"
+	@echo "  list-collections - Alias for list"
+	@echo "  dev-beta        - Development version of beta that skips token check"
+	@echo "  debug-beta      - Debug Galaxy authentication issues"
+	@echo "\n\033[1mForwarding to ansible-galaxy/Makefile for additional targets\033[0m"
+	@if [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
+		cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) --no-print-directory help; \
+	else \
+		echo "Warning: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
+	fi
+
+# List available collections without forwarding to the subdirectory
+.PHONY: list list-collections
+list list-collections: FORCE
+	@echo "\n\033[1mAvailable Collections\033[0m"
+	@echo "==================="
+	@if [ -d "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" ]; then \
+		echo "Collections in levonk namespace:"; \
+		ls -1 "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" | sort; \
+	else \
+		echo "No collections found in $(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk"; \
+	fi
+
+# ====================================================================
+# Special Targets
+# ====================================================================
 
 # Development beta target (skips token check)
 .PHONY: dev-beta
@@ -37,17 +82,16 @@ debug-beta:
 # List available collections
 .PHONY: list
 list:
-	@cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) list
+	@if [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
+		cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) --no-print-directory list; \
+	else \
+		echo "Error: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
+		exit 1; \
+	fi
 
-# Help target
-.PHONY: help
-help:
-	@echo "Available targets:"
-	@echo "  all      - Default target, builds all collections"
-	@echo "  clean    - Clean build artifacts"
-	@echo "  build    - Build all collections"
-	@echo "  dev-beta - Development version of beta that skips token check"
-	@echo "  test     - Run tests on all collections"
+# Force target to always run commands
+.PHONY: FORCE
+FORCE:
 	@echo "  lint     - Run linting on all collections"
 	@echo "  beta     - Publish to beta server"
 	@echo "  prod     - Publish to production server"
