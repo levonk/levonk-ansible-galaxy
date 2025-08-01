@@ -14,22 +14,27 @@
     - espanso
 
 - name: Fallback: Install Espanso via script if package fails (Debian)
-  become: true
   block:
     - name: Download Espanso installation script
       ansible.builtin.get_url:
         url: https://sh.espanso.org/install
         dest: /tmp/install_espanso.sh
         mode: '0755'
+      become: true
+
     - name: Run Espanso installation script
-      ansible.builtin.command:
-        cmd: /tmp/install_espanso.sh
+      ansible.builtin.command: /tmp/install_espanso.sh
+      args:
         creates: /usr/local/bin/espanso
+      become: true
+
     - name: Clean up installation script
       ansible.builtin.file:
         path: /tmp/install_espanso.sh
         state: absent
-  when: ansible_os_family == 'Debian' and espanso_pkg_result is failed
+      become: true
+      when: ansible_os_family == 'Debian'
+  when: espanso_pkg_result is failed
   tags:
     - vibeops
     - tools

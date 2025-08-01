@@ -14,16 +14,36 @@
     - raycast
 
 - name: Fallback: Download Raycast AppImage for Linux if package fails
-  when: ansible_os_family == "Debian" and raycast_pkg_result is failed
   block:
+    - name: Ensure /usr/local/bin exists
+      ansible.builtin.file:
+        path: /usr/local/bin
+        state: directory
+        mode: '0755'
+      become: true
+      when: ansible_os_family == 'Debian'
+
     - name: Download Raycast AppImage for Linux
       ansible.builtin.get_url:
         url: https://github.com/ByteAtATime/raycast-linux/releases/download/v0.1.0-alpha/raycast-linux.AppImage
         dest: /usr/local/bin/raycast
         mode: '0755'
       become: true
+      when: ansible_os_family == 'Debian'
+
+  when: raycast_pkg_result is failed
+  tags:
+    - vibeops
+    - tools
+    - raycast
+    - fallback
 
 - name: Install Raycast extension for Homebrew
   ansible.builtin.command: brew install raycast/extensions/raycast-brew
   changed_when: false
   when: ansible_os_family == "Darwin"
+  tags:
+    - vibeops
+    - tools
+    - raycast
+    - homebrew
