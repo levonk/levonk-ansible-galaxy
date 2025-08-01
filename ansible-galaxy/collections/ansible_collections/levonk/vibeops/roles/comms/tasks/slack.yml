@@ -9,12 +9,12 @@
   when: ansible_os_family == 'Windows'
 
 - name: Install Slack on Debian-based systems
-  ansible.builtin.apt:
-    name: slack-desktop
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: slack-desktop
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'
-  become: true
 
 - name: Install Slack on macOS
   community.general.homebrew_cask:
