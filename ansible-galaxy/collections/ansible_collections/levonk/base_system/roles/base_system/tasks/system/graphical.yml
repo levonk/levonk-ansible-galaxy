@@ -2,16 +2,22 @@
 # tasks file for ensuring a graphical subsystem exists if graphical tag is set
 
 - name: Ensure graphical subsystem packages are installed (Debian)
-  ansible.builtin.apt:
-    name:
-      - xfce4-session
-      - xfce4-goodies
-      - lightdm
-      - dbus-x11
-      - virtualbox-guest-dkms
-      - virtualbox-guest-x11
-    state: present
-    update_cache: yes
+  include_role:
+    name: levonk.common.package
+  vars:
+    packages:
+      - name: xfce4-session
+        state: present
+      - name: xfce4-goodies
+        state: present
+      - name: lightdm
+        state: present
+      - name: dbus-x11
+        state: present
+      - name: virtualbox-guest-dkms
+        state: present
+      - name: virtualbox-guest-x11
+        state: present
   when:
     - ansible_os_family == 'Debian'
   tags:
