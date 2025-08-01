@@ -1,42 +1,55 @@
 ---
 # tasks file for levonk.vibeops.knowledge - Obsidian
 
-- name: Install Obsidian on Windows via levonk.common.package
-  levonk.common.package:
-    name:
-      - obsidian
-    state: latest
-  when:
-    - ansible_os_family == 'Windows'
-    - 'graphical' in ansible_run_tags
-
-- name: Install Obsidian on macOS via levonk.common.package
-  levonk.common.package:
-    name:
-      - obsidian
-    state: latest
-  when:
-    - ansible_os_family == 'Darwin'
-    - 'graphical' in ansible_run_tags
-
-- name: Install Obsidian on Debian-based systems
-  become: true
-  when:
-    - ansible_os_family == 'Debian'
-    - 'graphical' in ansible_run_tags
+- name: Install Obsidian
   block:
-    - name: Get latest Obsidian release information
-      ansible.builtin.uri:
-        url: "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest"
-        return_content: true
-      register: obsidian_latest_release
+    - name: Install Obsidian on Windows via winget
+      ansible.windows.win_package:
+        name: Obsidian.Obsidian
+        path: winget install --id Obsidian.Obsidian -e --accept-package-agreements --accept-source-agreements
+        product_id: "*"
+        state: present
+      when: ansible_os_family == 'Windows' and 'graphical' in (ansible_run_tags | default([]))
+      tags:
+        - obsidian
+        - windows
 
-    - name: Find .deb asset URL from release information
-      ansible.builtin.set_fact:
-        obsidian_deb_url: "{{ (obsidian_latest_release.json.assets | selectattr('name', 'match', '.*\\.deb$') | list | first).browser_download_url }}"
+    - name: Install Obsidian on macOS via Homebrew Cask
+      community.general.homebrew_cask:
+        name: obsidian
+        state: present
+      when: ansible_os_family == 'Darwin' and 'graphical' in (ansible_run_tags | default([]))
+      tags:
+        - obsidian
+        - macos
 
-    - name: Install Obsidian from .deb URL
-      ansible.builtin.apt:
-        deb: "{{ obsidian_deb_url }}"
-        state: latest
-      when: obsidian_deb_url is defined
+    - name: Install Obsidian on Debian-based systems
+      block:
+        - name: Get latest Obsidian release information
+          ansible.builtin.uri:
+            url: "https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest"
+            return_content: true
+          register: obsidian_latest_release
+          when: ansible_os_family == 'Debian' and 'graphical' in (ansible_run_tags | default([]))
+          tags:
+            - obsidian
+            - debian
+
+        - name: Find .deb asset URL from release information
+          ansible.builtin.set_fact:
+            obsidian_deb_url: "{{ (obsidian_latest_release.json.assets | selectattr('name', 'match', '.*\\.deb$') | list | first).browser_download_url }}"
+          when: ansible_os_family == 'Debian' and 'graphical' in (ansible_run_tags | default([]))
+
+        - name: Install Obsidian from .deb URL using common package role
+          include_role:
+            name: levonk.common.package
+          vars:
+            deb_package: "{{ obsidian_deb_url }}"
+            state: latest
+          when: 
+            - ansible_os_family == 'Debian' 
+            - 'graphical' in (ansible_run_tags | default([]))
+            - obsidian_deb_url is defined
+          tags:
+            - obsidian
+            - debian
