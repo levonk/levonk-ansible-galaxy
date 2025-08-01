@@ -2,30 +2,43 @@
 # Install and configure remake (GNU Make with debugging)
 # Reference: https://bashdb.sourceforge.net/remake/
 
-- name: Install build dependencies for remake
-  ansible.builtin.apt:
-    name:
-      - build-essential
-      - libreadline-dev
-      - texinfo
-      - guile-3.0-dev
-      - libelf-dev
-    state: present
+- name: Install build dependencies for remake (Debian/Ubuntu)
+  include_role:
+    name: levonk.common.package
+  vars:
+    packages:
+      - name: build-essential
+        state: present
+      - name: libreadline-dev
+        state: present
+      - name: texinfo
+        state: present
+      - name: guile-3.0-dev
+        state: present
+      - name: libelf-dev
+        state: present
   when: ansible_os_family == 'Debian'
-  become: true
+  tags: [build_deps]
 
-- name: Install build dependencies for remake (RedHat)
-  ansible.builtin.dnf:
-    name:
-      - gcc
-      - make
-      - readline-devel
-      - texinfo
-      - guile30-devel
-      - elfutils-libelf-devel
-    state: present
+- name: Install build dependencies for remake (RedHat/CentOS)
+  include_role:
+    name: levonk.common.package
+  vars:
+    packages:
+      - name: gcc
+        state: present
+      - name: make
+        state: present
+      - name: readline-devel
+        state: present
+      - name: texinfo
+        state: present
+      - name: guile30-devel
+        state: present
+      - name: elfutils-libelf-devel
+        state: present
   when: ansible_os_family == 'RedHat'
-  become: true
+  tags: [build_deps]
 
 - name: Clone remake repository
   ansible.builtin.git:
