@@ -104,26 +104,14 @@
     creates: "{{ checksums_dest }}"
   when: checksums_download_url is defined and checksums_dest is defined
 
-- name: Ensure checksum tool is present (Debian)
-  ansible.builtin.apt:
-    name: coreutils
+- name: Ensure checksum tool is present (Linux/macOS)
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: coreutils
     state: present
-  when: ansible_os_family == 'Debian'
-  tags: ['checksum', 'coreutils', 'debian']
-
-- name: Ensure checksum tool is present (RedHat)
-  ansible.builtin.yum:
-    name: coreutils
-    state: present
-  when: ansible_os_family == 'RedHat'
-  tags: ['checksum', 'coreutils', 'redhat']
-
-- name: Ensure checksum tool is present (macOS)
-  community.general.homebrew:
-    name: coreutils
-    state: present
-  when: ansible_os_family == 'Darwin'
-  tags: ['checksum', 'coreutils', 'macos']
+  when: ansible_os_family in ['Debian', 'RedHat', 'Darwin']
+  tags: ['checksum', 'coreutils', 'package']
 
 - name: Ensure checksum tool is present (Windows - Chocolatey)
   win_chocolatey:
