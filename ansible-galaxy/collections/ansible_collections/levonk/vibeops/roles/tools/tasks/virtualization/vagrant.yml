@@ -50,7 +50,7 @@
     url: "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_{{ ansible_system | lower }}_amd64.deb"
     dest: "/tmp/vagrant_latest.deb"
     mode: '0644'
-    checksum: "sha256:{{ lookup('url', 'https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_SHA256SUMS') | regex_search('vagrant_2.4.1_{{ ansible_system | lower }}_amd64.deb.*([a-f0-9]{64})', '\1') }}"
+    checksum: "sha256:{{ lookup('url', 'https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_SHA256SUMS') | regex_search('vagrant_2.4.1_' ~ (ansible_system | lower) ~ '_amd64.deb.*([a-f0-9]{64})', '\\1') }}"
   when:
     - ansible_os_family == 'Debian'
     - vagrant_version.rc != 0
@@ -76,8 +76,11 @@
     - fallback
 
 - name: Install Vagrant (Debian fallback)
-  ansible.builtin.apt:
-    deb: /tmp/vagrant_latest.deb
+  include_role:
+    name: levonk.common.package
+  vars:
+    deb_package: "/tmp/vagrant_latest.deb"
+    state: latest
   when:
     - ansible_os_family == 'Debian'
     - vagrant_version.rc != 0

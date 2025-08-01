@@ -11,44 +11,15 @@
     - virtualbox
     - tools
 
-- name: Install dependencies for VirtualBox (cross-platform)
-  levonk.common.package:
-    name:
+- name: Install VirtualBox (Debian)
+  include_role:
+    name: levonk.common.package
+  vars:
+    deb_package: "https://download.virtualbox.org/virtualbox/7.0.18/virtualbox-7.0_7.0.18-162988~Ubuntu~{{ ansible_distribution_release }}_amd64.deb"
+    state: latest
+    dependencies:
       - dkms
       - linux-headers-{{ ansible_kernel | default('generic') }}
-    state: latest
-  when: ansible_os_family == 'Debian'
-  tags:
-    - virtualbox
-    - tools
-
-- name: Download VirtualBox installer (Debian)
-  ansible.builtin.get_url:
-    url: "https://download.virtualbox.org/virtualbox/7.0.18/virtualbox-7.0_7.0.18-162988~Ubuntu~{{ ansible_distribution_release }}_amd64.deb"
-    dest: "/tmp/virtualbox_latest.deb"
-    mode: '0644'
-  when:
-    - ansible_os_family == 'Debian'
-    - virtualbox_version.rc != 0
-  tags:
-    - virtualbox
-    - tools
-
-- name: Vet VirtualBox installer script (Debian)
-  include_role:
-    name: levonk.common.vet_script_installer
-  vars:
-    script_path: "/tmp/virtualbox_latest.deb"
-  when:
-    - ansible_os_family == 'Debian'
-    - virtualbox_version.rc != 0
-  tags:
-    - virtualbox
-    - tools
-
-- name: Install VirtualBox (Debian)
-  ansible.builtin.apt:
-    deb: /tmp/virtualbox_latest.deb
   when:
     - ansible_os_family == 'Debian'
     - virtualbox_version.rc != 0
