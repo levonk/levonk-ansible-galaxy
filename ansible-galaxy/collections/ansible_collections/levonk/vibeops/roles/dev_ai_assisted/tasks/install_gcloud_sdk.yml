@@ -12,22 +12,15 @@
   when: ansible_facts['os_family'] == "Windows"
 
 - name: "Install Google Cloud SDK (Linux)"
-  block:
-    - name: "Add Google Cloud GPG key"
-      ansible.builtin.get_url:
-        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-        dest: /etc/apt/trusted.gpg.d/google-cloud-sdk.gpg
-        mode: '0644'
-
-    - name: "Add Google Cloud repository"
-      ansible.builtin.apt_repository:
-        repo: "deb https://packages.cloud.google.com/apt cloud-sdk main"
-        state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: google-cloud-sdk
+    state: present
+    apt_keys:
+      - url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        id: google-cloud-sdk.gpg
+    apt_repositories:
+      - repo: "deb https://packages.cloud.google.com/apt cloud-sdk main"
         filename: google-cloud-sdk
-
-    - name: "Install Google Cloud SDK with apt"
-      ansible.builtin.apt:
-        name: google-cloud-sdk
-        state: present
-        update_cache: true
   when: ansible_facts['os_family'] == "Debian"

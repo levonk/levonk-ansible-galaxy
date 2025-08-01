@@ -12,15 +12,9 @@
   when: ansible_facts['os_family'] == "Windows"
 
 - name: "Install Cursor (Linux)"
-  block:
-    - name: "Download Cursor .deb package"
-      ansible.builtin.get_url:
-        url: "https://dl.todesktop.com/210403leiiy0f4z/linux/deb/x64"
-        dest: "/tmp/cursor.deb"
-        mode: '0644'
-
-    - name: "Install Cursor from .deb package"
-      ansible.builtin.apt:
-        deb: "/tmp/cursor.deb"
-      become: true
+  include_role:
+    name: levonk.common.package
+  vars:
+    deb_package: "https://dl.todesktop.com/210403leiiy0f4z/linux/deb/x64"
+    state: present
   when: ansible_facts['os_family'] == "Debian"

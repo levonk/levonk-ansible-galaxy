@@ -12,15 +12,9 @@
   when: ansible_facts['os_family'] == "Windows"
 
 - name: "Install Cline (via Fig) (Linux)"
-  block:
-    - name: "Download Fig .deb package"
-      ansible.builtin.get_url:
-        url: "https://fig.io/download/linux/deb"
-        dest: "/tmp/fig.deb"
-        mode: '0644'
-
-    - name: "Install Fig from .deb package"
-      ansible.builtin.apt:
-        deb: "/tmp/fig.deb"
-      become: true
+  include_role:
+    name: levonk.common.package
+  vars:
+    deb_package: "https://fig.io/download/linux/deb"
+    state: present
   when: ansible_facts['os_family'] == "Debian"

@@ -12,22 +12,15 @@
   when: ansible_facts['os_family'] == "Windows"
 
 - name: "Install Visual Studio Code (Linux)"
-  block:
-    - name: "Add Microsoft GPG key for VS Code"
-      ansible.builtin.get_url:
-        url: https://packages.microsoft.com/keys/microsoft.asc
-        dest: /etc/apt/trusted.gpg.d/microsoft.gpg
-        mode: '0644'
-
-    - name: "Add Microsoft VS Code repository"
-      ansible.builtin.apt_repository:
-        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"
-        state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: code
+    state: present
+    apt_keys:
+      - url: https://packages.microsoft.com/keys/microsoft.asc
+        id: microsoft.gpg
+    apt_repositories:
+      - repo: "deb [arch=amd64] https://packages.microsoft.com/repos/code stable main"
         filename: vscode
-
-    - name: "Install VS Code with apt"
-      ansible.builtin.apt:
-        name: code
-        state: present
-        update_cache: true
   when: ansible_facts['os_family'] == "Debian"
