@@ -12,10 +12,7 @@ ANSIBLE_GALAXY_DIR := $(shell cd $(dir $(lastword $(MAKEFILE_LIST)))/../../../..
 # Include shared Makefiles
 # ====================================================================
 
-# Include shared Makefile from the ansible-galaxy directory
-include $(ANSIBLE_GALAXY_DIR)/shared.mk
-
-# Include the shared targets (build, test, lint, etc.)
+# Include the shared Makefile with all targets and variables
 include $(ANSIBLE_GALAXY_DIR)/shared-targets.mk
 
 # ====================================================================
