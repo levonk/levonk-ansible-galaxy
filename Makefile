@@ -10,18 +10,43 @@ ANSIBLE_GALAXY_DIR := ansible-galaxy
 # Default Target
 # ====================================================================
 
-.PHONY: all
+# Default target when running just 'make'
+.PHONY: default
+.DEFAULT_GOAL := help
+
 default: help
+
+# Alias for default target
+.PHONY: all
+all: default
 
 # ====================================================================
 # Target Forwarding
 # ====================================================================
 
-# Forward all targets to the ansible-galaxy directory, except for list and help which we handle specially
+# ====================================================================
+# Local Targets (handled in root Makefile)
+# ====================================================================
+
+# List available collections (handled locally)
+.PHONY: list list-collections
+list list-collections:
+	@echo "\n\033[1mAvailable Collections\033[0m"
+	@echo "==================="
+	@if [ -d "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" ]; then \
+		echo "Collections in levonk namespace:"; \
+		ls -1 "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" | sort; \
+	else \
+		echo "No collections found in $(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk"; \
+	fi
+
+# ====================================================================
+# Target Forwarding
+# ====================================================================
+
+# Forward all other targets to the ansible-galaxy directory
 %: FORCE
-	@if [ "$@" = "list" ]; then \
-		$(MAKE) --no-print-directory list-collections; \
-	elif [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
+	@if [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
 		cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) $@; \
 	else \
 		echo "Error: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
@@ -45,17 +70,7 @@ help: FORCE
 		echo "Warning: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
 	fi
 
-# List available collections without forwarding to the subdirectory
-.PHONY: list list-collections
-list list-collections: FORCE
-	@echo "\n\033[1mAvailable Collections\033[0m"
-	@echo "==================="
-	@if [ -d "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" ]; then \
-		echo "Collections in levonk namespace:"; \
-		ls -1 "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" | sort; \
-	else \
-		echo "No collections found in $(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk"; \
-	fi
+
 
 # ====================================================================
 # Special Targets

@@ -32,20 +32,27 @@ COLLECTIONS_DIR := $(shell pwd)/collections/ansible_collections/levonk
 # Help Target
 # ====================================================================
 
+# Default target when running make in this directory
+.PHONY: default
 .DEFAULT_GOAL := help
 
 help: ## Show this help message
 	@echo "\n\033[1m$(PROJECT_NAME) - Available Targets\033[0m"
 	@echo "================================================="
 	@echo "\n\033[1mBuild Targets:\033[0m"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {if ($$1 !~ /list/ && $$1 !~ /default/) printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\nRun 'make' in the project root for additional targets including 'list'."
 
 # ====================================================================
 # Build Targets
 # ====================================================================
 
-all: build ## Build all collections (default)
+# Default build target
+.PHONY: all
+all: build ## Build all collections
 
+# Main build target
+.PHONY: build
 build: ## Build all collections
 	@echo "Building all collections..."
 	@for collection in $(COLLECTIONS); do \
@@ -177,11 +184,7 @@ release: ## Create a new release
 # Development
 # ====================================================================
 
-list: ## List all available collections
-	@echo "Available collections in $(COLLECTIONS_DIR):"
-	@for collection in $(COLLECTIONS); do \
-		echo "- $$collection"; \
-	done
+# List target is handled by the root Makefile
 
 watch: ## Watch for file changes and rebuild
 	@echo "Watching for file changes..."

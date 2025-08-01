@@ -1,12 +1,25 @@
-# Role-level Makefile for blueprint-role
-# Handles linting and molecule testing for this role
+# ====================================================================
+# Role: {{ role_name }}
+# ====================================================================
+# Makefile for Ansible role {{ role_name }}
+# Part of collection: {{ namespace_name }}.{{ collection_name }}
+# ====================================================================
 
-.PHONY: all test lint lint-ansible lint-yaml lint-markdown molecule build install install-src install-build install-repo install-beta install-prod clean archive format docs version status help usage
+# ====================================================================
+# Phony Targets
+# ====================================================================
+.PHONY: all test lint lint-ansible lint-yaml lint-markdown molecule build \
+        install install-src install-build install-repo install-beta install-prod \
+        clean archive format docs version status help usage
 
-# Include common variables
+# ====================================================================
+# Include Common Configuration
+# ====================================================================
 include ../../../../../../../common.mk
 
-# Role-specific variables
+# ====================================================================
+# Role Configuration
+# ====================================================================
 ROLE_NAME := $(notdir $(CURDIR))
 COLLECTION_NAME := $(notdir $(shell dirname $(shell dirname $(CURDIR))))
 NAMESPACE_NAME := $(notdir $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))
@@ -15,49 +28,58 @@ COLLECTION_DIR := $(shell dirname $(shell dirname $(CURDIR)))
 NAMESPACE_DIR := $(shell dirname $(shell dirname $(shell dirname $(CURDIR))))
 DIST_DIR := $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(CURDIR)))))))))/../dist
 
-# Default goal
+# ====================================================================
+# Default Target
+# ====================================================================
 .DEFAULT_GOAL := help
 
-# Default target
-all: test ## Run tests for this role (alias for test)
+# ====================================================================
+# Build Targets
+# ====================================================================
 
-# Build this role as part of its collection
-build: help ## Build the collection containing this role
+all: test ## Run tests for this role (default)
+
+build: ## Build the collection containing this role
 	@echo "Building collection $(NAMESPACE_NAME).$(COLLECTION_NAME) containing role $(ROLE_NAME)..."
 	@cd $(COLLECTION_DIR) && ansible-galaxy collection build --output-path $(DIST_DIR) --force
 	@echo "Build complete. Collection archive in $(DIST_DIR)"
 
-# Install targets
+# ====================================================================
+# Test Targets
+# ====================================================================
 
-# Test this role
-test: lint molecule ## Run all tests for this role
+test: lint molecule ## Run all tests for this role (default)
 
-# Lint this role
-lint: lint-ansible lint-yaml lint-markdown ## Run all linting tools
-	@echo "All linting completed for role $(ROLE_NAME)"
-
-# Ansible linting
-lint-ansible: ## Run ansible-lint
-	@echo "Running ansible-lint on role $(ROLE_NAME)..."
-	@cd $(COLLECTION_DIR) && ansible-lint $(ANSIBLE_LINT_FLAGS) roles/$(ROLE_NAME) || echo "Warning: ansible-lint found issues in role $(ROLE_NAME)"
-
-# YAML linting
-lint-yaml: ## Run yamllint
-	@echo "Running yamllint on role $(ROLE_NAME)..."
-	@yamllint $(YAMLLINT_FLAGS) . || echo "Warning: yamllint found issues in role $(ROLE_NAME)"
-
-# Markdown linting
-lint-markdown: ## Run markdownlint
-	@echo "Running markdownlint on role $(ROLE_NAME)..."
-	@find . -name "*.md" -exec markdownlint $(MARKDOWNLINT_FLAGS) {} \; || echo "Warning: markdownlint found issues in role $(ROLE_NAME)"
-
-# Molecule testing
-molecule: ## Run molecule tests
+molecule: ## Run molecule tests for this role
 	@echo "Running molecule tests for role $(ROLE_NAME)..."
 	@if [ -d "molecule" ]; then \
 		cd $(ROLE_DIR) && molecule test; \
 	else \
 		echo "No molecule tests found for role $(ROLE_NAME)"; \
+	fi
+
+# ====================================================================
+# Lint Targets
+# ====================================================================
+
+lint: lint-ansible lint-yaml lint-markdown ## Run all linting tools
+	@echo "All linting completed for role $(ROLE_NAME)"
+
+lint-ansible: ## Run ansible-lint on this role
+	@echo "Running ansible-lint on role $(ROLE_NAME)..."
+	@cd $(COLLECTION_DIR) && ansible-lint $(ANSIBLE_LINT_FLAGS) roles/$(ROLE_NAME) || \
+		echo "Warning: ansible-lint found issues in role $(ROLE_NAME)"
+
+lint-yaml: ## Run yamllint on YAML files in this role
+	@echo "Running yamllint on role $(ROLE_NAME)..."
+	@find . -name "*.yml" -o -name "*.yaml" | xargs yamllint $(YAMLLINT_FLAGS) || \
+		echo "Warning: yamllint found issues in role $(ROLE_NAME)"
+
+lint-markdown: ## Run markdownlint on documentation
+	@if [ -f "README.md" ]; then \
+		echo "Running markdownlint on role $(ROLE_NAME)..."; \
+		markdownlint README.md || \
+		echo "Warning: markdownlint found issues in role $(ROLE_NAME)"; \
 	fi
 
 # Install from source directory
