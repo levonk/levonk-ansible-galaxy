@@ -11,28 +11,20 @@
     - tools
     - sublime-text
 
-- name: Debian: Ensure dependencies and repo for Sublime Text
-  become: true
-  when: ansible_os_family == 'Debian'
-  block:
-    - name: Ensure dependencies are installed for adding repository
-      ansible.builtin.apt:
-        name: ["apt-transport-https", "ca-certificates", "curl"]
-        state: present
-
-    - name: Add Sublime Text GPG apt Key
-      ansible.builtin.get_url:
-        url: https://download.sublimetext.com/sublimehq-pub.gpg
-        dest: /etc/apt/trusted.gpg.d/sublimehq-pub.gpg
-        mode: '0644'
-        force: true
-
-    - name: Add Sublime Text Repository
-      ansible.builtin.apt_repository:
-        repo: "deb https://download.sublimetext.com/ apt/stable/"
-        state: present
+- name: Debian: Install Sublime Text
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: sublime-text
+    state: latest
+    apt_keys:
+      - url: https://download.sublimetext.com/sublimehq-pub.gpg
+        id: sublimehq-pub.gpg
+    apt_repositories:
+      - repo: "deb https://download.sublimetext.com/ apt/stable/"
         filename: sublime-text
-
-        name: sublime-text
-        state: present
-        update_cache: true
+  when: ansible_os_family == 'Debian'
+  tags:
+    - vibeops
+    - tools
+    - sublime-text

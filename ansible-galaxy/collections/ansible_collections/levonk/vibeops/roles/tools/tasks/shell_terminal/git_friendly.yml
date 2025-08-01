@@ -13,18 +13,18 @@
     - git
     - git-friendly
 
-- name: Fallback: Install git-friendly via curl if package fails
-  when: git_friendly_pkg_result is failed
+- name: Fallback: Install git-friendly via script if package fails
   block:
-    - name: Install git-friendly via curl
-      ansible.builtin.shell: |
-        curl -sS https://raw.githubusercontent.com/git-friendly/git-friendly/main/install.sh | bash
-      args:
-        executable: /bin/bash
+    - name: Install git-friendly using vet_script_installer
+      levonk.common.vet_script_installer:
+        script_url: https://raw.githubusercontent.com/git-friendly/git-friendly/main/install.sh
+        script_checksum: "{{ lookup('url', 'https://raw.githubusercontent.com/git-friendly/git-friendly/main/install.sh.sha256') }}"
+        creates: /usr/local/bin/git-friendly
       become: true
-      changed_when: true
-      tags:
-        - vibeops
-        - tools
-        - git
-        - git-friendly
+  when: git_friendly_pkg_result is failed
+  tags:
+    - vibeops
+    - tools
+    - git
+    - git-friendly
+    - fallback
