@@ -1,15 +1,22 @@
 ---
 # Install Open WebUI
 - name: Install system dependencies for Open WebUI
-  ansible.builtin.apt:
-    name:
-      - python3-pip
-      - python3-venv
-      - build-essential
-      - python3-dev
-      - curl
-      - git
-    state: present
+  include_role:
+    name: levonk.common.package
+  vars:
+    packages:
+      - name: python3-pip
+        state: present
+      - name: python3-venv
+        state: present
+      - name: build-essential
+        state: present
+      - name: python3-dev
+        state: present
+      - name: curl
+        state: present
+      - name: git
+        state: present
   become: true
   when: ansible_os_family == 'Debian'
   tags:
