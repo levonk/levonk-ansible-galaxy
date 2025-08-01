@@ -15,11 +15,11 @@
   when: ansible_os_family == 'Darwin'
 
 - name: Install Audacity on Debian-based systems
-  become: true
-  ansible.builtin.apt:
-    name: audacity
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: audacity
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'
 
 - name: Note about OpenVINO plugins

@@ -15,9 +15,9 @@
   when: ansible_os_family == 'Darwin'
 
 - name: Install OBS Studio on Debian-based systems
-  become: true
-  ansible.builtin.apt:
-    name: obs-studio
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: obs-studio
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'

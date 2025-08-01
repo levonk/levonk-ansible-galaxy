@@ -15,9 +15,9 @@
   when: ansible_os_family == 'Darwin'
 
 - name: Install ImageMagick on Debian-based systems
-  become: true
-  ansible.builtin.apt:
-    name: imagemagick
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: imagemagick
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'

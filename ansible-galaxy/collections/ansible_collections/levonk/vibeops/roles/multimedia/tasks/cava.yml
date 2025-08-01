@@ -15,9 +15,9 @@
   when: ansible_os_family == 'Darwin'
 
 - name: Install CAVA on Debian-based systems
-  become: true
-  ansible.builtin.apt:
-    name: cava
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: cava
     state: present
-    update_cache: true
   when: ansible_os_family == 'Debian'
