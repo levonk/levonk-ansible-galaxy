@@ -25,10 +25,7 @@ ANSIBLE_GALAXY_DIR := $(shell cd $(dir $(lastword $(MAKEFILE_LIST)))/../../../..
 # Include shared Makefiles
 # ====================================================================
 
-# Include shared Makefile from the ansible-galaxy directory
-include $(ANSIBLE_GALAXY_DIR)/shared.mk
-
-# Include the shared targets (build, test, lint, etc.)
+# Include the shared Makefile with all targets and variables
 include $(ANSIBLE_GALAXY_DIR)/shared-targets.mk
 
 # ====================================================================
@@ -81,8 +78,8 @@ if [ -f "$TOP_LEVEL_MAKEFILE" ]; then
 # Ansible Collections - Top Level
 # ====================================================================
 
-# Include shared Makefile from the ansible_collections directory
-include shared.mk
+# Include the shared Makefile with all targets and variables
+include shared-targets.mk
 
 # List of all collections to process
 COLLECTIONS := $(notdir $(wildcard */))
