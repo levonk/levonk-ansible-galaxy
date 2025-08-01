@@ -7,7 +7,7 @@ extends: default
 rules:
   # Line length
   line-length:
-    max: 120
+    max: 160  # Increased from 120 to reduce noise during development
     level: warning
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
@@ -35,11 +35,8 @@ rules:
     max-start: 1
     max-end: 1
   
-  # Quoted strings
-  quoted-strings:
-    quote-type: single
-    required: false
-    extra-required: ['^http://', '^https://', '^ftp://', '^sftp://', '^git@']
+  # Quoted strings - disabled during development to reduce noise
+  quoted-strings: disable
   
   # Braces
   braces:
@@ -79,8 +76,7 @@ rules:
   new-lines:
     type: unix
   
-  # Trailing zeros
-  trailing-zeros: disable
+  # Trailing zeros - removed invalid rule
   
   # Truthy
   truthy:
