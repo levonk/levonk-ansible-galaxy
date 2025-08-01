@@ -109,6 +109,7 @@ roles/external/
 collections/ansible_collections/*
 *.info/
 .markers
+.ansible/
 
 # Collection build artifacts
 **/FILES.json

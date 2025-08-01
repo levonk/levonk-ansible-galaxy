@@ -60,12 +60,21 @@ build: ## Build all collections
 		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) build) || exit 1; \
 	done
 
-clean: ## Remove all generated files
+clean: ## Remove all generated files and caches
 	@echo "Cleaning all collections..."
+	@# Remove distribution packages
 	@rm -rf $(DIST_DIR)/*.tar.gz
+	@# Clean each collection
 	@for collection in $(COLLECTIONS); do \
 		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) clean) || exit 1; \
 	done
+	@# Remove .ansible cache directories if they exist
+	@if [ -d ".ansible" ] || [ -d "$(COLLECTIONS_DIR)" ] || [ -d "$(ROOT_DIR)/../.ansible" ]; then \
+		echo "Removing .ansible cache directories..."; \
+		find . -type d -name '.ansible' -exec rm -rf {} + 2>/dev/null || true; \
+		find $(COLLECTIONS_DIR) -type d -name '.ansible' -exec rm -rf {} + 2>/dev/null || true; \
+		find $(ROOT_DIR)/.. -maxdepth 1 -type d -name '.ansible' -exec rm -rf {} + 2>/dev/null || true; \
+	fi
 
 # ====================================================================
 # Linting Targets

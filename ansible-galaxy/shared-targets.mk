@@ -46,10 +46,17 @@ build: ## Build the collection
 	@echo "Building $(NAMESPACE).$(COLLECTION_NAME)..."
 	ansible-galaxy collection build --output-path $(DIST_DIR) --force
 
-clean: ## Remove generated files
+clean: ## Remove generated files and caches
 	@echo "Cleaning $(NAMESPACE).$(COLLECTION_NAME)..."
-	rm -f $(DIST_DIR)/$(NAMESPACE)-$(COLLECTION_NAME)-*.tar.gz
-	test -d "$(DIST_DIR)" && rmdir -p "$(DIST_DIR)" 2>/dev/null || true
+	# Remove distribution packages
+	@rm -f $(DIST_DIR)/$(NAMESPACE)-$(COLLECTION_NAME)-*.tar.gz
+	@test -d "$(DIST_DIR)" && rmdir -p "$(DIST_DIR)" 2>/dev/null || true
+	# Remove .ansible cache directories if they exist
+	@if [ -d ".ansible" ] || [ -d "../.ansible" ]; then \
+		echo "Removing .ansible cache directories..."; \
+		find . -type d -name '.ansible' -exec rm -rf {} + 2>/dev/null || true; \
+		find .. -maxdepth 1 -type d -name '.ansible' -exec rm -rf {} + 2>/dev/null || true; \
+	fi
 
 archive: clean build ## Create a clean build archive
 
