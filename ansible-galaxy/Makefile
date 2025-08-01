@@ -34,7 +34,7 @@ COLLECTIONS_DIR := $(shell pwd)/collections/ansible_collections/levonk
 
 # Default target when running make in this directory
 .PHONY: default
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := test
 
 help: ## Show this help message
 	@echo "\n\033[1m$(PROJECT_NAME) - Available Targets\033[0m"
@@ -49,7 +49,7 @@ help: ## Show this help message
 
 # Default build target
 .PHONY: all
-all: build ## Build all collections
+all: test ## Run tests for all collections (default)
 
 # Main build target
 .PHONY: build

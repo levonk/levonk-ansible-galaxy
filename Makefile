@@ -12,13 +12,13 @@ ANSIBLE_GALAXY_DIR := ansible-galaxy
 
 # Default target when running just 'make'
 .PHONY: default
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := test
 
-default: help
+default: test
 
 # Alias for default target
 .PHONY: all
-all: default
+all: test
 
 # ====================================================================
 # Target Forwarding

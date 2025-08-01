@@ -28,7 +28,11 @@ DIST_DIR := $(shell dirname $(shell dirname $(shell dirname $(shell dirname $(sh
 # ====================================================================
 # Default Target
 # ====================================================================
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := test
+
+# Alias for default target
+.PHONY: all
+all: test
 
 # ====================================================================
 # Build Targets
