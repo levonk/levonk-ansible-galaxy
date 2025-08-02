@@ -1,0 +1,20 @@
+# Base locale settings
+LANG="{{ base_system_locale_default }}"
+LC_ALL="{{ target_locale }}"
+
+# Explicitly set all categories to default
+LC_CTYPE="{{ base_system_locale_default }}"
+LC_NUMERIC="{{ base_system_locale_default }}"
+LC_MONETARY="{{ base_system_locale_default }}"
+LC_PAPER="{{ base_system_locale_default }}"
+LC_NAME="{{ base_system_locale_default }}"
+LC_ADDRESS="{{ base_system_locale_default }}"
+LC_TELEPHONE="{{ base_system_locale_default }}"
+LC_MEASUREMENT="{{ base_system_locale_default }}"
+LC_IDENTIFICATION="{{ base_system_locale_default }}"
+
+# Set time format based on target locale
+LC_TIME="{{ target_locale }}"
+
+# Ensure consistent message format
+LC_MESSAGES="{{ base_system_locale_default }}"

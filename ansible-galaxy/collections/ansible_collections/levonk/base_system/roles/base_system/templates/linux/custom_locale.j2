@@ -1,0 +1,84 @@
+# Custom locale definition based on {{ base_locale_source }}
+# Modified to use YYYY-MM-DD date format
+
+# LC_IDENTIFICATION
+LC_IDENTIFICATION
+title      "Custom locale with YYYY-MM-DD date format"
+source     "Modified from {{ base_locale_source }}"
+address    ""
+contact    ""
+email      ""
+tel        ""
+fax        ""
+language   "English"
+territory  "United States"
+revision   "1.0"
+date       ""
+category  "en_US:2000";LC_IDENTIFICATION
+category  "en_US:2000";LC_CTYPE
+category  "en_US:2000";LC_COLLATE
+category  "en_US:2000";LC_TIME
+category  "en_US:2000";LC_NUMERIC
+category  "en_US:2000";LC_MONETARY
+category  "en_US:2000";LC_MESSAGES
+category  "en_US:2000";LC_PAPER
+category  "en_US:2000";LC_NAME
+category  "en_US:2000";LC_ADDRESS
+category  "en_US:2000";LC_TELEPHONE
+category  "en_US:2000";LC_MEASUREMENT
+category  "en_US:2000";LC_IDENTIFICATION
+
+# LC_CTYPE
+LC_CTYPE
+copy "{{ base_locale_source }}"
+
+# LC_COLLATE
+LC_COLLATE
+copy "{{ base_locale_source }}"
+
+# LC_TIME - This is where we customize the date format
+LC_TIME
+{% for line in locale_time_content %}
+{% if line.startswith('d_t_fmt') %}d_t_fmt "%Y-%m-%d %H:%M:%S"
+{% elif line.startswith('d_fmt') %}d_fmt "%Y-%m-%d"
+{% elif line.startswith('era_d_fmt') %}era_d_fmt "%Y-%m-%d"
+{% elif line.startswith('era_d_t_fmt') %}era_d_t_fmt "%Y-%m-%d %H:%M:%S"
+{% else %}{{ line }}
+{% endif %}
+{% endfor %}
+
+# LC_NUMERIC
+LC_NUMERIC
+copy "{{ base_locale_source }}"
+
+# LC_MONETARY
+LC_MONETARY
+copy "{{ base_locale_source }}"
+
+# LC_MESSAGES
+LC_MESSAGES
+yesexpr "^[+1yY]"
+noexpr  "^[-0nN]"
+yesstr  ""
+nostr   ""
+copy "{{ base_locale_source }}"
+
+# LC_PAPER
+LC_PAPER
+copy "{{ base_locale_source }}"
+
+# LC_NAME
+LC_NAME
+copy "{{ base_locale_source }}"
+
+# LC_ADDRESS
+LC_ADDRESS
+copy "{{ base_locale_source }}"
+
+# LC_TELEPHONE
+LC_TELEPHONE
+copy "{{ base_locale_source }}"
+
+# LC_MEASUREMENT
+LC_MEASUREMENT
+copy "{{ base_locale_source }}"

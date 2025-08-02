@@ -1,0 +1,135 @@
+---
+- name: Check available locales
+  command: locale -a
+  register: available_locales
+  changed_when: false
+  check_mode: no
+  tags: ['system', 'locale']
+
+- name: Set target locale based on availability
+  set_fact:
+    target_locale: "{{ base_system_locale_custom if base_system_locale_custom in available_locales.stdout else base_system_locale_default }}"
+  tags: ['system', 'locale']
+
+- name: Install locales package if needed
+  levonk.common.package:
+    name: "{{ 'locales' if ansible_os_family == 'Debian' else 'glibc-common' }}"
+    state: latest
+  when: "base_system_locale_default not in available_locales.stdout"
+  tags: ['system', 'locale']
+  register: locales_pkg_install
+  retries: 3
+  delay: 5
+  until: locales_pkg_install is succeeded
+
+- name: Generate default locale if not available
+  command: "localedef -i en_US -f UTF-8 {{ base_system_locale_default }}"
+  args:
+    creates: "/usr/lib/locale/{{ base_system_locale_default }}"
+  when: "base_system_locale_default not in available_locales.stdout"
+  tags: ['system', 'locale']
+  register: generate_default_locale
+  ignore_errors: true
+  changed_when: generate_default_locale.rc == 0
+
+- name: Get current locale settings for template
+  command: "locale -k LC_TIME"
+  register: current_locale_time
+  changed_when: false
+  check_mode: no
+  tags: ['system', 'locale']
+
+- name: Create custom locale definition from template
+  template:
+    src: linux/custom_locale.j2
+    dest: "/tmp/{{ base_system_locale_custom }}"
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    base_locale_source: "{{ base_system_locale_default }}"
+    locale_time_content: "{{ current_locale_time.stdout_lines }}"
+  when: "base_system_locale_custom not in available_locales.stdout"
+  tags: ['system', 'locale']
+  register: custom_locale_def
+  notify: Restart systemd-localed
+
+- name: Generate custom locale
+  command: "localedef -i /tmp/{{ base_system_locale_custom }} -f UTF-8 {{ base_system_locale_custom }}"
+  args:
+    creates: "/usr/lib/locale/{{ base_system_locale_custom }}"
+  when: 
+    - "base_system_locale_custom not in available_locales.stdout"
+    - custom_locale_def is changed
+  tags: ['system', 'locale']
+  register: generate_custom_locale
+  ignore_errors: true
+  changed_when: generate_custom_locale.rc == 0
+  notify: Restart systemd-localed
+
+# Configure system locale based on distribution
+- name: Configure system locale (Debian/Ubuntu)
+  template:
+    src: linux/etc_default_locale.j2
+    dest: /etc/default/locale
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_os_family == 'Debian'
+  tags: ['system', 'locale']
+  notify: Restart systemd-localed
+
+- name: Configure system locale (RHEL/CentOS/Fedora)
+  template:
+    src: linux/etc_locale_conf.j2
+    dest: /etc/locale.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_os_family in ['RedHat', 'Fedora', 'CentOS', 'Amazon']
+  tags: ['system', 'locale']
+  notify: Restart systemd-localed
+
+- name: Set system-wide locale in environment
+  lineinfile:
+    path: /etc/environment
+    regexp: '^LANG='
+    line: 'LANG={{ base_system_locale_default }}'
+    state: present
+    create: yes
+  tags: ['system', 'locale']
+  notify: Restart systemd-localed
+
+# Verify locale configuration
+- name: Get current locale settings
+  command: locale
+  register: current_locale
+  changed_when: false
+  check_mode: no
+  tags: ['system', 'locale']
+
+- name: Verify locale configuration
+  assert:
+    that:
+      - "target_locale in current_locale.stdout"
+      - "base_system_locale_default in current_locale.stdout"
+    fail_msg: |
+      Failed to verify locale configuration.
+      Expected to find '{{ target_locale }}' in the output.
+      Current locale settings:
+      {{ current_locale.stdout | default('No locale output') }}
+    success_msg: |
+      Locale configuration verified successfully.
+      Using '{{ target_locale }}' for LC_TIME.
+  tags: ['system', 'locale']
+
+- name: Display current locale settings
+  debug:
+    msg: |
+      ====== Locale Configuration ======
+      Target Locale: {{ target_locale }}
+      Default Locale: {{ base_system_locale_default }}
+      Current Settings:
+      {{ current_locale.stdout | default('No locale output') | indent(6) }}
+      =================================
+  tags: ['system', 'locale']
