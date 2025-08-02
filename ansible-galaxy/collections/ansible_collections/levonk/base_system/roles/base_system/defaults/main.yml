@@ -6,3 +6,80 @@ base_system_install_winget: true
 
 # Base system packages (define in vars or group_vars)
 base_system_packages: []
+
+# Locale configuration
+base_system_locale_default: "en_US.UTF-8"
+base_system_locale_custom: "en_US.YYYYMMDD"
+base_system_locale_custom_definition: """
+LC_IDENTIFICATION
+title "Custom en_US with YYYY-MM-DD date format"
+source "derived from en_US locale"
+revision "1.0"
+
+LC_TIME
+abday   "<U0053><U0075><U006E>";"<U004D><U006F><U006E>";"<U0054><U0075><U0065>";"<U0057><U0065><U0064>";"<U0054><U0068><U0075>";"<U0046><U0072><U0069>";"<U0053><U0061><U0074>"
+day     "<U0053><U0075><U006E><U0064><U0061><U0079>";"<U004D><U006F><U006E><U0064><U0061><U0079>";"<U0054><U0075><U0065><U0073><U0064><U0061><U0079>";"<U0057><U0065><U0064><U006E><U0065><U0073><U0064><U0061><U0079>";"<U0054><U0068><U0075><U0072><U0073><U0064><U0061><U0079>";"<U0046><U0072><U0069><U0064><U0061><U0079>";"<U0053><U0061><U0074><U0075><U0072><U0064><U0061><U0079>"
+abmon   "<U004A><U0061><U006E>";"<U0046><U0065><U0062>";"<U004D><U0061><U0072>";"<U0041><U0070><U0072>";"<U004D><U0061><U0079>";"<U004A><U0075><U006E>";"<U004A><U0075><U006C>";"<U0041><U0075><U0067>";"<U0053><U0065><U0070>";"<U004F><U0063><U0074>";"<U004E><U006F><U0076>";"<U0044><U0065><U0063>"
+mon     "<U004A><U0061><U006E><U0075><U0061><U0072><U0079>";"<U0046><U0065><U0062><U0072><U0075><U0061><U0072><U0079>";"<U004D><U0061><U0072><U0063><U0068>";"<U0041><U0070><U0072><U0069><U006C>";"<U004D><U0061><U0079>";"<U004A><U0075><U006E><U0065>";"<U004A><U0075><U006C><U0079>";"<U0041><U0075><U0067><U0075><U0073><U0074>";"<U0053><U0065><U0070><U0074><U0065><U006D><U0062><U0065><U0072>";"<U004F><U0063><U0074><U006F><U0062><U0065><U0072>";"<U004E><U006F><U0076><U0065><U006D><U0062><U0065><U0072>";"<U0044><U0065><U0063><U0065><U006D><U0062><U0065><U0072>"
+am_pm   "<U0041><U004D>";"<U0050><U004D>"
+d_t_fmt "%Y-%m-%d %H:%M:%S"
+d_fmt   "%Y-%m-%d"
+t_fmt   "%H:%M:%S"
+t_fmt_ampm "%I:%M:%S %p"
+era     "";"";19700101000000;+0
+
+LC_NUMERIC
+decimal_point	"."
+thousands_sep	","
+grouping	3;3
+int_curr_symbol "USD "
+currency_symbol	"$"
+mon_decimal_point	"."
+mon_thousands_sep	","
+mon_grouping	3;3
+positive_sign	""
+negative_sign	"-"
+int_frac_digits	2
+frac_digits	2
+p_cs_precedes	1
+p_sep_by_space	0
+n_cs_precedes	1
+n_sep_by_space	0
+p_sign_posn	1
+n_sign_posn	1
+int_p_cs_precedes 1
+int_n_cs_precedes 1
+int_p_sep_by_space 0
+int_n_sep_by_space 0
+int_p_sign_posn 1
+int_n_sign_posn 1
+
+LC_MONETARY
+int_curr_symbol "USD "
+currency_symbol	"$"
+mon_decimal_point	"."
+mon_thousands_sep	","
+mon_grouping	3;3
+positive_sign	""
+negative_sign	"-"
+int_frac_digits	2
+frac_digits	2
+p_cs_precedes	1
+p_sep_by_space	0
+n_cs_precedes	1
+n_sep_by_space	0
+p_sign_posn	1
+n_sign_posn	1
+int_p_cs_precedes 1
+int_n_cs_precedes 1
+int_p_sep_by_space 0
+int_n_sep_by_space 0
+int_p_sign_posn 1
+int_n_sign_posn 1
+
+LC_MESSAGES
+yesexpr   "^[yY].*"
+noexpr    "^[nN].*"
+yesstr    "yes"
+nostr     "no"
+"""

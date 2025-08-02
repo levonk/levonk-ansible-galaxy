@@ -38,6 +38,11 @@
   tags: ['packages', 'aur', 'arch']
 
 # OS-specific tasks
+- name: Configure system locale (Linux)
+  import_tasks: linux/locale.yml
+  when: ansible_os_family == 'Linux'
+  tags: ['system', 'locale']
+
 - name: Include shell setup tasks (was debian.yml)
   import_tasks: shell_setup.yml
   when: ansible_os_family == 'Debian'
