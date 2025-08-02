@@ -3,34 +3,45 @@
 # This file forwards commands to the ansible-galaxy subdirectory
 # ====================================================================
 
-# Define the subdirectory containing the actual Makefile
+# Project Configuration
+PROJECT_NAME := levonk-ansible-galaxy
+BIN_DIR := $(shell pwd)/bin
+VERSION := $(shell $(BIN_DIR)/print-version.sh 2>/dev/null || echo "0.1.0")
 ANSIBLE_GALAXY_DIR := ansible-galaxy
+
+# ====================================================================
+# Phony Targets
+# ====================================================================
+.PHONY: all help list list-collections dev-beta debug-beta FORCE
 
 # ====================================================================
 # Default Target
 # ====================================================================
-
-# Default target when running just 'make'
-.PHONY: default
-.DEFAULT_GOAL := test
-
-default: test
+.DEFAULT_GOAL := help
 
 # Alias for default target
-.PHONY: all
-all: test
+all: help
 
 # ====================================================================
-# Target Forwarding
+# Help Target
 # ====================================================================
 
+help: ## Show this help message
+	@echo "\n\033[1mRoot Makefile - Available Targets\033[0m"
+	@echo "=================================================="
+	@echo "\n\033[1mCore Targets:\033[0m"
+	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*?## / {if ($$1 !~ /default|help-targets/) printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\n\033[1mAnsible Galaxy Targets:\033[0m"
+	@cd $(ANSIBLE_GALAXY_DIR) && \
+	$(MAKE) --no-print-directory help-targets 2>/dev/null || \
+	echo "  (Run 'make' in the ansible-galaxy directory to see all targets)"
+	@echo "\nFor more detailed help, run 'make help' in the ansible-galaxy directory."
+
 # ====================================================================
-# Local Targets (handled in root Makefile)
+# Collection Management
 # ====================================================================
 
-# List available collections (handled locally)
-.PHONY: list list-collections
-list list-collections:
+list list-collections: ## List available collections in the levonk namespace
 	@echo "\n\033[1mAvailable Collections\033[0m"
 	@echo "==================="
 	@if [ -d "$(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk" ]; then \
@@ -39,6 +50,28 @@ list list-collections:
 	else \
 		echo "No collections found in $(ANSIBLE_GALAXY_DIR)/collections/ansible_collections/levonk"; \
 	fi
+
+# ====================================================================
+# Development Targets
+# ====================================================================
+
+dev-beta: ## Development version of beta that skips token check
+	@echo "Creating beta marker file for development purposes (skipping actual publishing)"
+	@mkdir -p $(ANSIBLE_GALAXY_DIR)/.markers
+	@touch $(ANSIBLE_GALAXY_DIR)/.markers/beta.marker
+
+debug-beta: ## Debug Galaxy authentication issues
+	@echo "=== Debugging Galaxy Authentication ==="
+	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "WARNING: ANSIBLE_GALAXY_TOKEN is not set"; \
+	else \
+		echo "Token length: $${#ANSIBLE_GALAXY_TOKEN} characters"; \
+		echo "Token prefix: $${ANSIBLE_GALAXY_TOKEN:0:3}..."; \
+	fi
+	@echo "\nChecking server connectivity..."
+	@cd $(ANSIBLE_GALAXY_DIR) && GALAXY_SERVER="https://galaxy-dev.ansible.com" ANSIBLE_VERBOSITY=3 ansible-galaxy collection list --server="https://galaxy-dev.ansible.com"
+	@echo "\nTrying with v3 API endpoint..."
+	@curl -s -I -H "Authorization: Token $${ANSIBLE_GALAXY_TOKEN:-none}" "https://galaxy-dev.ansible.com/api/v3/" | head -n 1
 
 # ====================================================================
 # Target Forwarding
@@ -53,63 +86,16 @@ list list-collections:
 		exit 1; \
 	fi
 
-# Special handling for help to show both root and subdirectory help
-.PHONY: help
-help: FORCE
-	@echo "\n\033[1mRoot Makefile - Available Targets\033[0m"
-	@echo "================================================="
-	@echo "  help            - Show this help message"
-	@echo "  list            - List available collections"
-	@echo "  list-collections - Alias for list"
-	@echo "  dev-beta        - Development version of beta that skips token check"
-	@echo "  debug-beta      - Debug Galaxy authentication issues"
-	@echo "\n\033[1mForwarding to ansible-galaxy/Makefile for additional targets\033[0m"
-	@if [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
-		cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) --no-print-directory help; \
-	else \
-		echo "Warning: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
-	fi
-
-
-
 # ====================================================================
-# Special Targets
+# Utility Targets
 # ====================================================================
-
-# Development beta target (skips token check)
-.PHONY: dev-beta
-dev-beta: build test
-	@echo "Creating beta marker file for development purposes (skipping actual publishing)"
-	@mkdir -p $(ANSIBLE_GALAXY_DIR)/.markers
-	@touch $(ANSIBLE_GALAXY_DIR)/.markers/beta.marker
-
-# Debug beta target for troubleshooting authentication issues
-.PHONY: debug-beta
-debug-beta:
-	@echo "=== Debugging Galaxy Authentication ==="
-	@echo "Token length: $$(echo $${ANSIBLE_GALAXY_TOKEN} | wc -c) characters"
-	@echo "Token prefix: $$(echo $${ANSIBLE_GALAXY_TOKEN} | cut -c1-3)..."
-	@echo "Checking server connectivity..."
-	@cd $(ANSIBLE_GALAXY_DIR) && GALAXY_SERVER="https://galaxy-dev.ansible.com" ANSIBLE_VERBOSITY=3 ansible-galaxy collection list --server="https://galaxy-dev.ansible.com"
-	@echo "\nTrying with v3 API endpoint..."
-	@curl -s -I -H "Authorization: Token $${ANSIBLE_GALAXY_TOKEN}" "https://galaxy-dev.ansible.com/api/v3/" | head -n 1
-
-# List available collections
-.PHONY: list
-list:
-	@if [ -f "$(ANSIBLE_GALAXY_DIR)/Makefile" ]; then \
-		cd $(ANSIBLE_GALAXY_DIR) && $(MAKE) --no-print-directory list; \
-	else \
-		echo "Error: $(ANSIBLE_GALAXY_DIR)/Makefile not found"; \
-		exit 1; \
-	fi
 
 # Force target to always run commands
-.PHONY: FORCE
 FORCE:
-	@echo "  lint     - Run linting on all collections"
-	@echo "  beta     - Publish to beta server"
-	@echo "  prod     - Publish to production server"
-	@echo "  list     - List available collections"
-	@echo "  reset    - Reset all markers to force full rebuild"
-	@echo "  help     - Show this help message"
+
+# ====================================================================
+# Include common targets from subdirectories
+# ====================================================================
+
+# Include common makefile if it exists
+-include common.mk

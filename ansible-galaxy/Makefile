@@ -2,45 +2,38 @@
 # Project Configuration
 # ====================================================================
 
-PROJECT_NAME := levonk-ansible-galaxy
-BIN_DIR := $(shell pwd)/../bin
-VERSION := $(shell $(BIN_DIR)/print-version.sh 2>/dev/null || echo "0.1.0")
-ROOT_DIR := $(shell pwd)
-DIST_DIR := $(ROOT_DIR)/../dist
-COLLECTIONS_DIR := $(ROOT_DIR)/collections/ansible_collections/levonk
-
-# Include common variables and functions
+# Include common variables and functions first
 include common.mk
 
-# ====================================================================
-# Path Configuration
-# ====================================================================
-
-# Update COLLECTIONS_DIR to use the full path to the levonk namespace
-COLLECTIONS_DIR := $(shell pwd)/collections/ansible_collections/levonk
+# Project-specific overrides can go here
+PROJECT_NAME ?= levonk-ansible-galaxy
+BIN_DIR ?= $(ROOT_DIR)/../bin
+VERSION ?= $(shell $(BIN_DIR)/print-version.sh 2>/dev/null || echo "0.1.0")
+DIST_DIR ?= $(ROOT_DIR)/../dist
 
 # ====================================================================
 # Phony Targets
 # ====================================================================
 
-.PHONY: help all clean build test lint format docs version status watch env sync \
-        install uninstall deploy release new-module check coverage list \
-        lint-make lint-make-checkmake lint-make-bake lint-ansible lint-yaml lint-markdown \
-        deploy-dev deploy-prod
+.PHONY: all clean build test lint format docs version status \
+        install uninstall check coverage \
+        lint-make lint-make-checkmake lint-make-bake lint-ansible lint-yaml lint-markdown
+
+# ====================================================================
+# Default Target
+# ====================================================================
+
+.DEFAULT_GOAL := help
 
 # ====================================================================
 # Help Target
 # ====================================================================
 
-# Default target when running make in this directory
-.PHONY: default
-.DEFAULT_GOAL := test
-
 help: ## Show this help message
 	@echo "\n\033[1m$(PROJECT_NAME) - Available Targets\033[0m"
 	@echo "================================================="
-	@echo "\n\033[1mBuild Targets:\033[0m"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {if ($$1 !~ /list/ && $$1 !~ /default/) printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\n\033[1mCore Targets:\033[0m"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {if ($$1 !~ /default/) printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 	@echo "\nRun 'make' in the project root for additional targets including 'list'."
 
 # ====================================================================
@@ -48,11 +41,9 @@ help: ## Show this help message
 # ====================================================================
 
 # Default build target
-.PHONY: all
 all: test ## Run tests for all collections (default)
 
 # Main build target
-.PHONY: build
 build: ## Build all collections
 	@echo "Building all collections..."
 	@for collection in $(COLLECTIONS); do \
@@ -76,11 +67,14 @@ clean: ## Remove all generated files and caches
 		find $(ROOT_DIR)/.. -maxdepth 1 -type d -name '.ansible' -exec rm -rf {} + 2>/dev/null || true; \
 	fi
 
+# Alias for clean
+distclean: clean ## Alias for clean target
+
 # ====================================================================
 # Linting Targets
 # ====================================================================
 
-lint: lint-make lint-yaml lint-ansible ## Run all linters on all collections
+lint: lint-make lint-yaml lint-ansible lint-markdown ## Run all linters on all collections
 
 lint-make: ## Run Makefile linters on all collections
 	@echo "Running Makefile linters..."
@@ -90,20 +84,44 @@ lint-make: ## Run Makefile linters on all collections
 	done
 
 lint-make-checkmake: ## Run checkmake on all Makefiles
+	@if ! command -v checkmake >/dev/null 2>&1; then \
+		echo "checkmake not installed. Install with: go install github.com/checkmake/parser@latest && go install github.com/checkmake/checkmake@latest"; \
+		exit 1; \
+	fi
 	@echo "Running checkmake on all Makefiles..."
 	@find . -name 'Makefile' -o -name '*.mk' | xargs -n1 checkmake
 
 lint-make-bake: ## Run bake on all Makefiles
+	@if ! command -v bake >/dev/null 2>&1; then \
+		echo "bake not installed. Install with: go install github.com/EbodShojaei/bake@latest"; \
+		exit 1; \
+	fi
 	@echo "Running bake on all Makefiles..."
 	@find . -name 'Makefile' -o -name '*.mk' | xargs -n1 bake check
 
 lint-yaml: ## Run yamllint on all YAML files
+	@if ! command -v yamllint >/dev/null 2>&1; then \
+		echo "yamllint not installed. Install with: pip install yamllint"; \
+		exit 1; \
+	fi
 	@echo "Running yamllint..."
 	yamllint .
 
 lint-ansible: ## Run ansible-lint on all Ansible content
+	@if ! command -v ansible-lint >/dev/null 2>&1; then \
+		echo "ansible-lint not installed. Install with: pip install ansible-lint"; \
+		exit 1; \
+	fi
 	@echo "Running ansible-lint..."
 	ansible-lint .
+
+lint-markdown: ## Run markdownlint on all Markdown files
+	@if ! command -v markdownlint >/dev/null 2>&1; then \
+		echo "markdownlint not installed. Install with: npm install -g markdownlint-cli"; \
+		exit 1; \
+	fi
+	@echo "Running markdownlint..."
+	markdownlint "**/*.md"
 
 # ====================================================================
 # Testing Targets
@@ -116,9 +134,12 @@ test: ## Run tests for all collections
 		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) test) || exit 1; \
 	done
 
+check: test ## Alias for test target
+
 coverage: ## Generate coverage reports
 	@echo "Generating coverage reports..."
-	# Add coverage reporting commands here
+	@# Add coverage reporting commands here
+	@echo "Coverage reporting not yet implemented"
 
 # ====================================================================
 # Documentation
@@ -130,6 +151,7 @@ docs: ## Generate documentation for all collections
 		echo "\n=== Generating docs for: $$collection ==="; \
 		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) docs) || exit 1; \
 	done
+	@echo "Documentation generated in docs/ directory"
 
 # ====================================================================
 # Version and Status
@@ -141,8 +163,12 @@ version: ## Display version information
 status: ## Show project status
 	@echo "Project: $(PROJECT_NAME)"
 	@echo "Version: $(VERSION)"
-	@echo "Collections: $(COLLECTIONS)"
 	@echo "Root Directory: $(ROOT_DIR)"
+	@echo "Collections Directory: $(COLLECTIONS_DIR)"
+	@echo "\nAvailable Collections:"
+	@for collection in $(COLLECTIONS); do \
+		echo "- $$collection"; \
+	done
 
 # ====================================================================
 # Formatting
@@ -150,7 +176,10 @@ status: ## Show project status
 
 format: ## Format code according to standards
 	@echo "Formatting code..."
-	# Add code formatting commands here
+	@# Add code formatting commands here
+	@echo "Code formatting not yet implemented"
+
+fmt: format ## Alias for format target
 
 # ====================================================================
 # Installation
@@ -162,58 +191,17 @@ install: build ## Install all collections
 		echo "\n=== Installing collection: $$collection ==="; \
 		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) install) || exit 1; \
 	done
+	@echo "\nInstallation complete. Collections installed in ~/.ansible/collections/ansible_collections/levonk/"
 
 uninstall: ## Uninstall all collections
 	@echo "Uninstalling all collections..."
-	ansible-galaxy collection remove levonk.*
+	@for collection in $(COLLECTIONS); do \
+		echo "Uninstalling: levonk.$$collection"; \
+		ansible-galaxy collection remove levonk.$$collection || true; \
+	done
+	@echo "\nUninstallation complete."
 
 # ====================================================================
-# Deployment
+# Include additional targets from Makefile.targets
 # ====================================================================
-
-deploy: deploy-dev ## Deploy to development environment (default)
-
-deploy-dev: build ## Deploy to development environment
-	@echo "Deploying to development environment..."
-	# Add deployment commands here
-
-deploy-prod: check_prod_branch check_galaxy_token build ## Deploy to production environment
-	@echo "Deploying to production environment..."
-	# Add production deployment commands here
-
-# ====================================================================
-# Release Management
-# ====================================================================
-
-release: ## Create a new release
-	@echo "Creating a new release..."
-	# Add release process commands here
-
-# ====================================================================
-# Development
-# ====================================================================
-
-# List target is handled by the root Makefile
-
-watch: ## Watch for file changes and rebuild
-	@echo "Watching for file changes..."
-	# Add file watching commands here
-
-env: ## Set up development environment
-	@echo "Setting up development environment..."
-	# Add environment setup commands here
-
-sync: ## Sync with remote repository
-	@echo "Syncing with remote repository..."
-	git pull --rebase
-
-new-module: ## Create a new module
-	@echo "Creating a new module..."
-	# Add module creation commands here
-
-# ====================================================================
-# Include additional targets
-# ====================================================================
-
-# Include additional targets from Makefile.targets if it exists
 -include Makefile.targets

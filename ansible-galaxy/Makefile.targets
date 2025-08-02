@@ -2,6 +2,21 @@
 # This file contains additional targets that are included by the main Makefile.
 # See README.md for detailed documentation on each target.
 
+# Prevent multiple inclusions
+ifndef MAKEFILE_TARGETS_INCLUDED
+MAKEFILE_TARGETS_INCLUDED := true
+
+# Default values for variables
+CONTAINER_RUNTIME ?= $(shell command -v podman 2>/dev/null || command -v docker 2>/dev/null || echo '')
+HAS_ANSIBLE_BUILDER ?= $(shell command -v ansible-builder 2>/dev/null)
+HAS_ANSIBLE_LINT ?= $(shell command -v ansible-lint 2>/dev/null)
+HAS_MOLECULE ?= $(shell command -v molecule 2>/dev/null)
+HAS_YAMLLINT ?= $(shell command -v yamllint 2>/dev/null)
+EE_FULL_IMAGE ?= $(PROJECT_NAME):latest
+MARKER_DIR ?= .markers
+BETA_MARKER ?= $(MARKER_DIR)/beta.marker
+
+
 # ====================================================================
 # Execution Environment Targets
 # ====================================================================
@@ -124,16 +139,186 @@ debug:
 	@ls -la dist/ 2>/dev/null || echo "No distribution files found in dist/"
 
 # ====================================================================
+# Development Environment Targets
+# ====================================================================
+
+# Watch for file changes and rebuild
+watch: ## Watch for file changes and rebuild
+	@echo "Watching for file changes..."
+	@if ! command -v inotifywait >/dev/null 2>&1; then \
+		echo "inotify-tools not installed. Install with: sudo apt-get install inotify-tools"; \
+		exit 1; \
+	fi
+	@echo "Watching for changes in $(COLLECTIONS_DIR)/*"
+	@while true; do \
+		inotifywait -r -e modify,create,delete $(COLLECTIONS_DIR) && \
+		make test; \
+	done
+
+# Development environment setup
+env: ## Show development environment information
+	@echo "\n\033[1mDevelopment Environment Information\033[0m"
+	@echo "========================================"
+	@echo "\n\033[1mProject Configuration:\033[0m"
+	@echo "  Project Name: $(PROJECT_NAME)"
+	@echo "  Version: $(VERSION)"
+	@echo "  Root Directory: $(ROOT_DIR)"
+	@echo "  Bin Directory: $(BIN_DIR)"
+	@echo "  Dist Directory: $(DIST_DIR)"
+	@echo "  Collections Directory: $(COLLECTIONS_DIR)"
+	@echo "  Marker Directory: $(MARKER_DIR)"
+	@echo "  Beta Marker: $(BETA_MARKER)"
+	@echo "  Container Runtime: $(CONTAINER_RUNTIME)"
+	@echo "  EE Image: $(EE_FULL_IMAGE)"
+	@echo "\n\033[1mAvailable Tools:\033[0m"
+	@echo "  Ansible Builder: $(if $(HAS_ANSIBLE_BUILDER),$(HAS_ANSIBLE_BUILDER),Not Found)"
+	@echo "  Ansible Lint: $(if $(HAS_ANSIBLE_LINT),$(HAS_ANSIBLE_LINT),Not Found)"
+	@echo "  Molecule: $(if $(HAS_MOLECULE),$(HAS_MOLECULE),Not Found)"
+	@echo "  YAML Lint: $(if $(HAS_YAMLLINT),$(HAS_YAMLLINT),Not Found)"
+	@echo "\n\033[1mAvailable Collections:\033[0m"
+	@if [ -d "$(COLLECTIONS_DIR)/ansible_collections/levonk" ]; then \
+		ls -1 "$(COLLECTIONS_DIR)/ansible_collections/levonk" | while read col; do \
+			if [ -f "$(COLLECTIONS_DIR)/ansible_collections/levonk/$$col/galaxy.yml" ]; then \
+				version=$$(grep '^version:' "$(COLLECTIONS_DIR)/ansible_collections/levonk/$$col/galaxy.yml" | awk '{print $$2}'); \
+				echo "  - $$col (v$$version)"; \
+			else \
+				echo "  - $$col (no version info)"; \
+			fi; \
+		done; \
+	else \
+		echo "  No collections found"; \
+	fi
+	@echo "\n\033[1mEnvironment Variables:\033[0m"
+	@echo "  ANSIBLE_CONFIG=$${ANSIBLE_CONFIG:-Not Set}"
+	@echo "  ANSIBLE_COLLECTIONS_PATH=$${ANSIBLE_COLLECTIONS_PATH:-Not Set}"
+	@echo "  ANSIBLE_GALAXY_TOKEN=$${ANSIBLE_GALAXY_TOKEN:+[REDACTED]}"
+	@echo "\nRun 'make help' for available targets."
+
+# Sync with remote repository
+sync: ## Sync with remote repository (git pull --rebase)
+	@echo "Syncing with remote repository..."
+	git pull --rebase
+
+# Create a new module
+new-module: ## Create a new module
+	@echo "Creating new module..."
+	@# Add new module creation commands here
+	@echo "New module creation not yet implemented"
+
+# Create a new role in a collection
+new-role: ## Create a new role in a collection
+	@if [ -z "$(collection)" ]; then \
+		echo "Error: Collection not specified. Usage: make new-role collection=collection_name role=role_name"; \
+		exit 1; \
+	fi
+	@if [ -z "$(role)" ]; then \
+		echo "Error: Role name not specified. Usage: make new-role collection=collection_name role=role_name"; \
+		exit 1; \
+	fi
+	@if [ ! -d "$(COLLECTIONS_DIR)/ansible_collections/levonk/$(collection)" ]; then \
+		echo "Error: Collection '$(collection)' not found in $(COLLECTIONS_DIR)/ansible_collections/levonk/"; \
+		exit 1; \
+	fi
+	@if [ -d "$(COLLECTIONS_DIR)/ansible_collections/levonk/$(collection)/roles/$(role)" ]; then \
+		echo "Error: Role '$(role)' already exists in collection '$(collection)'"; \
+		exit 1; \
+	fi
+	@echo "Creating new role '$(role)' in collection '$(collection)'..."
+	@if [ -d "$(COLLECTIONS_DIR)/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role" ]; then \
+		copier copy \
+			--defaults \
+			--trust \
+			--vcs-ref=HEAD \
+			"$(COLLECTIONS_DIR)/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role" \
+			"$(COLLECTIONS_DIR)/ansible_collections/levonk/$(collection)/roles/$(role)" \
+			-d "{\"role_name\": \"$(role)\", \"collection_namespace\": \"levonk\", \"collection_name\": \"$(collection)\"}" && \
+		echo "\nSuccessfully created role '$(role)' in collection '$(collection)'"; \
+	else \
+		echo "Error: Blueprint role template not found at $(COLLECTIONS_DIR)/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role"; \
+		exit 1; \
+	fi
+
+# ====================================================================
+# Deployment Targets
+# ====================================================================
+
+deploy: deploy-dev ## Deploy to development environment (default)
+
+deploy-dev: build ## Deploy to development environment
+	@echo "Deploying to development environment..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Deploying collection: $$collection (dev) ==="; \
+		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) deploy-dev) || exit 1; \
+	done
+
+deploy-prod: check_prod_branch check_galaxy_token build ## Deploy to production environment
+	@echo "Deploying to production environment..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Deploying collection: $$collection (prod) ==="; \
+		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) deploy-prod) || exit 1; \
+	done
+
+# Publish to beta server
+beta: build ## Publish to beta server
+	@echo "Publishing to beta server..."
+	@# Add beta publishing commands here
+	@echo "Beta publishing not yet implemented"
+
+# Publish to production server
+prod: build ## Publish to production server
+	@echo "Publishing to production server..."
+	@# Add production publishing commands here
+	@echo "Production publishing not yet implemented"
+
+# Development beta target (skips token check)
+dev-beta: build test
+	@echo "Creating beta marker file for development purposes (skipping actual publishing)"
+	@mkdir -p $(MARKER_DIR)
+	@touch $(BETA_MARKER)
+
+# Reset all markers to force full rebuild
+reset: ## Reset all markers to force full rebuild
+	@echo "Resetting build markers..."
+	@rm -f $(MARKER_DIR)/*.marker
+	@mkdir -p $(MARKER_DIR)
+	@echo "Build markers have been reset. Next build will be a full rebuild."
+
+# ====================================================================
+# Release Management
+# ====================================================================
+
+release: ## Create a new release
+	@echo "Creating a new release..."
+	@# Add release process commands here
+	@echo "Release process not yet implemented"
+
+# ====================================================================
 # Help Generation
 # ====================================================================
 
 # This target is used by the main help target to include additional help text
 help-targets::
+	@echo "\nDevelopment:"
+	@echo "  env             - Set up development environment"
+	@echo "  sync            - Sync with remote repository (git pull --rebase)"
+	@echo "  new-module      - Create a new module"
+	@echo "  watch           - Watch for file changes and rebuild"
+	@echo "  reset           - Reset build markers for full rebuild"
+	@echo "\nDeployment:"
+	@echo "  deploy          - Deploy to development environment (alias for deploy-dev)"
+	@echo "  deploy-dev      - Deploy to development environment"
+	@echo "  deploy-prod     - Deploy to production environment"
+	@echo "  beta            - Publish to beta server"
+	@echo "  prod            - Publish to production server (alias for deploy-prod)"
+	@echo "  release         - Create a new release"
 	@echo "\nInstallation Methods:"
-	@echo "  inst-src         - Install from source directories"
-	@echo "  inst-repo        - Install from git repository"
-	@echo "  inst-build       - Install from built artifacts"
-	@echo "  inst-beta        - Install from beta server"
-	@echo "  inst-prod        - Install from production server"
+	@echo "  inst-src        - Install from source directories"
+	@echo "  inst-repo       - Install from git repository"
+	@echo "  inst-build      - Install from built artifacts"
+	@echo "  inst-beta       - Install from beta server"
+	@echo "  inst-prod       - Install from production server"
 	@echo "\nDebugging:"
-	@echo "  debug            - Show debug information about the environment"
+	@echo "  debug           - Show debug information about the environment"
+	@echo "  dev-beta        - Create beta marker for development (skips actual publishing)"
+
+endif # MAKEFILE_TARGETS_INCLUDED
