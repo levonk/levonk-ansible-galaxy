@@ -45,7 +45,7 @@ for collection in "${COLLECTIONS[@]}"; do
         fi
     else
         echo "Warning: Collection '${collection}' not found in ${COLLECTIONS_DIR}" >&2
-    
+    fi
 done
 
 echo "Installation from source complete."
