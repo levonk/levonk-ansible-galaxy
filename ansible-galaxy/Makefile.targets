@@ -259,16 +259,74 @@ deploy-prod: check_prod_branch check_galaxy_token build ## Deploy to production 
 	done
 
 # Publish to beta server
-beta: build ## Publish to beta server
+publish-beta: build test ## Publish to beta server
 	@echo "Publishing to beta server..."
-	@# Add beta publishing commands here
-	@echo "Beta publishing not yet implemented"
+	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "ERROR: ANSIBLE_GALAXY_TOKEN is not set"; \
+		exit 1; \
+	fi
+	@echo "Using publish script: $(BIN_DIR)/publish10-beta.sh"
+	@$(BIN_DIR)/publish10-beta.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"
+
+# Verify installation from beta server
+test-beta: ## Verify installation from beta server
+	@echo "Testing installation from beta server..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Testing installation of $$collection from beta ==="; \
+		ansible-galaxy collection install -vvv \
+			--force-with-deps \
+			--server $(GALAXY_BETA_SERVER) \
+			levonk.$${collection//-/_}:$(VERSION) || exit 1; \
+	done
+
+# Create beta version tag
+git-tag-beta: check-git-clean
+	@echo "Creating beta tag v$(VERSION)-beta..."
+	git tag -a "v$(VERSION)-beta" -m "Beta release v$(VERSION)"
+
+# Complete beta release workflow
+beta: publish-beta test-beta git-tag-beta ## Complete beta release workflow
+
+# Backup current production state
+backup-prod: ## Backup current production state
+	@echo "Backing up current production state..."
+	@# Add backup commands here
+	@echo "Backup functionality not yet implemented"
 
 # Publish to production server
-prod: build ## Publish to production server
+publish-prod: build test ## Publish to production server
 	@echo "Publishing to production server..."
-	@# Add production publishing commands here
-	@echo "Production publishing not yet implemented"
+	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "ERROR: ANSIBLE_GALAXY_TOKEN is not set"; \
+		exit 1; \
+	fi
+	@echo "Using publish script: $(BIN_DIR)/publish20-prod.sh"
+	@$(BIN_DIR)/publish20-prod.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"
+
+# Verify installation from production
+test-prod: ## Verify installation from production server
+	@echo "Testing installation from production server..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Testing installation of $$collection from production ==="; \
+		ansible-galaxy collection install -vvv \
+			--force-with-deps \
+			--server $(GALAXY_PROD_SERVER) \
+			levonk.$${collection//-/_}:$(VERSION) || exit 1; \
+	done
+
+# Create production version tag
+git-tag-prod: check-git-clean
+	@echo "Creating production tag v$(VERSION)..."
+	git tag -a "v$(VERSION)" -m "Production release v$(VERSION)"
+
+# Rollback from production backup
+rollback-prod: ## Restore from production backup
+	@echo "Rolling back production from backup..."
+	@# Add rollback commands here
+	@echo "Rollback functionality not yet implemented"
+
+# Complete production release workflow
+prod: backup-prod publish-prod test-prod git-tag-prod ## Complete production release workflow
 
 # Development beta target (skips token check)
 dev-beta: build test
@@ -298,26 +356,67 @@ release: ## Create a new release
 
 # This target is used by the main help target to include additional help text
 help-targets::
-	@echo "\nDevelopment:"
-	@echo "  env             - Set up development environment"
-	@echo "  sync            - Sync with remote repository (git pull --rebase)"
-	@echo "  new-module      - Create a new module"
-	@echo "  new-role        - Create a new role in a collection"
-	@echo "  watch           - Watch for file changes and rebuild"
-	@echo "  reset           - Reset build markers for full rebuild"
-	@echo "\nDeployment:"
-	@echo "  deploy          - Deploy to development environment (alias for deploy-dev)"
-	@echo "  deploy-dev      - Deploy to development environment"
-	@echo "  deploy-prod     - Deploy to production environment"
-	@echo "  beta            - Publish to beta server"
-	@echo "  prod            - Publish to production server (alias for deploy-prod)"
-	@echo "  release         - Create a new release"
-	@echo "\nInstallation Methods:"
+	@echo "\nCore Targets:"
+	@echo "  all             - Build and test all collections (default)"
+	@echo "  build           - Build all collections"
+	@echo "  clean           - Remove build artifacts"
+
+	@echo "\nTesting:"
+	@echo "  test            - Run tests for all collections"
+	@echo "  test-build      - Build and run tests in a container"
+	@echo "  test-src        - Test installation from source"
+	@echo "  test-repo       - Test installation from repository"
+	@echo "  test-beta       - Verify installation from beta server"
+	@echo "  test-prod       - Verify installation from production"
+	@echo "  coverage-check  - Verify test coverage meets requirements"
+
+	@echo "\nLinting:"
+	@echo "  lint            - Run all linters (includes all lint-* targets)"
+	@echo "  lint-ansible    - Lint Ansible content"
+	@echo "  lint-markdown   - Lint Markdown files"
+	@echo "  lint-yaml       - Lint YAML files"
+	@echo "  lint-galaxy     - Lint galaxy.yml files"
+
+	@echo "\nVersion Management:"
+	@echo "  promote         - Update version numbers (alias for promote-build)"
+	@echo "  promote-build   - Promote with build version increment"
+	@echo "  promote-minor   - Promote with minor version increment"
+	@echo "  promote-major   - Promote with major version increment"
+
+	@echo "\nPublishing:"
+	@echo "  publish-beta    - Upload to beta server"
+	@echo "  publish-prod    - Promote to production server"
+	@echo "  beta            - Complete beta release workflow (publish-beta + test-beta)"
+	@echo "  prod            - Complete production release workflow (publish-prod + test-prod)"
+	@echo "  backup-prod     - Backup current production state"
+	@echo "  rollback-prod   - Restore from production backup"
+
+	@echo "\nInstallation:"
 	@echo "  inst-src        - Install from source directories"
 	@echo "  inst-repo       - Install from git repository"
 	@echo "  inst-build      - Install from built artifacts"
 	@echo "  inst-beta       - Install from beta server"
 	@echo "  inst-prod       - Install from production server"
+
+	@echo "\nDevelopment:"
+	@echo "  new-collection  - Create a new collection"
+	@echo "  new-role        - Create a new role in a collection"
+	@echo "  new-module      - Create a new module"
+	@echo "  env             - Show development environment information"
+	@echo "  sync            - Sync with remote repository (git pull --rebase)"
+	@echo "  watch           - Watch for file changes and rebuild"
+	@echo "  reset           - Reset build markers for full rebuild"
+	@echo "  release         - Create a new release"
+
+	@echo "\nExecution Environment:"
+	@echo "  ee-build        - Build the execution environment image"
+	@echo "  ee-test         - Run tests in the execution environment"
+	@echo "  ee-lint         - Run linters in the execution environment"
+	@echo "  ee-shell        - Get a shell in the execution environment"
+	@echo "  ee-clean        - Clean execution environment images"
+	@echo "  env-check       - Check environment for required tools"
+	@echo "  ee-check        - Check Docker environment"
+
 	@echo "\nDebugging:"
 	@echo "  debug           - Show debug information about the environment"
 	@echo "  dev-beta        - Create beta marker for development (skips actual publishing)"

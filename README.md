@@ -99,7 +99,9 @@ The project uses a Makefile to automate various tasks. Here are the available ta
 
 ### Development Workflow
 For regular development and testing:
-- `clean` → `build` → `lint` → `test-build` → (`test-src` | `test-repo`)
+- `ee-clean`, `clean` → `build` → `lint` → `test-build` → (`test-src` | `test-repo`)
+
+All test targets automatically clean the execution environment (`ee-clean`) before running to ensure consistent test results.
 
 ### Publishing Pipeline
 For releasing new versions:
@@ -133,13 +135,20 @@ For adding new collections/roles:
 ```mermaid
 graph TD
     %% Development build pipeline
-    clean --> build
+    ee-clean --> env-check
+    env-check --> ee-check
+    ee-check --> clean
+
+    ee-check --> build
     build --> lint
     lint --> test-build
     test-build --> test-src
     test-build --> test-repo
     
     %% Publishing pipeline - pre-promotion verification
+    ee-clean --> env-check
+    env-check --> ee-check
+    ee-check --> git-check-clean-publish
     git-check-clean-publish --> clean
     clean --> build
     build --> lint
@@ -192,6 +201,11 @@ graph TD
     end
     
     subgraph "Docker Testing"
+        ee-build
+        ee-clean
+        ee-check
+        ee-lint
+        ee-shell
         test-src
         test-repo
         test-build
@@ -204,6 +218,33 @@ graph TD
         lint --> lint-markdown
         lint --> lint-yaml
         lint --> lint-galaxy
+    end
+
+  %% Environment Checks
+    subgraph "Environment Checks"
+        env-check --> check-linters
+        env-check --> check-tests
+        env-check --> check-tools
+        
+        %% Linters group
+        check-linters --> check-ansible-lint
+        check-linters --> check-yamllint
+        check-linters --> check-markdownlint
+        check-linters --> check-flake8
+        
+        %% Tests group
+        check-tests --> check-pytest
+        check-tests --> check-tox
+        check-tests --> check-molecule
+        
+        %% Tools group
+        check-tools --> check-git
+        check-tools --> check-python
+        check-tools --> check-ansible
+        check-tools --> check-pyenv
+        check-tools --> check-uv
+        check-tools --> check-docker
+        check-tools --> check-make
     end
 ```
 
@@ -228,6 +269,7 @@ This project uses a Makefile to automate common development and deployment tasks
 | `test-src` | Test installation from source |
 | `test-repo` | Test installation from repository |
 | `coverage-check` | Verify test coverage meets requirements |
+| `ee-clean` | Clean execution environment images |
 
 ### Publishing Workflow
 
@@ -262,6 +304,7 @@ This project uses a Makefile to automate common development and deployment tasks
 | `new-collection` | Create a new collection |
 | `new-role` | Create a new role in a collection |
 | `promote-build` | Promote with build version increment |
+| `promote-minor` | Promote with build version increment |
 | `promote-major` | Promote with major version increment |
 | `promote` | Alias for promote-build |
 | `publish-beta` | Publish to beta server |
@@ -286,6 +329,37 @@ This project uses a Makefile to automate common development and deployment tasks
 | `ee-lint` | Run linters in the execution environment |
 | `ee-shell` | Start a shell in the execution environment |
 | `ee-test` | Run tests in the execution environment |
+| `env-check` | Check whatever environment clean and with tooling |
+| `ee-check` | Check docker environment clean and with tooling |
+
+### Environment Checks
+
+| Target | Description | Dependencies |
+|--------|-------------|--------------|
+| `check-git` | Verify git installation | - |
+| `check-python` | Verify Python installation | - |
+| `check-ansible` | Verify Ansible installation | `check-python` |
+| `check-pyenv` | Verify pyenv installation | - |
+| `check-uv` | Verify uv installation | `check-python` |
+| `check-docker` | Verify Docker/Podman installation | - |
+| `check-make` | Verify make installation | - |
+| `check-ansible-lint` | Verify ansible-lint | `check-python` |
+| `check-yamllint` | Verify yamllint | `check-python` |
+| `check-markdownlint` | Verify markdownlint | `check-node` |
+| `check-flake8` | Verify flake8 | `check-python` |
+| `check-pytest` | Verify pytest | `check-python` |
+| `check-tox` | Verify tox | `check-python` |
+| `check-molecule` | Verify molecule | `check-python`, `check-docker` |
+| `check-linters` | Verify all linting tools | (individual linter checks) |
+| `check-tests` | Verify testing tools | (individual test tool checks) |
+| `check-tools` | Verify required tools | `check-git`, `check-python`, `check-ansible`, `check-pyenv`, `check-uv`, `check-docker`, `check-make` |
+| `env-check` | Run all environment checks | (all check-* targets) |
+| `ee-check` | Check Docker environment | `check-docker` |
+| `ee-build` | Build execution environment | `check-docker` |
+| `ee-clean` | Clean execution environment images | - |
+| `ee-lint` | Run linters in the execution environment | - |
+| `ee-shell` | Start a shell in the execution environment | - |
+
 
 ### Development
 
@@ -298,6 +372,63 @@ This project uses a Makefile to automate common development and deployment tasks
 | `sync` | Sync with remote repository (git rebase) |
 | `version` | Show project version |
 | `watch` | Watch for changes and run tests |
+
+## Execution Environment
+
+The project uses containerized execution environments for consistent development and testing. The following targets manage the execution environment:
+
+| Target | Description | Dependencies |
+|--------|-------------|--------------|
+| `ee-build` | Build the execution environment image | `check-container-runtime`, `check-ansible-builder` |
+| `ee-test` | Run tests in the execution environment | `ee-build` |
+| `ee-lint` | Run linters in the execution environment | `ee-build` |
+| `ee-shell` | Get a shell in the execution environment | `ee-build` |
+| `ee-clean` | Clean execution environment images | - |
+
+## Deployment
+
+These targets handle deployment to different environments:
+
+| Target | Description | Dependencies |
+|--------|-------------|--------------|
+| `deploy` | Deploy to development environment (alias for deploy-dev) | - |
+| `deploy-dev` | Deploy to development environment | `build` |
+| `deploy-prod` | Deploy to production environment | `check_prod_branch`, `check_galaxy_token`, `build` |
+| `dev-beta` | Build and test for beta deployment | `build`, `test` |
+
+## Helper/Utility Targets
+
+These targets provide additional functionality and checks:
+
+| Target | Description | Dependencies |
+|--------|-------------|--------------|
+| `check-container-runtime` | Verify container runtime (Docker/Podman) is available | - |
+| `check-ansible-builder` | Verify ansible-builder is installed | - |
+| `git-check-clean-publish` | Verify git working directory is clean before publishing | - |
+| `git-check-clean-dev` | Verify git working directory is clean for development | - |
+| `git-tag-beta` | Create beta version tag | - |
+| `git-tag-prod` | Create production version tag | - |
+
+### Development Workflow
+
+| Target | Description | Dependencies |
+|--------|-------------|--------------|
+| `all` | Build and test all collections (default) | `env-check`, `build`, `test` |
+| `build` | Build all collections | `check-tools` |
+| `clean` | Remove build artifacts | - |
+| `lint` | Run all linters | (all lint-* targets) |
+| `lint-ansible` | Lint Ansible content | `check-ansible-lint` |
+| `lint-markdown` | Lint Markdown files | `check-markdownlint` |
+| `lint-yaml` | Lint YAML files | `check-yamllint` |
+| `lint-galaxy` | Lint galaxy.yml files | `check-flake8` |
+| `debug` | Show debug information about the project | - |
+| `env` | Show development environment information | - |
+| `sync` | Sync with remote repository (git pull --rebase) | - |
+| `watch` | Watch for file changes and rebuild | - |
+| `new-module` | Create a new module | - |
+| `new-role` | Create a new role in a collection | - |
+| `reset` | Reset all markers to force full rebuild | - |
+| `release` | Create a new release | - |
 
 ## Installation Methods
 
