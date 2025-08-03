@@ -47,6 +47,89 @@ This repository contains a collection of Ansible roles for managing and provisio
 - **galaxy.yml**: Defines collection metadata and requirements.
 - **ansible.cfg**: Local Ansible configuration (if present).
 
+## Containerized Development Environment
+
+This project uses Docker containers to provide a consistent development and testing environment. The container setup includes:
+
+### Container Architecture
+
+1. **Base Environment**
+   - Minimal Debian-based image
+   - Common utilities and dependencies
+   - Non-root user setup
+   - Volume mounts for source code and artifacts
+
+2. **Build Environment** (extends Base)
+   - Python and Ansible development tools
+   - Build dependencies
+   - Linting and testing tools
+   - Used for building and testing collections
+
+3. **Runtime Environment** (extends Base)
+   - Minimal Python and Ansible runtime
+   - Used for testing installed collections
+   - Verifies package installation and basic functionality
+
+### Prerequisites
+
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- Git
+
+### Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd levonk-ansible-galaxy
+   ```
+
+2. **Build the development containers**
+   ```bash
+   docker compose build
+   ```
+
+3. **Start the development environment**
+   ```bash
+   docker compose up -d
+   ```
+
+4. **Access the build container**
+   ```bash
+   docker compose exec builder bash
+   ```
+
+### Development Workflow
+
+1. **Start the development environment**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Enter the build container**
+   ```bash
+   docker compose exec builder bash
+   ```
+
+3. **Build and test collections**
+   ```bash
+   # Inside the container
+   make build lint test
+   ```
+
+4. **Test installation in a clean environment**
+   ```bash
+   # From host machine
+   docker compose exec runtime ansible --version
+   ```
+
+### Container Services
+
+| Service | Purpose | Access |
+|---------|---------|--------|
+| `builder` | Development and build environment | `docker compose exec builder bash` |
+| `runtime` | Clean environment for testing installations | `docker compose exec runtime bash` |
+
 ## Development Workflow
 
 1. **Collection Development**: Work within `ansible-galaxy/collections/ansible_collections/levonk/{collection_name}`
@@ -104,25 +187,47 @@ For regular development and testing:
 All test targets automatically clean the execution environment (`ee-clean`) before running to ensure consistent test results.
 
 ### Publishing Pipeline
-For releasing new versions:
-1. **Pre-publish Verification**
-   - `git-check-clean-publish`: Ensure clean git working directory
-   - `clean`: Remove all build artifacts
-   - `build` → `lint` → `test-build` → `coverage-check`: Build and verify everything works
-   - `promote`: Only after all checks pass, update version numbers
 
-2. **Beta Release**
+#### Beta Release (run `make beta`)
+1. **Phase 1: Verify Current Version**
+   - Clean environment and verify all prerequisites
+   - Build and test with current version numbers
+   - Run coverage checks
+
+2. **Phase 2: Promote Version**
+   - Update version numbers according to semantic versioning
+
+3. **Phase 3: Verify New Version**
+   - Rebuild and retest with new version numbers
+   - Ensures the new version builds correctly before publishing
+
+4. **Phase 4: Publish to Beta**
    - `publish-beta`: Upload to beta server
    - `test-beta`: Verify installation from beta server
    - `git-tag-beta`: Create version tag in `tags/env/beta/{YYYYMM}/levonk-{version}`
    - `inst-beta`: (Optional) Install beta version locally
 
-3. **Production Release**
+#### Production Release (run `make prod`)
+> **Prerequisite**: A successful beta release must be completed first
+
+1. **Phase 1: Verify Beta Complete**
+   - Checks that beta release was successful
+   - Ensures we only promote to production what's been tested in beta
+
+2. **Phase 2: Backup Production**
    - `backup-prod`: Create backup of current production state
-   - `publish-prod`: Promote to production server
+   - Required before any production changes
+
+3. **Phase 3: Publish to Production**
+   - `publish-prod`: Promote beta release to production
+   - Uses the same artifacts that were verified in beta
+
+4. **Phase 4: Verify Production**
    - `test-prod`: Verify installation from production
-   - `rollback-prod`: (Auto-triggered if `test-prod` fails) Restore from backup
-   - `git-tag-prod`: Create version tag in `tags/env/prod/{YYYYMM}/levonk-{version}`
+   - `rollback-prod`: (Auto-triggered on failure) Restore from backup
+
+5. **Phase 5: Finalize Production**
+   - `git-tag-prod`: Create production version tag in `tags/env/prod/{YYYYMM}/levonk-{version}`
    - `inst-prod`: (Optional) Install production version locally
 
 ### New Component Workflow
@@ -134,18 +239,47 @@ For adding new collections/roles:
 
 ```mermaid
 graph TD
-    %% Development build pipeline
-    ee-clean --> env-check
-    env-check --> ee-check
-    ee-check --> clean
+    %% Environment reset (run manually when needed)
+    subgraph "Environment Reset (run manually when needed)"
+        ee-clean --> env-check
+        env-check --> ee-check
+        ee-check --> clean
+    end
 
-    ee-check --> build
+    %% Normal development workflow
+    subgraph "Development Workflow"
+        build --> lint
+        lint --> test-build
+        test-build --> test-src
+    end
+    
+    %% Repository-based testing (for testing against published collections)
+    test-repo["test-repo: Test against published collections"]
+    
+    %% ============================================
+    %% Beta Release Pipeline
+    %% ============================================
+    
+    %% Phase 1: Verify with current version
+    beta-phase1-verify["Phase 1: Verify Current Version"]
+    beta-phase1-verify --> ee-clean
+    beta-phase1-verify --> env-check
+    env-check --> ee-check
+    ee-check --> git-check-clean-publish
+    git-check-clean-publish --> clean
+    clean --> build
     build --> lint
     lint --> test-build
-    test-build --> test-src
-    test-build --> test-repo
+    test-build --> coverage-check
     
-    %% Publishing pipeline - pre-promotion verification
+    %% Phase 2: Promote and verify new version
+    beta-phase2-promote["Phase 2: Promote Version"]
+    coverage-check --> beta-phase2-promote
+    beta-phase2-promote --> promote
+    
+    beta-phase3-verify["Phase 3: Verify New Version"]
+    promote --> beta-phase3-verify
+    beta-phase3-verify --> ee-clean
     ee-clean --> env-check
     env-check --> ee-check
     ee-check --> git-check-clean-publish
@@ -154,28 +288,61 @@ graph TD
     build --> lint
     lint --> test-build
     test-build --> coverage-check
-    coverage-check --> promote
     
-    %% Beta release (YYYYMM = current year and month, e.g., 202308)
-    promote --> publish-beta
+    %% Phase 4: Publish to Beta
+    beta-phase4-publish["Phase 4: Publish to Beta"]
+    coverage-check --> beta-phase4-publish
+    beta-phase4-publish --> publish-beta
     publish-beta --> test-beta
     test-beta --> git-tag-beta
     git-tag-beta --> inst-beta
-    git-tag-beta --> beta  # Convenience target for full beta workflow
     
-    %% Production release with rollback (YYYYMM = current year and month, e.g., 202308)
-    git-tag-beta --> backup-prod
-    backup-prod --> publish-prod
+    %% Beta convenience target - runs all beta release phases
+    beta: beta-phase1-verify  # Start with Phase 1 verification
+    beta-phase1-verify --> beta-phase2-promote  # Then promote version
+    beta-phase2-promote --> beta-phase3-verify  # Then verify new version
+    beta-phase3-verify --> beta-phase4-publish  # Then publish to beta
+    
+    %% ============================================
+    %% Production Release Pipeline
+    %% ============================================
+    
+    %% Production Workflow
+    
+    %% Phase 1: Verify Beta is Complete (prerequisite)
+    prod-phase1-beta["Phase 1: Verify Beta Complete"]
+    %% Production requires beta to be complete first
+    beta-phase4-publish --> prod-phase1-beta
+    
+    %% Phase 2: Backup Production
+    prod-phase2-backup["Phase 2: Backup Production"]
+    prod-phase1-beta --> prod-phase2-backup
+    prod-phase2-backup --> backup-prod
+    
+    %% Phase 3: Publish to Production
+    prod-phase3-publish["Phase 3: Publish to Production"]
+    backup-prod --> prod-phase3-publish
+    prod-phase3-publish --> publish-prod
+    
+    %% Phase 4: Verify Production
+    prod-phase4-verify["Phase 4: Verify Production"]
     publish-prod --> test-prod
+    
+    %% Phase 5: Finalize Production
+    prod-phase5-finalize["Phase 5: Finalize Production"]
     test-prod --> git-tag-prod
     git-tag-prod --> inst-prod
-    
-    %% Production convenience target that includes the full workflow
-    prod: backup-prod publish-prod test-prod git-tag-prod inst-prod
     
     %% Rollback on failure
     test-prod -.->|on failure| rollback-prod
     git-tag-prod -.->|on failure| rollback-prod
+    
+    %% Production convenience target - runs all production release phases
+    prod: prod-phase1-beta  # Start with Phase 1 (beta verification)
+    prod-phase1-beta --> prod-phase2-backup  # Then Phase 2 (backup)
+    prod-phase2-backup --> prod-phase3-publish  # Then Phase 3 (publish)
+    prod-phase3-publish --> prod-phase4-verify  # Then Phase 4 (verify)
+    prod-phase4-verify --> prod-phase5-finalize  # Then Phase 5 (finalize)
     
     %% New component workflow
     test-build --> git-check-clean-dev

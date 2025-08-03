@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Base service (used as a template)
+  base:
+    build:
+      context: .
+      dockerfile: .devcontainer/base/Dockerfile
+      target: base
+    volumes:
+      - .:/workspace
+      - ~/.ssh:/home/developer/.ssh:ro
+      - ~/.gitconfig:/home/developer/.gitconfig:ro
+      - /mnt/d/p:/mnt/d/p
+    environment:
+      - USER_UID=${UID:-1000}
+      - USER_GID=${GID:-1000}
+      - PATH=/home/developer/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    user: developer
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
+
+  # Builder service (for development and building)
+  builder:
+    extends:
+      service: base
+    build:
+      context: .
+      dockerfile: .devcontainer/builder/Dockerfile
+      target: builder
+    depends_on:
+      - runtime
+    volumes:
+      - .:/workspace
+      - ~/.ssh:/home/developer/.ssh:ro
+      - ~/.gitconfig:/home/developer/.gitconfig:ro
+      - ansible_collections:/home/developer/.ansible/collections
+      - /mnt/d/p:/mnt/d/p
+
+  # Runtime service (for testing installed collections)
+  runtime:
+    extends:
+      service: base
+    build:
+      context: .
+      dockerfile: .devcontainer/runtime/Dockerfile
+      target: runtime
+    volumes:
+      - .:/workspace
+      - ansible_collections:/home/developer/.ansible/collections
+      - /mnt/d/p:/mnt/d/p
+
+volumes:
+  ansible_collections:
