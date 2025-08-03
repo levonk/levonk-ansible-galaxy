@@ -97,7 +97,7 @@ inst-build:
 	fi
 
 # Install from beta server
-inst-beta:
+inst-beta: publish-beta
 	@echo "Installing collections from beta server..."
 	@if [ -f "$(BIN_DIR)/install-from40-beta.sh" ]; then \
 		$(BIN_DIR)/install-from40-beta.sh $(filter-out $@,$(MAKECMDGOALS)); \
@@ -302,6 +302,7 @@ help-targets::
 	@echo "  env             - Set up development environment"
 	@echo "  sync            - Sync with remote repository (git pull --rebase)"
 	@echo "  new-module      - Create a new module"
+	@echo "  new-role        - Create a new role in a collection"
 	@echo "  watch           - Watch for file changes and rebuild"
 	@echo "  reset           - Reset build markers for full rebuild"
 	@echo "\nDeployment:"

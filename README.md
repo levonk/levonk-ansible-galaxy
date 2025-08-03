@@ -95,36 +95,108 @@ The project uses a Makefile to automate various tasks. Here are the available ta
 
 ### Target Dependencies
 
+## Workflow Overview
+
+### Development Workflow
+For regular development and testing:
+- `clean` → `build` → `lint` → `test-build` → (`test-src` | `test-repo`)
+
+### Publishing Pipeline
+For releasing new versions:
+1. **Pre-publish Verification**
+   - `git-check-clean-publish`: Ensure clean git working directory
+   - `clean`: Remove all build artifacts
+   - `build` → `lint` → `test-build` → `coverage-check`: Build and verify everything works
+   - `promote`: Only after all checks pass, update version numbers
+
+2. **Beta Release**
+   - `publish-beta`: Upload to beta server
+   - `test-beta`: Verify installation from beta server
+   - `git-tag-beta`: Create version tag in `tags/env/beta/{YYYYMM}/levonk-{version}`
+   - `inst-beta`: (Optional) Install beta version locally
+
+3. **Production Release**
+   - `backup-prod`: Create backup of current production state
+   - `publish-prod`: Promote to production server
+   - `test-prod`: Verify installation from production
+   - `rollback-prod`: (Auto-triggered if `test-prod` fails) Restore from backup
+   - `git-tag-prod`: Create version tag in `tags/env/prod/{YYYYMM}/levonk-{version}`
+   - `inst-prod`: (Optional) Install production version locally
+
+### New Component Workflow
+For adding new collections/roles:
+1. `test-build` → `git-check-clean-dev`: Ensure clean state
+2. `new-collection`/`new-role`: Scaffold new component
+3. `build` → `lint` → `test-build`: Verify changes
+4. `git-commit`: Create initial commit
+
 ```mermaid
 graph TD
-    %% Main build pipeline
+    %% Development build pipeline
     clean --> build
     build --> lint
-    lint --> test
-    test --> promote
-    promote -- "rebuilds collections" --> build
+    lint --> test-build
+    test-build --> test-src
+    test-build --> test-repo
+    
+    %% Publishing pipeline - pre-promotion verification
+    git-check-clean-publish --> clean
+    clean --> build
+    build --> lint
+    lint --> test-build
+    test-build --> coverage-check
+    coverage-check --> promote
+    
+    %% Beta release (YYYYMM = current year and month, e.g., 202308)
     promote --> publish-beta
-    publish-beta --> prod
+    publish-beta --> test-beta
+    test-beta --> git-tag-beta
+    git-tag-beta --> inst-beta
+    git-tag-beta --> beta  # Convenience target for full beta workflow
     
-    %% Installation dependencies
-    build --> inst-build
-    build --> inst-src
-    publish-beta --> inst-beta
-    prod --> inst-prod
+    %% Production release with rollback (YYYYMM = current year and month, e.g., 202308)
+    git-tag-beta --> backup-prod
+    backup-prod --> publish-prod
+    publish-prod --> test-prod
+    test-prod --> git-tag-prod
+    git-tag-prod --> inst-prod
     
-    %% Development workflow - depends on tests passing
-    test --> new-collection
-    test --> new-role
-    test --> debug
+    %% Production convenience target that includes the full workflow
+    prod: backup-prod publish-prod test-prod git-tag-prod inst-prod
+    
+    %% Rollback on failure
+    test-prod -.->|on failure| rollback-prod
+    git-tag-prod -.->|on failure| rollback-prod
+    
+    %% New component workflow
+    test-build --> git-check-clean-dev
+    git-check-clean-dev --> new-collection
+    git-check-clean-dev --> new-role
     new-collection --> build
     new-role --> build
+    build --> lint
+    lint --> test-build
+    test-build --> git-commit
     
-    subgraph "Installation Options"
+    subgraph "Local Installation"
         inst-src
         inst-repo
         inst-build
         inst-beta
         inst-prod
+    end
+    
+    subgraph "Publishing"
+        publish-beta
+        publish-prod
+    end
+    
+    subgraph "Docker Testing"
+        test-src
+        test-repo
+        test-build
+        test-beta
+        test-prod
     end
     
     subgraph "Linting"
@@ -137,25 +209,53 @@ graph TD
 
 ## Makefile Reference
 
-This project uses a Makefile to automate common development tasks. Below is a reference of all available targets.
+This project uses a Makefile to automate common development and deployment tasks. Below is a reference of all available targets organized by workflow.
 
-### Build & Test
+### Development Workflow
 
 | Target | Description |
 |--------|-------------|
 | `all` | Build and test all collections (default) |
 | `build` | Build all collections |
-| `check` | Run all checks (lint + test) |
 | `clean` | Remove build artifacts |
-| `coverage` | Generate test coverage report |
+| `lint` | Run all linters (includes all lint-* targets) |
 | `lint-ansible` | Lint Ansible content |
-| `lint-galaxy` | Lint galaxy.yml files |
-| `lint` | Run all linters |
 | `lint-markdown` | Lint Markdown files |
 | `lint-yaml` | Lint YAML files |
+| `lint-galaxy` | Lint galaxy.yml files |
 | `test` | Run tests on all collections |
+| `test-build` | Build and run tests in a container |
+| `test-src` | Test installation from source |
+| `test-repo` | Test installation from repository |
+| `coverage-check` | Verify test coverage meets requirements |
 
-### Collection Management
+### Publishing Workflow
+
+| Target | Description |
+|--------|-------------|
+| `promote` | Update version numbers |
+| `publish-beta` | Upload to beta server |
+| `test-beta` | Verify installation from beta server |
+| `git-tag-beta` | Create beta version tag |
+| `beta` | Complete beta release workflow |
+| `backup-prod` | Backup current production state |
+| `publish-prod` | Promote to production server |
+| `test-prod` | Verify installation from production |
+| `git-tag-prod` | Create production version tag |
+| `prod` | Complete production release workflow |
+| `rollback-prod` | Restore from production backup |
+
+### Local Installation
+
+| Target | Description |
+|--------|-------------|
+| `inst-src` | Install from source |
+| `inst-repo` | Install from git repository |
+| `inst-build` | Install from local build |
+| `inst-beta` | Install from beta server |
+| `inst-prod` | Install from production server |
+
+### Component Management
 
 | Target | Description |
 |--------|-------------|
