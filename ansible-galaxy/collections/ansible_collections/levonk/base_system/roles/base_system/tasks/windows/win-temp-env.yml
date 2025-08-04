@@ -1,0 +1,26 @@
+---
+# Configure Windows environment variables for users
+
+- name: Ensure TEMP and TMP environment variables are set for Windows users
+  win_environment:
+    name: "{{ item.name }}"
+    state: present
+    level: user
+    path: false
+  loop:
+    - name: TEMP
+      value: 'C:\Users\{{ ansible_user_id | basename }}\AppData\Local\Temp\envTEMP'
+    - name: TMP
+      value: 'C:\Users\{{ ansible_user_id | basename }}\AppData\Local\Temp\envTMP'
+  when: ansible_os_family == 'Windows'
+  tags: ['windows', 'environment', 'users']
+
+- name: Create TEMP and TMP directories if they don't exist
+  win_file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - 'C:\Users\{{ ansible_user_id | basename }}\AppData\Local\Temp\envTEMP'
+    - 'C:\Users\{{ ansible_user_id | basename }}\AppData\Local\Temp\envTMP'
+  when: ansible_os_family == 'Windows'
+  tags: ['windows', 'environment', 'users']
