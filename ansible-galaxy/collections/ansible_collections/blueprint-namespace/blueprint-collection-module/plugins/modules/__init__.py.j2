@@ -1,0 +1,120 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright: (c) {{ now().year }} {{ author_name }} <{{ author_github }}@users.noreply.github.com>
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
+DOCUMENTATION = r'''
+---
+module: {{ module_name }}
+short_description: {{ module_description }}
+version_added: "1.0.0"
+description:
+  - This is a template for the {{ module_name }} module.
+  - Update this description with the actual module functionality.
+
+author:
+  - {{ author_name }} (@{{ author_github }})
+
+options:
+  name:
+    description:
+      - The name of the resource.
+    required: true
+    type: str
+  state:
+    description:
+      - The desired state of the resource.
+    choices: [ present, absent ]
+    default: present
+    type: str
+
+extends_documentation_fragment:
+  - action_common_attributes
+  - action_common_attributes.flow
+  - action_common_attributes.conn
+  - action_common_attributes.become
+
+attributes:
+  check_mode:
+    support: full
+  diff_mode:
+    support: none
+  platform:
+    platforms: all
+'''
+
+EXAMPLES = r'''
+- name: Test {{ module_name }} module
+  {{ collection_name }}.{{ module_name }}:
+    name: test
+    state: present
+  register: result
+'''
+
+RETURN = r'''
+# These are examples of possible return values, and in general should use other names for return values.
+changed:
+  description: Whether the module made any changes.
+  returned: always
+  type: bool
+  sample: true
+message:
+  description: A message describing the result.
+  returned: always
+  type: str
+  sample: 'Resource created successfully'
+'''
+
+from ansible.module_utils.basic import AnsibleModule
+
+def run_module():
+    # Define available arguments/parameters
+    module_args = dict(
+        name=dict(type='str', required=True),
+        state=dict(type='str', default='present', choices=['present', 'absent'])
+    )
+
+    # Seed the result dict
+    result = dict(
+        changed=False,
+        message=''
+    )
+
+    # Create the module
+    module = AnsibleModule(
+        argument_spec=module_args,
+        supports_check_mode=True
+    )
+
+    # Handle check mode
+    if module.check_mode:
+        module.exit_json(**result)
+
+    # Your module logic here
+    try:
+        name = module.params['name']
+        state = module.params['state']
+
+        # Example logic - replace with actual implementation
+        if state == 'present':
+            result['message'] = f"Resource {name} created/updated"
+        else:
+            result['message'] = f"Resource {name} removed"
+            
+        result['changed'] = True
+        
+    except Exception as e:
+        module.fail_json(msg=f"An error occurred: {str(e)}", **result)
+
+    # Return results
+    module.exit_json(**result)
+
+def main():
+    run_module()
+
+if __name__ == '__main__':
+    main()

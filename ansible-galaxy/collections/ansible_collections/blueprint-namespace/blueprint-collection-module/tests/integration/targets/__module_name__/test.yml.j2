@@ -1,0 +1,32 @@
+---
+- name: Test {{ module_name }} module
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Test {{ module_name }} with state=present
+      {{ collection_name }}.{{ module_name }}:
+        name: "test_{{ module_name }}"
+        state: present
+      register: result
+      check_mode: no
+
+    - name: Assert the result
+      assert:
+        that:
+          - result is changed
+          - result.message is defined
+          - "'created' in result.message or 'updated' in result.message"
+
+    - name: Test {{ module_name }} with state=absent
+      {{ collection_name }}.{{ module_name }}:
+        name: "test_{{ module_name }}"
+        state: absent
+      register: result
+      check_mode: no
+
+    - name: Assert the result
+      assert:
+        that:
+          - result is changed
+          - result.message is defined
+          - "'removed' in result.message"

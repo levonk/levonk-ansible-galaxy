@@ -199,11 +199,33 @@ sync: ## Sync with remote repository (git pull --rebase)
 	@echo "Syncing with remote repository..."
 	git pull --rebase
 
-# Create a new module
-new-module: ## Create a new module
-	@echo "Creating new module..."
-	@# Add new module creation commands here
-	@echo "New module creation not yet implemented"
+# Create a new module in a collection
+new-module: ## Create a new module in a collection
+	@if [ -z "$(collection)" ]; then \
+		echo "Error: Collection not specified. Usage: make new-module collection=collection_name module=module_name [type=module_type]"; \
+		exit 1; \
+	fi
+	@if [ -z "$(module)" ]; then \
+		echo "Error: Module name not specified. Usage: make new-module collection=collection_name module=module_name [type=module_type]"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ROOT_DIR)/bin/setup-new30-module.sh" ]; then \
+		echo "Error: setup-new30-module.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@$(ROOT_DIR)/bin/setup-new30-module.sh "$(collection)" "$(module)" "$(type)"
+
+# Create a new collection
+new-collection: ## Create a new collection
+	@if [ -z "$(collection)" ]; then \
+		echo "Error: Collection name not specified. Usage: make new-collection collection=collection_name"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ROOT_DIR)/bin/setup-new20-collection.sh" ]; then \
+		echo "Error: setup-new20-collection.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@$(ROOT_DIR)/bin/setup-new20-collection.sh "$(collection)"
 
 # Create a new role in a collection
 new-role: ## Create a new role in a collection
@@ -215,28 +237,73 @@ new-role: ## Create a new role in a collection
 		echo "Error: Role name not specified. Usage: make new-role collection=collection_name role=role_name"; \
 		exit 1; \
 	fi
-	@if [ ! -d "$(COLLECTIONS_DIR)/ansible_collections/levonk/$(collection)" ]; then \
-		echo "Error: Collection '$(collection)' not found in $(COLLECTIONS_DIR)/ansible_collections/levonk/"; \
+	@if [ ! -f "$(ROOT_DIR)/bin/setup-new10-role.sh" ]; then \
+		echo "Error: setup-new10-role.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
-	@if [ -d "$(COLLECTIONS_DIR)/ansible_collections/levonk/$(collection)/roles/$(role)" ]; then \
-		echo "Error: Role '$(role)' already exists in collection '$(collection)'"; \
+	@$(ROOT_DIR)/bin/setup-new10-role.sh "$(collection)" "$(role)"
+
+# ====================================================================
+# Installation Targets
+# ====================================================================
+
+# Installation from different sources
+inst-src: ## Install collections from source directories
+	@echo "Installing collections from source..."
+	@if [ ! -f "$(ROOT_DIR)/bin/install-from10-src.sh" ]; then \
+		echo "Error: install-from10-src.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
-	@echo "Creating new role '$(role)' in collection '$(collection)'..."
-	@if [ -d "$(COLLECTIONS_DIR)/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role" ]; then \
-		copier copy \
-			--defaults \
-			--trust \
-			--vcs-ref=HEAD \
-			"$(COLLECTIONS_DIR)/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role" \
-			"$(COLLECTIONS_DIR)/ansible_collections/levonk/$(collection)/roles/$(role)" \
-			-d "{\"role_name\": \"$(role)\", \"collection_namespace\": \"levonk\", \"collection_name\": \"$(collection)\"}" && \
-		echo "\nSuccessfully created role '$(role)' in collection '$(collection)'"; \
-	else \
-		echo "Error: Blueprint role template not found at $(COLLECTIONS_DIR)/ansible_collections/blueprint-namespace/blueprint-collection/roles/blueprint-role"; \
+	@$(ROOT_DIR)/bin/install-from10-src.sh "$(COLLECTIONS)" "$(COLLECTIONS_DIR)"
+
+inst-repo: ## Install collections from git repository
+	@echo "Installing collections from git repository..."
+	@if [ ! -f "$(ROOT_DIR)/bin/install-from20-repo.sh" ]; then \
+		echo "Error: install-from20-repo.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
+	@$(ROOT_DIR)/bin/install-from20-repo.sh "$(COLLECTIONS)"
+
+inst-build: build ## Install collections from built artifacts
+	@echo "Installing collections from built artifacts..."
+	@if [ ! -f "$(ROOT_DIR)/bin/install-from30-build.sh" ]; then \
+		echo "Error: install-from30-build.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@$(ROOT_DIR)/bin/install-from30-build.sh "$(COLLECTIONS)" "$(DIST_DIR)" "$(VERSION)"
+
+inst-beta: ## Install collections from beta server
+	@echo "Installing collections from beta server..."
+	@if [ -z "$(GALAXY_BETA_SERVER)" ]; then \
+		echo "Error: GALAXY_BETA_SERVER is not set"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ROOT_DIR)/bin/install-from40-beta.sh" ]; then \
+		echo "Error: install-from40-beta.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@$(ROOT_DIR)/bin/install-from40-beta.sh "$(COLLECTIONS)" "$(GALAXY_BETA_SERVER)"
+
+inst-prod: ## Install collections from production server
+	@echo "Installing collections from production server..."
+	@if [ -z "$(GALAXY_PROD_SERVER)" ]; then \
+		echo "Error: GALAXY_PROD_SERVER is not set"; \
+		exit 1; \
+	fi
+	@if [ ! -f "$(ROOT_DIR)/bin/install-from50-prod.sh" ]; then \
+		echo "Error: install-from50-prod.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@$(ROOT_DIR)/bin/install-from50-prod.sh "$(COLLECTIONS)" "$(GALAXY_PROD_SERVER)"
+
+# Uninstall collections using ansible-galaxy
+uninstall: ## Uninstall all collections from ansible-galaxy
+	@echo "Uninstalling collections..."
+	@for collection in $(COLLECTIONS); do \
+		echo "\n=== Uninstalling collection: levonk.$$collection ==="; \
+		ansible-galaxy collection remove levonk.$$collection || echo "Collection levonk.$$collection not installed or already removed"; \
+	done
+	@echo "\nCollections have been uninstalled. Note: This only removes the collections from ansible-galaxy's installation directory."
 
 # ====================================================================
 # Deployment Targets
@@ -267,6 +334,18 @@ publish-beta: build test ## Publish to beta server
 	fi
 	@echo "Using publish script: $(BIN_DIR)/publish10-beta.sh"
 	@$(BIN_DIR)/publish10-beta.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"
+
+# Promote collections by incrementing the build (patch) version number
+promote: ## Increment version numbers for collections that exist on the beta server
+	@echo "Promoting collections with BUILD version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-versions.sh" ]; then \
+		echo "ERROR: promote-versions.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@"$(ROOT_DIR)/bin/promote-versions.sh" --type=build "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
 
 # Verify installation from beta server
 test-beta: ## Verify installation from beta server

@@ -1,0 +1,71 @@
+# Copier configuration for Ansible module template
+# Variables that will be prompted to the user
+_questions:
+  module_name:
+    type: str
+    help: Name of the module (snake_case)
+    validator: ^[a-z][a-z0-9_]*$
+    default: my_module
+
+  module_description:
+    type: str
+    help: Short description of the module
+    default: A sample Ansible module
+
+  author_name:
+    type: str
+    help: Your name
+    default: LevonK
+
+  author_github:
+    type: str
+    help: Your GitHub username
+    default: levonk
+
+  collection_name:
+    type: str
+    help: Name of the collection this module belongs to
+    default: my_collection
+
+  module_type:
+    type: str
+    help: Type of module (module, inventory, lookup, filter, test)
+    choices: ["module", "inventory", "lookup", "filter", "test"]
+    default: module
+
+# Default values for the template
+module_name: my_module
+module_description: A sample Ansible module
+author_name: levonk
+author_github: levonk
+collection_name: my_collection
+module_type: module
+
+# Template configuration
+# The destination path for the module
+_dest_path: "{{ 'plugins/' + module_type + 's/' if module_type != 'module' else 'plugins/modules/' }}"
+_skip_if_exists: true
+
+# Include/exclude patterns
+# Files to exclude from the template
+_exclude:
+  - "*.pyc"
+  - "__pycache__"
+  - ".git"
+  - ".github"
+  - ".vscode"
+  - "*.swp"
+  - "*.swo"
+  - "*.retry"
+  - "*.pyc"
+  - "*.pyo"
+  - "*.pyd"
+  - ".pytest_cache/"
+  - ".mypy_cache/"
+  - "venv/"
+  - "env/"
+  - ".tox/"
+  - "*.egg-info/"
+
+# Template files to process
+_templates_suffix: .j2

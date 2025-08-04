@@ -746,3 +746,95 @@ collection_paths={repo-root}/ansible-galaxy/collections:{the-other-paths}
 -     `./ansible-galaxy/collections/`: This is the crucial part. It tells Ansible to look relative to your playbook's location inside the ansible-galaxy/collections/ directory. Make sure you replace ansible-galaxy with the name of your actual directory. Crucially, if your ansible.cfg is in the same directory as your playbook, ./ refers to that playbook's directory. If your ansible.cfg is in ~/.ansible, then ./ is relative to your home directory, not your playbook's location.
 -     `~/.ansible/collections`: This is included to keep the standard user-level collection path in the search order.
 -     `/usr/share/ansible/collections`: This keeps the system-wide collection path in the search order.
+
+
+
+## README.md TODO
+
+### Build System Requirements
+
+#### Containerized Development Environment
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- Git
+
+#### Container Architecture
+1. **Base Environment** (Debian-based)
+2. **Build Environment** (extends Base)
+3. **Runtime Environment** (extends Base)
+
+#### Key Directories
+- `/ansible-galaxy/bin/` - Executable scripts
+- `/ansible-galaxy/collections/ansible_collections/levonk/` - Collections
+- `/ansible-galaxy/dist/` - Built artifacts
+- `/ansible-galaxy/.markers/` - Build state tracking
+
+#### Build Process
+- Uses a Makefile for automation
+- Collections are built into `.tar.gz` artifacts
+- Supports incremental builds using marker files
+
+#### Development Workflow
+1. Build containers: `docker compose build`
+2. Start environment: `docker compose up -d`
+3. Access build container: `docker compose exec builder bash`
+
+The project emphasizes containerization for development consistency and uses Make for build automation. The build system is designed to be self-contained within Docker containers to ensure consistent environments across development, testing, and production.
+
+### Identified Issues and Improvements
+
+#### Inconsistencies
+1. **Script Naming**
+   - The repository structure shows `publish-*.sh` and `install-*.sh` with wildcards, but actual script names aren't consistently documented
+   - Scripts in `bin/` are mentioned in the structure but not fully documented in usage sections
+
+2. **Makefile Targets**
+   - Incomplete documentation of targets in "Makefile Reference" and "Available Targets" sections
+   - Undocumented targets in mermaid diagrams (e.g., `ee-clean`, `env-check`)
+
+3. **Version Requirements**
+   - Missing specifications for:
+     - Minimum Python version
+     - Ansible version requirements
+     - Hardware requirements
+
+4. **Development Workflow**
+   - No clear guidance on:
+     - Adding new collections
+     - Updating existing collections
+     - Handling collection dependencies
+
+5. **Documentation Structure**
+   - Truncated "Makefile Reference" section
+   - Some duplicated or inconsistently formatted sections
+
+#### Unanswered Questions
+
+##### Testing
+- How to run tests for individual collections?
+- What's the testing strategy (unit tests, integration tests, etc.)?
+
+##### Versioning
+- What versioning scheme is used for collections?
+- How are version bumps handled?
+
+##### Dependencies
+- How are inter-collection dependencies managed?
+- How are external dependencies specified?
+
+##### Documentation
+- How is documentation generated?
+- Where should documentation for individual collections live?
+
+##### Contributing
+- Are there contribution guidelines?
+- What's the process for submitting changes?
+
+##### Troubleshooting
+- Common issues and their solutions
+- How to debug build failures
+
+##### CI/CD
+- Is there a CI/CD pipeline?
+- What are the deployment targets?
+

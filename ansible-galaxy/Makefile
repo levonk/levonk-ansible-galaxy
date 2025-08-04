@@ -32,8 +32,14 @@ DIST_DIR ?= $(ROOT_DIR)/../dist
 help: ## Show this help message
 	@echo "\n\033[1m$(PROJECT_NAME) - Available Targets\033[0m"
 	@echo "================================================="
-	@echo "\n\033[1mCore Targets:\033[0m"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {if ($$1 !~ /default/) printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\n\033[1mBuild and Test:\033[0m"
+	@awk 'BEGIN {FS = ":.*?## "} /^build:|^clean:|^test:|^lint(-[a-z]+)*:|^molecule:/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\n\033[1mVersion Management and Publishing:\033[0m"
+	@awk 'BEGIN {FS = ":.*?## "} /^promote:|^publish-beta:|^beta:|^prod:/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\n\033[1mInstallation:\033[0m"
+	@awk 'BEGIN {FS = ":.*?## "} /^inst-(src|repo|build|beta|prod):/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+	@echo "\n\033[1mDevelopment:\033[0m"
+	@awk 'BEGIN {FS = ":.*?## "} /^new-(collection|role):|^debug:/ {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
 	@echo "\nRun 'make' in the project root for additional targets including 'list'."
 
 # ====================================================================
@@ -41,7 +47,7 @@ help: ## Show this help message
 # ====================================================================
 
 # Default build target
-all: test ## Run tests for all collections (default)
+all: build lint test ## Build, lint, and test all collections (default)
 
 # Main build target
 build: ## Build all collections
@@ -185,22 +191,13 @@ fmt: format ## Alias for format target
 # Installation
 # ====================================================================
 
-install: build ## Install all collections
-	@echo "Installing all collections..."
-	@for collection in $(COLLECTIONS); do \
-		echo "\n=== Installing collection: $$collection ==="; \
-		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) install) || exit 1; \
-	done
-	@echo "\nInstallation complete. Collections installed in ~/.ansible/collections/ansible_collections/levonk/"
+# Installation alias for backward compatibility
+install: inst-build ## Alias for inst-build
 
-uninstall: ## Uninstall all collections
-	@echo "Uninstalling all collections..."
-	@for collection in $(COLLECTIONS); do \
-		echo "Uninstalling: levonk.$$collection"; \
-		ansible-galaxy collection remove levonk.$$collection || true; \
-	done
-	@echo "\nUninstallation complete."
-
+# ====================================================================
+# Version Management and Publishing
+# ====================================================================
+# Note: Version management targets are in Makefile.targets
 # ====================================================================
 # Include additional targets from Makefile.targets
 # ====================================================================
