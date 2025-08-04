@@ -21,6 +21,13 @@
   import_tasks: symlink_support.yml
   tags: ['windows', 'symlink']
 
+# Configure default Windows application install paths
+- import_tasks: windows/app-paths.yml
+  tags:
+    - windows
+    - apps
+    - paths
+
 - name: Install Chocolatey if not present
   win_shell: |
     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
@@ -39,11 +46,10 @@
     - package_manager
 
 # Configure default Windows application install paths
-- import_tasks: windows/app-paths.yml
+- import_tasks: windows/win-temp-env.yml
   tags:
     - windows
-    - apps
-    - paths
+    - tmp
 
 - name: Install essential packages on Windows
   win_chocolatey:
