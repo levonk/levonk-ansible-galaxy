@@ -1,0 +1,108 @@
+# ====================================================================
+# Makefile for Ansible Module: {{ module_name }}
+#
+# This Makefile provides targets for managing the {{ module_name }} module,
+# including testing, linting, and documentation.
+# ====================================================================
+
+# Include common variables
+-include ../../../../../common.mk
+
+# Colors for output
+GREEN := \033[0;32m
+YELLOW := \033[0;33m
+RED := \033[0;31m
+NC := \033[0m # No Color
+
+# Module files
+MODULE_FILES := {{ module_name }}.py
+TEST_FILES := test_*.py
+
+# Python interpreter
+PYTHON ?= python3
+
+# Phony targets
+.PHONY: all test lint format clean help
+
+# ====================================================================
+# Main Targets
+# ====================================================================
+
+# Default target
+all: help
+
+# Run tests
+test: ## Run module tests
+	@echo "${GREEN}Running tests for {{ module_name }}...${NC}"
+	@if [ -f "test_requirements.txt" ]; then \
+		pip install -r test_requirements.txt; \
+	fi
+	@if [ -n "$(wildcard $(TEST_FILES))" ]; then \
+		$(PYTHON) -m pytest -v $(TEST_FILES); \
+	else \
+		echo "${YELLOW}No test files found.${NC}"; \
+	fi
+
+# Lint module files
+lint: ## Lint module files
+	@echo "${GREEN}Linting {{ module_name }}...${NC}"
+	@if command -v pylint >/dev/null; then \
+		echo "${YELLOW}Running pylint...${NC}"; \
+		pylint --disable=C0114,C0115,C0116 $(MODULE_FILES); \
+	else \
+		echo "${YELLOW}pylint not found, skipping Python linting${NC}"; \
+	fi
+	@if command -v yamllint >/dev/null; then \
+		echo "${YELLOW}Running yamllint...${NC}"; \
+		yamllint .; \
+	else \
+		echo "${YELLOW}yamllint not found, skipping YAML linting${NC}"; \
+	fi
+
+# Format code
+format: ## Format module code
+	@echo "${GREEN}Formatting {{ module_name }}...${NC}"
+	@if command -v black >/dev/null; then \
+		echo "${YELLOW}Running black...${NC}"; \
+		black $(MODULE_FILES); \
+	else \
+		echo "${YELLOW}black not found, skipping code formatting${NC}"; \
+	fi
+	@if command -v isort >/dev/null; then \
+		echo "${YELLOW}Running isort...${NC}"; \
+		isort $(MODULE_FILES); \
+	else \
+		echo "${YELLOW}isort not found, skipping import sorting${NC}"; \
+	fi
+
+# Clean build artifacts
+clean: ## Clean build artifacts
+	@echo "${YELLOW}Cleaning build artifacts...${NC}"
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@find . -type f -name "*.py[co]" -delete
+	@find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	@find . -type d -name ".mypy_cache" -exec rm -rf {} +
+	@rm -f *.pyc *.pyo
+
+# Generate documentation
+docs: ## Generate module documentation
+	@echo "${GREEN}Generating documentation...${NC}"
+	@if command -v ansible-doc >/dev/null; then \
+		ansible-doc -t module {{ module_name }}; \
+	else \
+		echo "${YELLOW}ansible-doc not found, skipping documentation generation${NC}"; \
+	fi
+
+# ====================================================================
+# Help Target
+# ====================================================================
+
+help: ## Show this help message
+	@echo "\n\033[1m{{ module_name }} - Ansible Module\033[0m"
+	@echo "========================================"
+	@echo "\n\033[1mAvailable Targets\033[0m"
+	@echo "----------------"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \\033[36m%-15s\\033[0m %s\\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
+
+# Set default target
+.DEFAULT_GOAL := help
