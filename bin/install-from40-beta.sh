@@ -34,7 +34,7 @@ fi
 # Install each collection from beta server
 for collection in "${COLLECTIONS[@]}"; do
     echo "=== Installing levonk.${collection} from beta server ==="
-    ansible-galaxy collection install "levonk.${collection}" --server "${GALAXY_SERVER}" --force
+    ansible-galaxy collection install "levonk.${collection}" --server "${GALAXY_SERVER}" --force --pre
     
     # Run test playbook if it exists
     test_playbook="${ROOT_DIR}/tests/test-levonk.${collection}.yml"
