@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Script to update Makefiles in all collections to follow the project standards
-# This script updates or creates Makefiles in all collections to include the shared.mk
-# and follow the project's Makefile standards.
+# This script updates or creates Makefiles in all collections to delegate to the top-level Makefile
+# with the appropriate collection name.
 
 set -euo pipefail
 
@@ -9,35 +9,20 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$SCRIPT_DIR"
 COLLECTIONS_DIR="$ROOT_DIR/collections/ansible_collections/levonk"
+TEMPLATE_FILE="$ROOT_DIR/collections/ansible_collections/blueprint-namespace/blueprint-collection/Makefile"
 
-# Template for the collection Makefile
-MAKEFILE_TEMPLATE='# ====================================================================
-# %s Collection
-# ====================================================================
+# Check if we're in the correct directory
+if [ ! -d "$COLLECTIONS_DIR" ]; then
+    echo "Error: Could not find collections directory at $COLLECTIONS_DIR"
+    echo "Please run this script from the ansible-galaxy directory"
+    exit 1
+fi
 
-# Collection-specific variables
-COLLECTION_NAME := %s
-
-# Calculate the path to the ansible-galaxy directory
-ANSIBLE_GALAXY_DIR := $(shell cd $(dir $(lastword $(MAKEFILE_LIST)))/../../../.. && pwd)
-
-# ====================================================================
-# Include shared Makefiles
-# ====================================================================
-
-# Include the shared Makefile with all targets and variables
-include $(ANSIBLE_GALAXY_DIR)/shared-targets.mk
-
-# ====================================================================
-# Collection-specific Targets
-# ====================================================================
-
-# Add collection-specific targets below this line
-# Example:
-# .PHONY: custom-target
-# custom-target: ## Example custom target
-#	@echo "Running custom target for $(COLLECTION_NAME)"
-'
+# Check if template file exists
+if [ ! -f "$TEMPLATE_FILE" ]; then
+    echo "Error: Could not find Makefile template at $TEMPLATE_FILE"
+    exit 1
+fi
 
 echo "Updating Makefiles for collections in $COLLECTIONS_DIR"
 
@@ -45,82 +30,49 @@ echo "Updating Makefiles for collections in $COLLECTIONS_DIR"
 BACKUP_DIR="/tmp/makefile_backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 
-# Find all collection directories (directories containing galaxy.yml)
-while IFS= read -r -d $'\0' dir; do
-    collection_dir="$(dirname "$dir")"
-    collection_name="$(basename "$collection_dir")"
+# Function to process a collection directory
+process_collection() {
+    local collection_dir="$1"
+    local collection_name="$(basename "$collection_dir")"
+    local makefile_path="$collection_dir/Makefile"
     
     echo "Processing collection: $collection_name"
     
-    # Backup existing Makefile if it exists
-    if [ -f "$collection_dir/Makefile" ]; then
-        cp "$collection_dir/Makefile" "$BACKUP_DIR/${collection_name}_Makefile.bak"
-        echo "  - Backed up existing Makefile to $BACKUP_DIR/${collection_name}_Makefile.bak"
+    # Create backup of existing Makefile if it exists
+    if [ -f "$makefile_path" ]; then
+        mkdir -p "$BACKUP_DIR/$collection_name"
+        cp "$makefile_path" "$BACKUP_DIR/$collection_name/Makefile.$(date +%Y%m%d_%H%M%S)"
+        echo "  - Backed up existing Makefile to $BACKUP_DIR/$collection_name/"
     fi
     
-    # Create or update the Makefile
-    printf "$MAKEFILE_TEMPLATE" "$collection_name" "$collection_name" > "$collection_dir/Makefile"
-    echo "  - Updated Makefile"
+    # Generate the new Makefile from template
+    # First, get the namespace from the directory structure
+    namespace=$(basename $(dirname $(dirname $(dirname "$collection_dir"))))
     
-    # Ensure the Makefile has the correct permissions
-    chmod 644 "$collection_dir/Makefile"
+    # Create a temporary file for the processed template
+    cp "$TEMPLATE_FILE" "$makefile_path.tmp"
     
-done < <(find "$COLLECTIONS_DIR" -mindepth 2 -maxdepth 2 -name "galaxy.yml" -print0)
-
-# Also update the top-level collection Makefile
-TOP_LEVEL_MAKEFILE="$COLLECTIONS_DIR/../Makefile"
-if [ -f "$TOP_LEVEL_MAKEFILE" ]; then
-    cp "$TOP_LEVEL_MAKEFILE" "$BACKUP_DIR/top_level_Makefile.bak"
-    echo "Backed up top-level Makefile to $BACKUP_DIR/top_level_Makefile.bak"
+    # Replace template variables
+    sed -i "s/{{ collection_name }}/$collection_name/g" "$makefile_path.tmp"
+    sed -i "s/{{ namespace_name }}/$namespace/g" "$makefile_path.tmp"
     
-    cat > "$TOP_LEVEL_MAKEFILE" << 'EOL'
-# ====================================================================
-# Ansible Collections - Top Level
-# ====================================================================
+    # Check if the file has changed
+    if [ -f "$makefile_path" ] && cmp -s "$makefile_path" "$makefile_path.tmp"; then
+        echo "  - No changes needed for $collection_name/Makefile"
+        rm "$makefile_path.tmp"
+    else
+        mv "$makefile_path.tmp" "$makefile_path"
+        echo "  - Updated $collection_name/Makefile"
+    fi
+}
 
-# Include the shared Makefile with all targets and variables
-include shared-targets.mk
+export -f process_collection
+export BACKUP_DIR TEMPLATE_FILE
 
-# List of all collections to process
-COLLECTIONS := $(notdir $(wildcard */))
+# Process each collection directory
+find "$COLLECTIONS_DIR" -mindepth 1 -maxdepth 1 -type d -not -name '.*' -print0 | while IFS= read -r -d $'\0' collection_dir; do
+    process_collection "$collection_dir"
+done
 
-# ====================================================================
-# Default Target
-# ====================================================================
-
-.DEFAULT_GOAL := help
-
-# ====================================================================
-# Help Target
-# ====================================================================
-
-help: ## Show this help message
-	@echo "\n\033[1mAnsible Collections - Available Targets\033[0m"
-	@echo "================================================="
-	@echo "\n\033[1mBuild Targets:\033[0m"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST) | sort
-
-# ====================================================================
-# Collection Operations
-# ====================================================================
-
-# Forward all other targets to all collections
-%:
-	@for collection in $(COLLECTIONS); do \
-		echo "\n=== Running '$@' on collection: $$collection ==="; \
-		$(MAKE) -C "$$collection" $@ || exit 1; \
-	done
-
-# ====================================================================
-# Special Targets
-# ====================================================================
-
-# Add any special targets that should only run once (not per-collection) here
-
-EOL
-    
-    echo "Updated top-level Makefile"
-fi
-
-echo -e "\nMakefile updates complete!"
-echo "Original Makefiles were backed up to: $BACKUP_DIR"
+echo -e "\nMakefile update complete!"
+echo "Backup of original Makefiles is available at: $BACKUP_DIR"
