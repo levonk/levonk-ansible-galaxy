@@ -1,21 +1,96 @@
-# Makefile.targets - Additional targets for the Ansible Galaxy collection
-# This file contains additional targets that are included by the main Makefile.
-# See README.md for detailed documentation on each target.
+# ====================================================================
+# Makefile.targets - Shared Targets for Ansible Galaxy Collections
+# This file provides additional targets that are included by the main Makefile.
+# It is not meant to be executed directly.
+# ====================================================================
 
 # Prevent multiple inclusions
 ifndef MAKEFILE_TARGETS_INCLUDED
 MAKEFILE_TARGETS_INCLUDED := true
 
-# Default values for variables
+# ====================================================================
+# Configuration
+# ====================================================================
+
+# Tool detection
 CONTAINER_RUNTIME ?= $(shell command -v podman 2>/dev/null || command -v docker 2>/dev/null || echo '')
 HAS_ANSIBLE_BUILDER ?= $(shell command -v ansible-builder 2>/dev/null)
 HAS_ANSIBLE_LINT ?= $(shell command -v ansible-lint 2>/dev/null)
 HAS_MOLECULE ?= $(shell command -v molecule 2>/dev/null)
 HAS_YAMLLINT ?= $(shell command -v yamllint 2>/dev/null)
+
+# Execution Environment
 EE_FULL_IMAGE ?= $(PROJECT_NAME):latest
+
+# Directories and Markers
 MARKER_DIR ?= .markers
 BETA_MARKER ?= $(MARKER_DIR)/beta.marker
+DIST_DIR ?= $(ROOT_DIR)/dist
 
+
+# ====================================================================
+# Local Build Target (No Token Required)
+# ====================================================================
+
+# Local build target (skips token check)
+local-build: ## Build all collections locally without token check
+	@echo "\n\033[1mBuilding Collections Locally\033[0m"
+	@echo "=========================="
+	@if [ -z "$(COLLECTIONS)" ]; then \
+		echo "\033[1;33mNo collections found in $(COLLECTIONS_DIR)/ansible_collections/$(NAMESPACE)/\033[0m"; \
+		exit 0; \
+	fi
+	@FAILED=0; \
+	for collection in $(COLLECTIONS); do \
+		COLLECTION_DIR="$(COLLECTIONS_DIR)/ansible_collections/$(NAMESPACE)/$$collection"; \
+		if [ -d "$$COLLECTION_DIR" ]; then \
+			echo "\n\033[1m• Building: $(NAMESPACE).$$collection\033[0m"; \
+			if ! (cd "$$COLLECTION_DIR" && $(MAKE) local-build || $(MAKE) build); then \
+				echo "\033[1;31m✗ Build failed: $(NAMESPACE).$$collection\033[0m"; \
+				FAILED=$$((FAILED + 1)); \
+			else \
+				echo "\033[1;32m✓ Built: $(NAMESPACE).$$collection\033[0m"; \
+			fi \
+		else \
+			echo "\033[1;33m• Skipping: $(NAMESPACE).$$collection (directory not found)\033[0m"; \
+		fi \
+	done; \
+	if [ "$$FAILED" -gt 0 ]; then \
+		echo "\n\033[1;31m✗ Build completed with $$FAILED failure(s)\033[0m"; \
+		exit 1; \
+	else \
+		echo "\n\033[1;32m✓ All collections built successfully!\033[0m"; \
+	fi
+
+# ====================================================================
+# Project Archive and Version Management
+# ====================================================================
+
+# Create a project archive
+archive: ## Create project archive
+	@echo "[ARCHIVE] Creating project archive..."
+	@mkdir -p $(DIST_DIR)
+	git archive --format=tar.gz --prefix=$(PROJECT_NAME)-$(VERSION)/ HEAD > $(DIST_DIR)/$(PROJECT_NAME)-$(VERSION).tar.gz
+
+# ====================================================================
+# Formatting and Code Quality
+# ====================================================================
+
+# Format Python code (part of the shared formatting targets)
+format-python: ## Format Python code using black
+	@echo "[FORMAT] Formatting Python code..."
+	@if command -v black >/dev/null 2>&1; then \
+		find . -name '*.py' -exec black {} +; \
+	else \
+		echo "black not installed. Install with: pip install black"; \
+	fi
+	@if command -v prettier >/dev/null 2>&1; then \
+		find . -name '*.{json,md,yml,yaml}' -exec prettier --write {} +; \
+	else \
+		echo "prettier not installed. Install with: npm install -g prettier"; \
+	fi
+
+# (Generic uninstall target removed - using the more specific Ansible Galaxy collections uninstall target below)
 
 # ====================================================================
 # Execution Environment Targets
@@ -66,55 +141,9 @@ check-ansible-builder:
 # Installation Targets (moved from main Makefile)
 # ====================================================================
 
-# Install from source directories
-inst-src:
-	@echo "Installing collections from source directories..."
-	@if [ -f "$(BIN_DIR)/install-from10-src.sh" ]; then \
-		$(BIN_DIR)/install-from10-src.sh $(filter-out $@,$(MAKECMDGOALS)); \
-	else \
-		echo "Error: install-from10-src.sh not found in $(BIN_DIR)"; \
-		exit 1; \
-	fi
-
-# Install from git repository
-inst-repo:
-	@echo "Installing collections from git repository..."
-	@if [ -f "$(BIN_DIR)/install-from20-repo.sh" ]; then \
-		$(BIN_DIR)/install-from20-repo.sh $(filter-out $@,$(MAKECMDGOALS)); \
-	else \
-		echo "Error: install-from20-repo.sh not found in $(BIN_DIR)"; \
-		exit 1; \
-	fi
-
-# Install from built artifacts
-inst-build:
-	@echo "Installing collections from build artifacts..."
-	@if [ -f "$(BIN_DIR)/install-from30-build.sh" ]; then \
-		$(BIN_DIR)/install-from30-build.sh $(filter-out $@,$(MAKECMDGOALS)); \
-	else \
-		echo "Error: install-from30-build.sh not found in $(BIN_DIR)"; \
-		exit 1; \
-	fi
-
-# Install from beta server
-inst-beta: publish-beta
-	@echo "Installing collections from beta server..."
-	@if [ -f "$(BIN_DIR)/install-from40-beta.sh" ]; then \
-		$(BIN_DIR)/install-from40-beta.sh $(filter-out $@,$(MAKECMDGOALS)); \
-	else \
-		echo "Error: install-from40-beta.sh not found in $(BIN_DIR)"; \
-		exit 1; \
-	fi
-
-# Install from production server
-inst-prod:
-	@echo "Installing collections from production server..."
-	@if [ -f "$(BIN_DIR)/install-from50-prod.sh" ]; then \
-		$(BIN_DIR)/install-from50-prod.sh $(filter-out $@,$(MAKECMDGOALS)); \
-	else \
-		echo "Error: install-from50-prod.sh not found in $(BIN_DIR)"; \
-		exit 1; \
-	fi
+# ====================================================================
+# Installation Targets
+# ====================================================================
 
 # ====================================================================
 # Debug Target
@@ -144,14 +173,15 @@ debug:
 
 # Watch for file changes and rebuild
 watch: ## Watch for file changes and rebuild
-	@echo "Watching for file changes..."
+	@echo "[WATCH] Watching for file changes..."
 	@if ! command -v inotifywait >/dev/null 2>&1; then \
 		echo "inotify-tools not installed. Install with: sudo apt-get install inotify-tools"; \
 		exit 1; \
 	fi
-	@echo "Watching for changes in $(COLLECTIONS_DIR)/*"
+	@echo "[WATCH] Watching for changes in $(COLLECTIONS_DIR)/*"
 	@while true; do \
 		inotifywait -r -e modify,create,delete $(COLLECTIONS_DIR) && \
+		echo "[WATCH] Detected changes, running tests..." && \
 		make test; \
 	done
 
@@ -196,8 +226,9 @@ env: ## Show development environment information
 
 # Sync with remote repository
 sync: ## Sync with remote repository (git pull --rebase)
-	@echo "Syncing with remote repository..."
+	@echo "[SYNC] Syncing with remote repository..."
 	git pull --rebase
+	git submodule update --init --recursive
 
 # Create a new module in a collection
 new-module: ## Create a new module in a collection
@@ -209,11 +240,11 @@ new-module: ## Create a new module in a collection
 		echo "Error: Module name not specified. Usage: make new-module collection=collection_name module=module_name [type=module_type]"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(ROOT_DIR)/bin/setup-new30-module.sh" ]; then \
-		echo "Error: setup-new30-module.sh script not found in $(ROOT_DIR)/bin"; \
+	@if [ ! -f "$(BIN_DIR)/setup-new30-module.sh" ]; then \
+		echo "Error: setup-new30-module.sh script not found in $(BIN_DIR)"; \
 		exit 1; \
 	fi
-	@$(ROOT_DIR)/bin/setup-new30-module.sh "$(collection)" "$(module)" "$(type)"
+	@$(BIN_DIR)/setup-new30-module.sh "$(collection)" "$(module)" "$(type)"
 
 # Create a new collection
 new-collection: ## Create a new collection
@@ -221,11 +252,11 @@ new-collection: ## Create a new collection
 		echo "Error: Collection name not specified. Usage: make new-collection collection=collection_name"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(ROOT_DIR)/bin/setup-new20-collection.sh" ]; then \
-		echo "Error: setup-new20-collection.sh script not found in $(ROOT_DIR)/bin"; \
+	@if [ ! -f "$(BIN_DIR)/setup-new20-collection.sh" ]; then \
+		echo "Error: setup-new20-collection.sh script not found in $(BIN_DIR)"; \
 		exit 1; \
 	fi
-	@$(ROOT_DIR)/bin/setup-new20-collection.sh "$(collection)"
+	@$(BIN_DIR)/setup-new20-collection.sh "$(collection)"
 
 # Create a new role in a collection
 new-role: ## Create a new role in a collection
@@ -237,11 +268,109 @@ new-role: ## Create a new role in a collection
 		echo "Error: Role name not specified. Usage: make new-role collection=collection_name role=role_name"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(ROOT_DIR)/bin/setup-new10-role.sh" ]; then \
-		echo "Error: setup-new10-role.sh script not found in $(ROOT_DIR)/bin"; \
+	@if [ ! -f "$(BIN_DIR)/setup-new10-role.sh" ]; then \
+		echo "Error: setup-new10-role.sh script not found in $(BIN_DIR)"; \
 		exit 1; \
 	fi
-	@$(ROOT_DIR)/bin/setup-new10-role.sh "$(collection)" "$(role)"
+	@$(BIN_DIR)/setup-new10-role.sh "$(collection)" "$(role)"
+
+# ====================================================================
+# Collection Installation Targets
+# ====================================================================
+
+# Collection build target (builds a single collection when COLLECTION is set)
+build: $(addprefix build-,$(COLLECTIONS))
+
+build-%:
+	@if [ ! -f "$(BIN_DIR)/build10-collection.sh" ]; then \
+		echo "Error: build10-collection.sh script not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
+	@"$(BIN_DIR)/build10-collection.sh" "$*" "$(COLLECTIONS_DIR)" "$(DIST_DIR)" "$(NAMESPACE)"
+
+# Collection test target
+test: $(addprefix test-,$(COLLECTIONS))
+
+test-%: build-%
+	@echo "Testing collection $(NAMESPACE).$*..."
+	cd $(COLLECTIONS_DIR)/ansible_collections/$(NAMESPACE)/$* && ansible-test sanity
+
+# Collection lint target
+lint: $(addprefix lint-,$(COLLECTIONS))
+
+lint-%:
+	@echo "Linting collection $(NAMESPACE).$*..."
+	@if [ ! -d "$(COLLECTIONS_DIR)/ansible_collections/$(NAMESPACE)/$*" ]; then \
+		echo "Error: Collection directory not found: $(COLLECTIONS_DIR)/ansible_collections/$(NAMESPACE)/$*"; \
+		exit 1; \
+	fi
+	cd $(COLLECTIONS_DIR)/ansible_collections/$(NAMESPACE)/$* && ansible-lint .
+
+# Install from built artifacts (handles both single collection and multiple collections)
+inst-build: build ## Install collections from built artifacts
+	@echo "Installing collections from built artifacts..."
+	@if [ -n "$(COLLECTION)" ]; then \
+		if [ ! -f "$(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz" ]; then \
+			echo "Error: Built collection not found: $(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz"; \
+			exit 1; \
+		fi; \
+		ansible-galaxy collection install -f "$(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz"; \
+	else \
+		if [ ! -f "$(BIN_DIR)/install-from30-build.sh" ]; then \
+			echo "Error: install-from30-build.sh script not found in $(BIN_DIR)"; \
+			exit 1; \
+		fi; \
+		$(BIN_DIR)/install-from30-build.sh "$(COLLECTIONS)" "$(DIST_DIR)"; \
+	fi
+
+# Install from beta server (handles both single collection and multiple collections)
+inst-beta: ## Install collections from beta server
+	@echo "Installing collections from beta server..."
+	@if [ -z "$(GALAXY_BETA_SERVER)" ]; then \
+		echo "Error: GALAXY_BETA_SERVER is not set"; \
+		exit 1; \
+	fi
+	@if [ -n "$(COLLECTION)" ]; then \
+		ansible-galaxy collection install -f -p ~/.ansible/collections \
+			--server $(GALAXY_BETA_SERVER) \
+			$(NAMESPACE).$(COLLECTION); \
+	else \
+		if [ ! -f "$(BIN_DIR)/install-from40-beta.sh" ]; then \
+			echo "Error: install-from40-beta.sh script not found in $(BIN_DIR)"; \
+			exit 1; \
+		fi; \
+		$(BIN_DIR)/install-from40-beta.sh "$(COLLECTIONS)"; \
+	fi
+
+# ====================================================================
+# Publishing Targets
+# ====================================================================
+
+
+# Publish to production server (handles both single collection and multiple collections)
+publish-prod: build test ## Publish collections to production server
+	@echo "Publishing collections to production server..."
+	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
+		echo "ERROR: ANSIBLE_GALAXY_TOKEN is not set"; \
+		echo "       Try: export ANSIBLE_GALAXY_TOKEN=your-token-here"; \
+		exit 1; \
+	fi
+	@if [ -n "$(COLLECTION)" ]; then \
+		if [ ! -f "$(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz" ]; then \
+			echo "Error: Built collection not found: $(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz"; \
+			exit 1; \
+		fi; \
+		ansible-galaxy collection publish -vvv \
+			--server $(GALAXY_PROD_SERVER) \
+			--api-key "$${ANSIBLE_GALAXY_TOKEN}" \
+			"$(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz"; \
+	else \
+		if [ ! -f "$(BIN_DIR)/publish20-prod.sh" ]; then \
+			echo "Error: publish20-prod.sh script not found in $(BIN_DIR)"; \
+			exit 1; \
+		fi; \
+		$(BIN_DIR)/publish20-prod.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"; \
+	fi
 
 # ====================================================================
 # Installation Targets
@@ -250,39 +379,21 @@ new-role: ## Create a new role in a collection
 # Installation from different sources
 inst-src: ## Install collections from source directories
 	@echo "Installing collections from source..."
-	@if [ ! -f "$(ROOT_DIR)/bin/install-from10-src.sh" ]; then \
-		echo "Error: install-from10-src.sh script not found in $(ROOT_DIR)/bin"; \
+	@if [ ! -f "$(BIN_DIR)/install-from10-src.sh" ]; then \
+		echo "Error: install-from10-src.sh script not found in $(BIN_DIR)"; \
 		exit 1; \
 	fi
-	@$(ROOT_DIR)/bin/install-from10-src.sh "$(COLLECTIONS)" "$(COLLECTIONS_DIR)"
+	@$(BIN_DIR)/install-from10-src.sh "$(COLLECTIONS)" "$(COLLECTIONS_DIR)"
 
 inst-repo: ## Install collections from git repository
 	@echo "Installing collections from git repository..."
-	@if [ ! -f "$(ROOT_DIR)/bin/install-from20-repo.sh" ]; then \
-		echo "Error: install-from20-repo.sh script not found in $(ROOT_DIR)/bin"; \
+	@if [ ! -f "$(BIN_DIR)/install-from20-repo.sh" ]; then \
+		echo "Error: install-from20-repo.sh script not found in $(BIN_DIR)"; \
 		exit 1; \
 	fi
-	@$(ROOT_DIR)/bin/install-from20-repo.sh "$(COLLECTIONS)"
+	@$(BIN_DIR)/install-from20-repo.sh "$(COLLECTIONS)"
 
-inst-build: build ## Install collections from built artifacts
-	@echo "Installing collections from built artifacts..."
-	@if [ ! -f "$(ROOT_DIR)/bin/install-from30-build.sh" ]; then \
-		echo "Error: install-from30-build.sh script not found in $(ROOT_DIR)/bin"; \
-		exit 1; \
-	fi
-	@$(ROOT_DIR)/bin/install-from30-build.sh "$(COLLECTIONS)" "$(DIST_DIR)" "$(VERSION)"
-
-inst-beta: ## Install collections from beta server
-	@echo "Installing collections from beta server..."
-	@if [ -z "$(GALAXY_BETA_SERVER)" ]; then \
-		echo "Error: GALAXY_BETA_SERVER is not set"; \
-		exit 1; \
-	fi
-	@if [ ! -f "$(ROOT_DIR)/bin/install-from40-beta.sh" ]; then \
-		echo "Error: install-from40-beta.sh script not found in $(ROOT_DIR)/bin"; \
-		exit 1; \
-	fi
-	@$(ROOT_DIR)/bin/install-from40-beta.sh "$(COLLECTIONS)" "$(GALAXY_BETA_SERVER)"
+# (Duplicate targets removed - using the more complete versions above)
 
 inst-prod: ## Install collections from production server
 	@echo "Installing collections from production server..."
@@ -290,11 +401,11 @@ inst-prod: ## Install collections from production server
 		echo "Error: GALAXY_PROD_SERVER is not set"; \
 		exit 1; \
 	fi
-	@if [ ! -f "$(ROOT_DIR)/bin/install-from50-prod.sh" ]; then \
-		echo "Error: install-from50-prod.sh script not found in $(ROOT_DIR)/bin"; \
+	@if [ ! -f "$(BIN_DIR)/install-from50-prod.sh" ]; then \
+		echo "Error: install-from50-prod.sh script not found in $(BIN_DIR)"; \
 		exit 1; \
 	fi
-	@$(ROOT_DIR)/bin/install-from50-prod.sh "$(COLLECTIONS)" "$(GALAXY_PROD_SERVER)"
+	@$(BIN_DIR)/install-from50-prod.sh "$(COLLECTIONS)" "$(GALAXY_PROD_SERVER)"
 
 # Uninstall collections using ansible-galaxy
 uninstall: ## Uninstall all collections from ansible-galaxy
@@ -325,15 +436,27 @@ deploy-prod: check_prod_branch check_galaxy_token build ## Deploy to production 
 		(cd $(COLLECTIONS_DIR)/$$collection && $(MAKE) deploy-prod) || exit 1; \
 	done
 
-# Publish to beta server
-publish-beta: build test ## Publish to beta server
-	@echo "Publishing to beta server..."
+# Publish to beta server (handles both single collection and multiple collections)
+publish-beta: build test ## Publish collections to beta server
+	@echo "Publishing collections to beta server..."
 	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
 		echo "ERROR: ANSIBLE_GALAXY_TOKEN is not set"; \
+		echo "       Try: export ANSIBLE_GALAXY_TOKEN=your-token-here"; \
 		exit 1; \
 	fi
-	@echo "Using publish script: $(BIN_DIR)/publish10-beta.sh"
-	@$(BIN_DIR)/publish10-beta.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"
+	@if [ ! -f "$(BIN_DIR)/publish10-beta.sh" ]; then \
+		echo "Error: publish10-beta.sh script not found in $(BIN_DIR)"; \
+		exit 1; \
+	fi
+	@if [ -n "$(COLLECTION)" ]; then \
+		if [ ! -f "$(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz" ]; then \
+			echo "Error: Built collection not found: $(DIST_DIR)/$(NAMESPACE)-$(COLLECTION)-*.tar.gz"; \
+			exit 1; \
+		fi; \
+		$(BIN_DIR)/publish10-beta.sh "$(COLLECTION)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"; \
+	else \
+		$(BIN_DIR)/publish10-beta.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"; \
+	fi
 
 # Promote collections by incrementing the build (patch) version number
 promote: ## Increment version numbers for collections that exist on the beta server
@@ -372,15 +495,51 @@ backup-prod: ## Backup current production state
 	@# Add backup commands here
 	@echo "Backup functionality not yet implemented"
 
-# Publish to production server
-publish-prod: build test ## Publish to production server
-	@echo "Publishing to production server..."
-	@if [ -z "$${ANSIBLE_GALAXY_TOKEN}" ]; then \
-		echo "ERROR: ANSIBLE_GALAXY_TOKEN is not set"; \
+# (Duplicate publish-prod target removed - using the more complete version above)
+
+# ====================================================================
+# Promotion Targets
+# ====================================================================
+
+# Promote collections by incrementing the build version (patch) number
+# This is the default promotion target used in the build pipeline
+promote: promote-build
+
+# Promote collections by incrementing the major version number
+promote-major: $(TEST_MARKER)
+	@echo "Promoting collections with MAJOR version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-versions.sh" ]; then \
+		echo "ERROR: promote-versions.sh script not found in $(ROOT_DIR)/bin"; \
 		exit 1; \
 	fi
-	@echo "Using publish script: $(BIN_DIR)/publish20-prod.sh"
-	@$(BIN_DIR)/publish20-prod.sh "$(COLLECTIONS)" "$${ANSIBLE_GALAXY_TOKEN}" "$(DIST_DIR)"
+	@"$(ROOT_DIR)/bin/promote-versions.sh" --type=major "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
+
+# Promote collections by incrementing the minor version number
+promote-minor: $(TEST_MARKER)
+	@echo "Promoting collections with MINOR version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-versions.sh" ]; then \
+		echo "ERROR: promote-versions.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@"$(ROOT_DIR)/bin/promote-versions.sh" --type=minor "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
+
+# Promote collections by incrementing the build (patch) version number
+promote-build: $(TEST_MARKER)
+	@echo "Promoting collections with BUILD version increment..."
+	@if [ ! -f "$(ROOT_DIR)/bin/promote-versions.sh" ]; then \
+		echo "ERROR: promote-versions.sh script not found in $(ROOT_DIR)/bin"; \
+		exit 1; \
+	fi
+	@"$(ROOT_DIR)/bin/promote-versions.sh" --type=build "$(COLLECTIONS_DIR)" "$(COLLECTIONS)"
+	@echo "Rebuilding collections with the new versions..."
+	@rm -f $(BUILD_MARKER)
+	@$(MAKE) build
 
 # Verify installation from production
 test-prod: ## Verify installation from production server
