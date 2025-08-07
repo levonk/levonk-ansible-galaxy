@@ -174,6 +174,11 @@ The project uses a Makefile to automate various tasks. Here are the available ta
 
 - `new-collection`: Create a new collection
 - `new-role`: Create a new role within a collection
+- `new-module`: Create a new module within a collection
+  ```bash
+  # Create a new module in a specific collection
+  make new-module COLLECTION=collection_name MODULE=module_name
+  ```
 - `debug`: Run debugging tools
 
 ### Target Dependencies
@@ -298,7 +303,7 @@ graph TD
     git-tag-beta --> inst-beta
     
     %% Beta convenience target - runs all beta release phases
-    beta: beta-phase1-verify  # Start with Phase 1 verification
+    beta: beta-phase4-publish  # Start with Phase 1 verification
     beta-phase1-verify --> beta-phase2-promote  # Then promote version
     beta-phase2-promote --> beta-phase3-verify  # Then verify new version
     beta-phase3-verify --> beta-phase4-publish  # Then publish to beta
@@ -349,6 +354,7 @@ graph TD
     git-check-clean-dev --> new-collection
     git-check-clean-dev --> new-role
     new-collection --> build
+    new-module --> build
     new-role --> build
     build --> lint
     lint --> test-build
@@ -413,6 +419,116 @@ graph TD
         check-tools --> check-docker
         check-tools --> check-make
     end
+```
+
+## Quick Start
+
+### Prerequisites
+- Docker and Docker Compose
+- Git
+- GNU Make 4.0+
+
+### Basic Commands
+```bash
+# Clone the repository
+git clone <repository-url> && cd levonk-ansible-galaxy
+
+# Start the development environment
+make dev-shell
+
+# Build and test all collections
+make all
+
+# Create a new module in a collection
+make new-module COLLECTION=mycollection MODULE=mymodule
+```
+
+## Project Context
+
+This repository contains a collection of Ansible roles and modules for managing and provisioning development and operational environments. It follows Ansible best practices and includes a complete CI/CD pipeline for testing and deployment.
+
+### Key Features
+- Containerized development environment
+- Automated testing and linting
+- Version management and promotion
+- Multiple deployment targets (beta/production)
+- Module and role scaffolding
+
+## Development Container
+
+### Container Specifications
+- **Base Image**: Debian stable
+- **Included Tools**:
+  - Python 3.9+
+  - Ansible 8.0+
+  - Ansible Lint
+  - Molecule
+  - TestInfra
+  - Pre-commit hooks
+
+### Port Mappings
+- None required (development only)
+
+### Volume Mounts
+- `/workspace`: Project root
+- `~/.ansible/collections`: Local collections cache
+
+## Makefile Structure
+
+This project uses a hierarchical Makefile system that follows the DRY (Don't Repeat Yourself) principle. The key aspects of the Makefile structure are:
+
+### Top-Level Makefile
+- Located at `ansible-galaxy/Makefile`
+- Handles all build, test, and publish operations
+- Can operate on all collections or a single specified collection
+- Delegates to collection-level Makefiles when needed
+
+### Collection-Level Makefiles
+- Located in each collection directory (e.g., `ansible-galaxy/collections/ansible_collections/levonk/server_llmchat/Makefile`)
+- Use a delegation pattern to call the top-level Makefile with the correct collection name
+- Can include collection-specific targets if needed
+
+### Common Variables
+- Defined in `ansible-galaxy/common.mk`
+- Centralized configuration for all Makefiles
+- Includes paths, collection lists, and tool configurations
+
+### Usage Examples
+
+#### Building Collections
+```bash
+# Build all collections
+make build
+
+# Build a specific collection
+make build COLLECTION=server_llmchat
+# or from within a collection directory
+cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
+make build
+```
+
+#### Publishing Collections
+```bash
+# Publish all collections to beta server
+make publish-beta
+
+# Publish a specific collection to production
+make publish-prod COLLECTION=server_llmchat
+# or from within a collection directory
+cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
+make publish-prod
+```
+
+#### Installing Collections
+```bash
+# Install all collections from source
+make install-src
+
+# Install a specific collection from beta
+make install-beta COLLECTION=server_llmchat
+# or from within a collection directory
+cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
+make install-beta
 ```
 
 ## Makefile Reference
@@ -749,92 +865,211 @@ collection_paths={repo-root}/ansible-galaxy/collections:{the-other-paths}
 
 
 
-## README.md TODO
+## Prerequisites
 
-### Build System Requirements
+### System Requirements
+- **Docker**: Engine 20.10+ and Docker Compose 2.0+
+- **Git**: For version control
+- **Python**: 3.8+ (for local development without containers)
+- **Ansible**: 2.12+ (for local development without containers)
+- **Hardware**: Minimum 4GB RAM, 2 CPU cores, 10GB free disk space
 
-#### Containerized Development Environment
-- Docker Engine 20.10+
-- Docker Compose 2.0+
-- Git
+## Module Development
 
-#### Container Architecture
-1. **Base Environment** (Debian-based)
-2. **Build Environment** (extends Base)
-3. **Runtime Environment** (extends Base)
+### Creating a New Module
 
-#### Key Directories
-- `/ansible-galaxy/bin/` - Executable scripts
-- `/ansible-galaxy/collections/ansible_collections/levonk/` - Collections
-- `/ansible-galaxy/dist/` - Built artifacts
-- `/ansible-galaxy/.markers/` - Build state tracking
+To create a new module in a collection:
 
-#### Build Process
-- Uses a Makefile for automation
-- Collections are built into `.tar.gz` artifacts
-- Supports incremental builds using marker files
+```bash
+make new-module COLLECTION=collection_name MODULE=module_name
+```
 
-#### Development Workflow
-1. Build containers: `docker compose build`
-2. Start environment: `docker compose up -d`
-3. Access build container: `docker compose exec builder bash`
+This will create:
+```
+ansible-galaxy/collections/ansible_collections/levonk/{collection_name}/
+└── plugins/modules/
+    └── module_name.py
+```
 
-The project emphasizes containerization for development consistency and uses Make for build automation. The build system is designed to be self-contained within Docker containers to ensure consistent environments across development, testing, and production.
+### Module Structure
 
-### Identified Issues and Improvements
+Each module should include:
+- Standard Ansible module documentation
+- Proper error handling
+- Parameter validation
+- Idempotency support
+- Module argument specification
 
-#### Inconsistencies
-1. **Script Naming**
-   - The repository structure shows `publish-*.sh` and `install-*.sh` with wildcards, but actual script names aren't consistently documented
-   - Scripts in `bin/` are mentioned in the structure but not fully documented in usage sections
+## Testing Guidelines
 
-2. **Makefile Targets**
-   - Incomplete documentation of targets in "Makefile Reference" and "Available Targets" sections
-   - Undocumented targets in mermaid diagrams (e.g., `ee-clean`, `env-check`)
+### Running Tests
 
-3. **Version Requirements**
-   - Missing specifications for:
-     - Minimum Python version
-     - Ansible version requirements
-     - Hardware requirements
+```bash
+# Run all tests
+make test
 
-4. **Development Workflow**
-   - No clear guidance on:
-     - Adding new collections
-     - Updating existing collections
-     - Handling collection dependencies
+# Test specific collection
+make test COLLECTION=collection_name
 
-5. **Documentation Structure**
-   - Truncated "Makefile Reference" section
-   - Some duplicated or inconsistently formatted sections
+# Run with verbose output
+make test V=1
+```
 
-#### Unanswered Questions
+### Writing Tests
+1. Place test playbooks in `tests/`
+2. Add Molecule scenarios for module testing
+3. Include integration tests for complex modules
 
-##### Testing
-- How to run tests for individual collections?
-- What's the testing strategy (unit tests, integration tests, etc.)?
+## Versioning and Release
 
-##### Versioning
-- What versioning scheme is used for collections?
-- How are version bumps handled?
+### Versioning Scheme
+- Follows [Semantic Versioning](https://semver.org/)
+- Version format: `MAJOR.MINOR.PATCH`
+- Use `make promote` to increment versions
 
-##### Dependencies
-- How are inter-collection dependencies managed?
-- How are external dependencies specified?
+### Release Process
+1. Update version in `common.mk`
+2. Run `make beta` for beta release
+3. After testing, run `make prod` for production
 
-##### Documentation
-- How is documentation generated?
-- Where should documentation for individual collections live?
+## Security
 
-##### Contributing
-- Are there contribution guidelines?
-- What's the process for submitting changes?
+### Reporting Vulnerabilities
+Please report security issues to security@example.com
 
-##### Troubleshooting
-- Common issues and their solutions
-- How to debug build failures
+### Secure Development
+- Use `ansible-vault` for sensitive data
+- Follow principle of least privilege
+- Regular dependency updates
+- Minimum required Ansible version: 2.12
+- Collections specify version requirements in their `galaxy.yml`
+- Regular security audits of dependencies
 
-##### CI/CD
-- Is there a CI/CD pipeline?
-- What are the deployment targets?
+## Development Workflow
 
+### Adding New Collections
+1. Create a new collection:
+   ```bash
+   make new-collection NAME=collection_name
+   ```
+2. Add roles and content to the collection
+3. Update collection's `galaxy.yml` with proper metadata
+4. Add tests in the collection's `tests/` directory
+
+### Updating Collections
+1. Make changes to the collection
+2. Update version in `galaxy.yml`
+3. Run tests:
+   ```bash
+   make test COLLECTION=collection_name
+   ```
+4. Commit changes with a descriptive message
+
+### Handling Dependencies
+- Collection dependencies are specified in `galaxy.yml`
+- Role dependencies within a collection are specified in `meta/requirements.yml`
+- Use `ansible-galaxy collection install -r requirements.yml` to install dependencies
+
+## Contributing
+
+1. **Fork** the repository
+2. **Branch** for your feature (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add some amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. Open a **Pull Request**
+
+### Code Standards
+- Follow [Ansible Best Practices](https://docs.ansible.com/ansible/latest/user_guide/playbooks_best_practices.html)
+- Use `ansible-lint` for style checking
+- Include tests for new modules and roles
+
+## Testing Strategy
+
+### Unit Testing
+- Test individual modules using `ansible-test units`
+- Place unit tests in `tests/units/`
+- Mock external dependencies
+
+### Integration Testing
+- Use Molecule for role testing
+- Test against multiple OS versions
+- Include test scenarios in `molecule/`
+
+### Linting and Style
+- Run `make lint` to check code style
+- Use `ansible-lint` for best practices
+- Follow Ansible content conventions
+
+## Troubleshooting
+
+### Common Issues
+
+#### Module Not Found
+```bash
+# Ensure the collection is installed
+make inst-src
+
+# Check collection path
+ansible-config dump | grep COLLECTIONS_PATHS
+```
+
+#### Permission Denied
+```bash
+# Make scripts executable
+chmod +x bin/*
+```
+
+## FAQ
+
+### How do I create a new module?
+```bash
+make new-module COLLECTION=mycollection MODULE=mymodule
+```
+
+### How do I test a specific module?
+```bash
+cd ansible-galaxy/collections/ansible_collections/levonk/collection_name
+ansible-test integration plugins/modules/test_module_name.py
+```
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment:
+
+### Workflows
+1. **CI**: Runs on every push and PR
+   - Linting
+   - Unit tests
+   - Integration tests
+
+2. **Release**: Triggered on tag creation
+   - Builds collection artifacts
+   - Publishes to Ansible Galaxy
+   - Creates GitHub release
+
+### Deployment Targets
+- **Development**: Test environment for PR validation
+- **Staging**: Pre-production testing
+- **Production**: Official releases
+
+## Community
+
+- **Issues**: [GitHub Issues](https://github.com/levonk/levonk-ansible-galaxy/issues)
+- **Chat**: [Gitter](https://gitter.im/levonk/community)
+- **Twitter**: [@levonk](https://twitter.com/levonk)
+
+## Documentation Generation
+
+Project documentation is generated using:
+- `ansible-doc` for module documentation
+- `mkdocs` for project documentation
+- `ansible-lint` for documentation checks
+
+To build documentation locally:
+```bash
+make docs
+```
+
+## License
+
+[GNU AGPL-3.0](LICENSE) © 2025 levonk
