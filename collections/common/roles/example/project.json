@@ -1,0 +1,46 @@
+{
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "name": "common-example",
+  "sourceRoot": "ansible-galaxy/collections/ansible_collections/levonk/common/roles/example",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/test-role.sh",
+        "args": ["common", "example"],
+        "cwd": "ansible-galaxy",
+        "env": {
+          "COLLECTION": "common",
+          "ROLE": "example",
+          "NAMESPACE": "levonk"
+        }
+      }
+    },
+    "lint": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/lint-role.sh",
+        "args": ["common", "example"],
+        "cwd": "ansible-galaxy",
+        "env": {
+          "COLLECTION": "common",
+          "ROLE": "example",
+          "NAMESPACE": "levonk"
+        }
+      }
+    },
+    "molecule": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "command": "cd ansible-galaxy/collections/ansible_collections/levonk/common/roles/example && molecule test",
+        "env": {
+          "COLLECTION": "common",
+          "ROLE": "example",
+          "NAMESPACE": "levonk"
+        }
+      }
+    }
+  },
+  "tags": ["role", "ansible-galaxy", "common"]
+}

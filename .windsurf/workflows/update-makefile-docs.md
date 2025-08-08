@@ -1,10 +1,10 @@
 ---
-description: How to update Makefile documentation
+description: How to update Makefile and Nx build system documentation
 ---
 
-# Updating Makefile Documentation
+# Updating Makefile and Nx Build System Documentation
 
-This workflow describes how to update the Makefile documentation across the Ansible Galaxy collections repository.
+This workflow describes how to update the Makefile and Nx build system documentation across the Ansible Galaxy collections repository.
 
 ## Steps
 
@@ -45,9 +45,24 @@ This workflow describes how to update the Makefile documentation across the Ansi
 
 6. If the README.md file doesn't exist or doesn't have a Makefile section, create it or add the section manually
 
-7. Commit the changes to version control
+7. Update the Nx build system documentation
+   ```bash
+   # Update the README.md with Nx build system information
+   npm run update-readme
+   
+   # Generate the Nx-powered Makefile
+   npm run makefile
+   
+   # Verify the Nx build system setup
+   npm run verify
+   ```
+
+8. Commit the changes to version control
    ```bash
    git add ansible-galaxy/collections/ansible_collections/namespace/collection/README.md
+   git add NX-BUILD-SYSTEM.md
+   git add MIGRATION-GUIDE.md
+   git add Makefile.nx
    git add ansible-galaxy/collections/ansible_collections/namespace/collection/roles/role/README.md
    git add ansible-galaxy/collections/ansible_collections/namespace/README.md
    git commit -m "Update Makefile documentation"

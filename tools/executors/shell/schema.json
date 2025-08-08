@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "type": "object",
+  "properties": {
+    "command": {
+      "type": "string",
+      "description": "The shell command to execute"
+    },
+    "script": {
+      "type": "string",
+      "description": "Path to the script to execute"
+    },
+    "args": {
+      "type": "array",
+      "description": "Arguments to pass to the script",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cwd": {
+      "type": "string",
+      "description": "Current working directory for the command"
+    },
+    "env": {
+      "type": "object",
+      "description": "Environment variables to set",
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  },
+  "required": ["script"],
+  "oneOf": [
+    { "required": ["script"] },
+    { "required": ["command"] }
+  ]
+}

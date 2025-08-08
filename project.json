@@ -1,0 +1,101 @@
+{
+  "$schema": "node_modules/nx/schemas/project-schema.json",
+  "name": "levonk-ansible-galaxy-workspace",
+  "projectType": "application",
+  "sourceRoot": ".",
+  "targets": {
+    "check-env": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/check-env.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "check-tools": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/check-tools.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "clean": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "command": "rm -rf dist build .nx/cache",
+        "cwd": "."
+      }
+    },
+    "debug": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/debug.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "docs": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/generate-docs.sh",
+        "cwd": "ansible-galaxy"
+      },
+      "outputs": ["docs"]
+    },
+    "lint-yaml": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/lint-yaml.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "lint-markdown": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/lint-markdown.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "lint-ansible": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/lint-ansible.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "lint-make": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/lint-make.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "version": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "bin/print-version.sh",
+        "cwd": "."
+      }
+    },
+    "status": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/status.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "sync": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/sync.sh",
+        "cwd": "ansible-galaxy"
+      }
+    },
+    "shell": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/shell.sh",
+        "cwd": "ansible-galaxy"
+      }
+    }
+  },
+  "tags": ["workspace", "ansible-galaxy"]
+}

@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "run": {
+      "implementation": "./impl",
+      "schema": "./schema.json",
+      "description": "Executes shell scripts with environment variables"
+    }
+  }
+}

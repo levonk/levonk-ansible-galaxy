@@ -138,11 +138,6 @@ This project uses Docker containers to provide a consistent development and test
 4. **Versioning**: Use `make promote` to increment versions before publishing
 5. **Publishing**: Use `make publish-beta` or `make prod` to publish to respective servers
 
-## Makefile Targets
-
-The project uses a Makefile to automate various tasks. Here are the available targets:
-
-### Build and Test
 
 - `build`: Build all collections and create distribution artifacts
   - Run with `V=1` for verbose output (e.g., `make V=1 build`)
@@ -473,11 +468,6 @@ This repository contains a collection of Ansible roles and modules for managing 
 - `/workspace`: Project root
 - `~/.ansible/collections`: Local collections cache
 
-## Makefile Structure
-
-This project uses a hierarchical Makefile system that follows the DRY (Don't Repeat Yourself) principle. The key aspects of the Makefile structure are:
-
-### Top-Level Makefile
 - Located at `ansible-galaxy/Makefile`
 - Handles all build, test, and publish operations
 - Can operate on all collections or a single specified collection
@@ -498,13 +488,13 @@ This project uses a hierarchical Makefile system that follows the DRY (Don't Rep
 #### Building Collections
 ```bash
 # Build all collections
-make build
+nx build
 
 # Build a specific collection
-make build COLLECTION=server_llmchat
+nx build COLLECTION=server_llmchat
 # or from within a collection directory
 cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
-make build
+nx build
 ```
 
 #### Publishing Collections
@@ -531,11 +521,6 @@ cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
 make install-beta
 ```
 
-## Makefile Reference
-
-This project uses a Makefile to automate common development and deployment tasks. Below is a reference of all available targets organized by workflow.
-
-### Development Workflow
 
 | Target | Description |
 |--------|-------------|
@@ -906,13 +891,13 @@ Each module should include:
 
 ```bash
 # Run all tests
-make test
+nx test
 
 # Test specific collection
-make test COLLECTION=collection_name
+nx test COLLECTION=collection_name
 
 # Run with verbose output
-make test V=1
+nx test V=1
 ```
 
 ### Writing Tests

@@ -1,0 +1,38 @@
+{
+  "name": "levonk-ansible-galaxy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ansible Galaxy collections for levonk namespace",
+  "scripts": {
+    "nx": "nx",
+    "build": "nx run-many --target=build --all",
+    "test": "nx run-many --target=test --all",
+    "lint": "nx run-many --target=lint --all",
+    "publish-beta": "nx run-many --target=publish-beta --all",
+    "publish-prod": "nx run-many --target=publish-prod --all",
+    "promote": "nx run-many --target=promote --all",
+    "promote-build": "nx run-many --target=promote-build --all",
+    "promote-minor": "nx run-many --target=promote-minor --all",
+    "promote-major": "nx run-many --target=promote-major --all",
+    "inst-src": "nx run-many --target=inst-src --all",
+    "inst-repo": "nx run-many --target=inst-repo --all",
+    "inst-build": "nx run-many --target=inst-build --all",
+    "inst-beta": "nx run-many --target=inst-beta --all",
+    "inst-prod": "nx run-many --target=inst-prod --all",
+    "uninstall": "nx run-many --target=uninstall --all",
+    "new-collection": "node ./tools/scripts/new-collection.js",
+    "new-role": "node ./tools/scripts/new-role.js",
+    "new-module": "node ./tools/scripts/new-module.js",
+    "help": "node ./tools/scripts/help.js",
+    "generate-projects": "node ./tools/scripts/generate-nx-projects.js",
+    "generate-wrappers": "node ./tools/scripts/generate-script-wrappers.js",
+    "ensure-directories": "node ./tools/scripts/ensure-directories.js",
+    "update-readme": "node ./tools/scripts/update-readme.js",
+    "verify": "node ./tools/scripts/verify-nx-setup.js",
+    "setup": "npm run ensure-directories && npm run generate-projects && npm run generate-wrappers && npm run update-readme && npm run makefile"
+  },
+  "devDependencies": {
+    "nx": "^16.0.0",
+    "yargs": "^17.7.2"
+  }
+}

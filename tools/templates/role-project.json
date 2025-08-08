@@ -1,0 +1,46 @@
+{
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "name": "{{collectionName}}-{{roleName}}",
+  "sourceRoot": "ansible-galaxy/collections/ansible_collections/levonk/{{collectionName}}/roles/{{roleName}}",
+  "projectType": "library",
+  "targets": {
+    "test": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/test-role.sh",
+        "args": ["{{collectionName}}", "{{roleName}}"],
+        "cwd": "ansible-galaxy",
+        "env": {
+          "COLLECTION": "{{collectionName}}",
+          "ROLE": "{{roleName}}",
+          "NAMESPACE": "levonk"
+        }
+      }
+    },
+    "lint": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "script": "ansible-galaxy/bin/lint-role.sh",
+        "args": ["{{collectionName}}", "{{roleName}}"],
+        "cwd": "ansible-galaxy",
+        "env": {
+          "COLLECTION": "{{collectionName}}",
+          "ROLE": "{{roleName}}",
+          "NAMESPACE": "levonk"
+        }
+      }
+    },
+    "molecule": {
+      "executor": "./tools/executors/shell:run",
+      "options": {
+        "command": "cd ansible-galaxy/collections/ansible_collections/levonk/{{collectionName}}/roles/{{roleName}} && molecule test",
+        "env": {
+          "COLLECTION": "{{collectionName}}",
+          "ROLE": "{{roleName}}",
+          "NAMESPACE": "levonk"
+        }
+      }
+    }
+  },
+  "tags": ["role", "ansible-galaxy", "{{collectionName}}"]
+}
