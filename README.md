@@ -114,7 +114,7 @@ This project uses Docker containers to provide a consistent development and test
 3. **Build and test collections**
    ```bash
    # Inside the container
-   make build lint test
+   bun run build && bun run lint && bun run test
    ```
 
 4. **Test installation in a clean environment**
@@ -133,14 +133,14 @@ This project uses Docker containers to provide a consistent development and test
 ## Development Workflow
 
 1. **Collection Development**: Work within `ansible-galaxy/collections/ansible_collections/levonk/{collection_name}`
-2. **Building**: Use `make build` to create distribution artifacts in `dist/`
-3. **Testing**: Run `make test` to execute tests
-4. **Versioning**: Use `make promote` to increment versions before publishing
-5. **Publishing**: Use `make publish-beta` or `make prod` to publish to respective servers
+2. **Building**: Use `bun run build` (or `bunx nx run-many --target=build --all`) to create distribution artifacts in `dist/`
+3. **Testing**: Run `bun run test` (or `bunx nx run-many --target=test --all`)
+4. **Versioning**: Use `bun run promote-build | promote-minor | promote-major` to increment versions before publishing
+5. **Publishing**: Use `bun run publish-beta` or `bun run publish-prod` to publish to respective servers
 
 
 - `build`: Build all collections and create distribution artifacts
-  - Run with `V=1` for verbose output (e.g., `make V=1 build`)
+  - Add `--verbose` to see detailed logs (e.g., `bunx nx run-many --target=build --all --verbose`)
 - `clean`: Clean the distribution directory
 - `test`: Run tests for all collections
 - `lint`: Run all linting checks
@@ -172,7 +172,7 @@ This project uses Docker containers to provide a consistent development and test
 - `new-module`: Create a new module within a collection
   ```bash
   # Create a new module in a specific collection
-  make new-module COLLECTION=collection_name MODULE=module_name
+  bun run new-module -- --collection=collection_name --name=module_name
   ```
 - `debug`: Run debugging tools
 
@@ -188,7 +188,7 @@ All test targets automatically clean the execution environment (`ee-clean`) befo
 
 ### Publishing Pipeline
 
-#### Beta Release (run `make beta`)
+#### Beta Release (run `bun run publish-beta`)
 1. **Phase 1: Verify Current Version**
    - Clean environment and verify all prerequisites
    - Build and test with current version numbers
@@ -207,7 +207,7 @@ All test targets automatically clean the execution environment (`ee-clean`) befo
    - `git-tag-beta`: Create version tag in `tags/env/beta/{YYYYMM}/levonk-{version}`
    - `inst-beta`: (Optional) Install beta version locally
 
-#### Production Release (run `make prod`)
+#### Production Release (run `bun run publish-prod`)
 > **Prerequisite**: A successful beta release must be completed first
 
 1. **Phase 1: Verify Beta Complete**
@@ -412,7 +412,7 @@ graph TD
         check-tools --> check-pyenv
         check-tools --> check-uv
         check-tools --> check-docker
-        check-tools --> check-make
+        check-tools --> check-node
     end
 ```
 
@@ -421,7 +421,17 @@ graph TD
 ### Prerequisites
 - Docker and Docker Compose
 - Git
-- GNU Make 4.0+
+- Bun 1.x (use `bun run ...` and `bunx nx ...`)
+- Node.js 18+ (runtime used by Nx; Bun provides compatible tooling)
+
+## Tech Stack
+
+- Bun: primary package manager and script runner (`bun run`, `bunx`)
+- Nx: task orchestration for build/test/lint/publish
+- Python: managed via `pyenv` + `venv`; packages via `uv`
+- Ansible: `ansible`, `ansible-galaxy`, `ansible-lint`, `molecule`, `yamllint`
+- Docker/Compose: containerized dev/test environments
+- Git: version control
 
 ### Basic Commands
 ```bash
@@ -429,13 +439,13 @@ graph TD
 git clone <repository-url> && cd levonk-ansible-galaxy
 
 # Start the development environment
-make dev-shell
+bunx nx run levonk-ansible-galaxy-workspace:shell
 
 # Build and test all collections
-make all
+bun run build && bun run test
 
 # Create a new module in a collection
-make new-module COLLECTION=mycollection MODULE=mymodule
+bun run new-module -- --collection=mycollection --name=mymodule
 ```
 
 ## Project Context
@@ -497,28 +507,54 @@ cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
 nx build
 ```
 
+##### Using Bun
+```bash
+# Build all collections via package.json scripts
+bun run build
+
+# Or call Nx directly via bunx
+bunx nx run-many --target=build --all
+
+# Build a specific collection (env var pattern preserved)
+bunx nx build COLLECTION=server_llmchat
+
+# Run a specific project's build target
+bunx nx run common:build
+```
+
+##### Running a single project/target (Nx and Bun)
+```bash
+# Nx
+nx run common:build
+nx run common:publish-beta
+
+# Bun
+bunx nx run common:build
+bunx nx run common:publish-beta
+```
+
 #### Publishing Collections
 ```bash
 # Publish all collections to beta server
-make publish-beta
+bun run publish-beta
 
 # Publish a specific collection to production
-make publish-prod COLLECTION=server_llmchat
+bunx nx run server_llmchat:publish-prod
 # or from within a collection directory
 cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
-make publish-prod
+bunx nx run server_llmchat:publish-prod
 ```
 
 #### Installing Collections
 ```bash
 # Install all collections from source
-make install-src
+bun run inst-src
 
 # Install a specific collection from beta
-make install-beta COLLECTION=server_llmchat
+bunx nx run server_llmchat:inst-beta
 # or from within a collection directory
 cd ansible-galaxy/collections/ansible_collections/levonk/server_llmchat
-make install-beta
+bunx nx run server_llmchat:inst-beta
 ```
 
 
@@ -610,7 +646,7 @@ make install-beta
 | `check-pyenv` | Verify pyenv installation | - |
 | `check-uv` | Verify uv installation | `check-python` |
 | `check-docker` | Verify Docker/Podman installation | - |
-| `check-make` | Verify make installation | - |
+| `check-node` | Verify Node.js installation | - |
 | `check-ansible-lint` | Verify ansible-lint | `check-python` |
 | `check-yamllint` | Verify yamllint | `check-python` |
 | `check-markdownlint` | Verify markdownlint | `check-node` |
@@ -620,7 +656,7 @@ make install-beta
 | `check-molecule` | Verify molecule | `check-python`, `check-docker` |
 | `check-linters` | Verify all linting tools | (individual linter checks) |
 | `check-tests` | Verify testing tools | (individual test tool checks) |
-| `check-tools` | Verify required tools | `check-git`, `check-python`, `check-ansible`, `check-pyenv`, `check-uv`, `check-docker`, `check-make` |
+| `check-tools` | Verify required tools | `check-git`, `check-python`, `check-ansible`, `check-pyenv`, `check-uv`, `check-docker`, `check-node` |
 | `env-check` | Run all environment checks | (all check-* targets) |
 | `ee-check` | Check Docker environment | `check-docker` |
 | `ee-build` | Build execution environment | `check-docker` |
@@ -700,37 +736,37 @@ These targets provide additional functionality and checks:
 
 ## Installation Methods
 
-This project provides several ways to install collections, each suitable for different use cases. All installation methods are available as Makefile targets in `ansible-galaxy/Makefile` and as individual scripts in `ansible-galaxy/bin/`.
+This project provides several ways to install collections, each suitable for different use cases. All installation methods are available as Nx targets and as individual scripts in `ansible-galaxy/bin/`.
 
 ### Available Installation Methods
 
 1. **From Source**
    - **Use case**: Development and testing of local changes
-   - **Make target**: `make inst-src [collection1 collection2 ...]`
+   - **Nx target**: `bunx nx run <collection>:inst-src` (all: `bun run inst-src`)
    - **Script**: `./bin/install-from-src.sh [collection1 collection2 ...]`
    - **Description**: Installs collections directly from the source directories. This is the fastest way to test local changes without building or publishing.
 
 2. **From Git Repository**
    - **Use case**: Installing from a specific branch or tag
-   - **Make target**: `make inst-repo [branch] [collection1 collection2 ...]`
+   - **Nx target**: `bunx nx run <collection>:inst-repo`
    - **Script**: `./bin/install-from-repo.sh [branch] [collection1 collection2 ...]`
    - **Description**: Clones the repository (or a specific branch) and installs collections from it. Useful for testing changes from a feature branch or specific version.
 
 3. **From Build Artifacts**
    - **Use case**: Testing built collections before publishing
-   - **Make target**: `make inst-build [collection1 collection2 ...]`
+   - **Nx target**: `bunx nx run <collection>:inst-build`
    - **Script**: `./bin/install-from-build.sh [collection1 collection2 ...]`
    - **Description**: Installs collections from the built artifacts in the `dist/` directory. This verifies that the built packages work as expected.
 
 4. **From Beta Server**
    - **Use case**: Testing collections in a staging environment
-   - **Make target**: `make inst-beta [collection1 collection2 ...]`
+   - **Nx target**: `bunx nx run <collection>:inst-beta` (all: `bun run inst-beta`)
    - **Script**: `./bin/install-from-beta.sh [collection1 collection2 ...]`
    - **Description**: Installs collections from the beta server (galaxy-dev.ansible.com). Requires authentication if the collections are not public.
 
 5. **From Production Server**
    - **Use case**: Production deployment
-   - **Make target**: `make inst-prod [collection1 collection2 ...]`
+   - **Nx target**: `bunx nx run <collection>:inst-prod` (all: `bun run inst-prod`)
    - **Script**: `./bin/install-from-prod.sh [collection1 collection2 ...]`
    - **Description**: Installs collections from the production Ansible Galaxy server (galaxy.ansible.com).
 
@@ -738,22 +774,25 @@ This project provides several ways to install collections, each suitable for dif
 
 ```bash
 # Install all collections from source (development)
-make inst-src
+bun run inst-src
 
 # Install specific collections from source
-make inst-src common gamer
+bunx nx run common:inst-src
+bunx nx run gamer:inst-src
 
 # Install all collections from a specific git branch
-make inst-repo feature/new-feature
+bunx nx run <collection>:inst-repo
 
 # Install specific collections from build artifacts
-make inst-build base_system user_setup
+bunx nx run base_system:inst-build
+bunx nx run user_setup:inst-build
 
 # Install all collections from beta server
-make inst-beta
+bun run inst-beta
 
 # Install specific collections from production
-make inst-prod common base_system
+bunx nx run common:inst-prod
+bunx nx run base_system:inst-prod
 ```
 
 ### Configuration
@@ -779,7 +818,7 @@ All installation methods will automatically run any available test playbooks aft
 Publish collections to the beta server for testing:
 
 ```bash
-make beta
+bun run publish-beta
 ```
 
 ### Publish to Production
@@ -787,7 +826,7 @@ make beta
 Publish collections to the production Ansible Galaxy server:
 
 ```bash
-make prod
+bun run publish-prod
 ```
 
 ## Local Development
@@ -866,7 +905,7 @@ collection_paths={repo-root}/ansible-galaxy/collections:{the-other-paths}
 To create a new module in a collection:
 
 ```bash
-make new-module COLLECTION=collection_name MODULE=module_name
+bun run new-module -- --collection=collection_name --name=module_name
 ```
 
 This will create:
@@ -900,6 +939,21 @@ nx test COLLECTION=collection_name
 nx test V=1
 ```
 
+##### Using Bun
+```bash
+# Run all tests via package.json scripts
+bun run test
+
+# Or call Nx directly via bunx
+bunx nx run-many --target=test --all
+
+# Test a specific collection (env var pattern preserved)
+bunx nx test COLLECTION=collection_name
+
+# Verbose mode passthrough
+bunx nx test V=1
+```
+
 ### Writing Tests
 1. Place test playbooks in `tests/`
 2. Add Molecule scenarios for module testing
@@ -910,12 +964,12 @@ nx test V=1
 ### Versioning Scheme
 - Follows [Semantic Versioning](https://semver.org/)
 - Version format: `MAJOR.MINOR.PATCH`
-- Use `make promote` to increment versions
+- Use `bun run promote-build` | `bun run promote-minor` | `bun run promote-major` to increment versions
 
 ### Release Process
-1. Update version in `common.mk`
-2. Run `make beta` for beta release
-3. After testing, run `make prod` for production
+1. Update version in `galaxy.yml`/Nx targets as needed
+2. Run `bun run publish-beta` for beta release
+3. After testing, run `bun run publish-prod` for production
 
 ## Security
 
@@ -935,7 +989,7 @@ Please report security issues to security@example.com
 ### Adding New Collections
 1. Create a new collection:
    ```bash
-   make new-collection NAME=collection_name
+   bun run new-collection -- --name=collection_name
    ```
 2. Add roles and content to the collection
 3. Update collection's `galaxy.yml` with proper metadata
@@ -946,7 +1000,7 @@ Please report security issues to security@example.com
 2. Update version in `galaxy.yml`
 3. Run tests:
    ```bash
-   make test COLLECTION=collection_name
+   bunx nx run collection_name:test
    ```
 4. Commit changes with a descriptive message
 
@@ -981,7 +1035,7 @@ Please report security issues to security@example.com
 - Include test scenarios in `molecule/`
 
 ### Linting and Style
-- Run `make lint` to check code style
+- Run `bun run lint` to check code style (per collection: `bunx nx run <collection>:lint`)
 - Use `ansible-lint` for best practices
 - Follow Ansible content conventions
 
@@ -992,8 +1046,7 @@ Please report security issues to security@example.com
 #### Module Not Found
 ```bash
 # Ensure the collection is installed
-make inst-src
-
+bun run inst-src
 # Check collection path
 ansible-config dump | grep COLLECTIONS_PATHS
 ```
@@ -1008,7 +1061,7 @@ chmod +x bin/*
 
 ### How do I create a new module?
 ```bash
-make new-module COLLECTION=mycollection MODULE=mymodule
+bun run new-module -- --collection=mycollection --name=mymodule
 ```
 
 ### How do I test a specific module?
@@ -1052,7 +1105,7 @@ Project documentation is generated using:
 
 To build documentation locally:
 ```bash
-make docs
+bunx nx run levonk-ansible-galaxy-workspace:docs
 ```
 
 ## License
