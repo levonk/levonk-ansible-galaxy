@@ -1,7 +1,7 @@
 {
   "executors": {
     "run": {
-      "implementation": "./impl",
+      "implementation": "./impl.cjs",
       "schema": "./schema.json",
       "description": "Executes shell scripts with environment variables"
     }

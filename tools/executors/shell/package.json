@@ -1,0 +1,6 @@
+{
+  "name": "@workspace/shell-executor",
+  "version": "0.0.0",
+  "type": "module",
+  "executors": "./executor.json"
+}
