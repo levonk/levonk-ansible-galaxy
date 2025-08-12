@@ -1,0 +1,33 @@
+---
+# macOS battery saver entrypoint for architecture-specific installation
+#
+# This task file decides which implementation to run based on the machine
+# architecture:
+# - Intel (x86_64): install AlDente via Homebrew Cask
+# - Apple Silicon (arm64/aarch64): install actuallymentor/battery via Cask
+#
+# Copyright (c) 2025 the person whose account is
+# https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+
+- name: Include battery saver for Apple Silicon Macs (arm64/aarch64)
+  ansible.builtin.include_tasks: battery-saver-applesilicon.yml
+  when:
+    - ansible_system == 'Darwin'
+    - ansible_architecture in ['arm64', 'aarch64']
+  tags:
+    - tools
+    - darwin
+    - battery
+    - battery_saver
+
+- name: Include battery saver for Intel Macs (x86_64)
+  ansible.builtin.include_tasks: battery-saver-intel.yml
+  when:
+    - ansible_system == 'Darwin'
+    - ansible_architecture == 'x86_64'
+  tags:
+    - tools
+    - darwin
+    - battery
+    - battery_saver

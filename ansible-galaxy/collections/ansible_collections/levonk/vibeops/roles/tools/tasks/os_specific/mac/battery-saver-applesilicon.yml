@@ -1,0 +1,39 @@
+---
+# Apple Silicon battery saver install tasks
+#
+# Installs the actuallymentor/battery utility via Homebrew Cask on Apple Silicon
+# Macs (M1/M2/M3). This app provides charging control and a CLI.
+#
+# Note: After installation, opening the Battery app once is typically required
+# by macOS to finalize helper/CLI setup. We do not auto-open GUI apps from
+# automation; see the debug task below for guidance.
+#
+# Copyright (c) 2025 the person whose account is
+# https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+
+- name: Install Battery (actuallymentor/battery) via Homebrew Cask
+  community.general.homebrew_cask:
+    name: battery
+    state: present
+  tags:
+    - tools
+    - darwin
+    - battery
+    - battery_saver
+    - apple_silicon
+
+- name: Post-install note for Battery
+  debug:
+    msg: |
+      Battery installed. For full functionality, open the Battery app once to
+      allow macOS to complete helper/CLI setup. CLI examples:
+        - battery status
+        - battery maintain 80
+        - battery stop
+  tags:
+    - tools
+    - darwin
+    - battery
+    - battery_saver
+    - apple_silicon

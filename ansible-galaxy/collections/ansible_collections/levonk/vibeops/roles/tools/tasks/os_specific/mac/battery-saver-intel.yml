@@ -1,0 +1,39 @@
+---
+# Intel (x86_64) battery saver install tasks
+#
+# Installs AlDente via Homebrew Cask on Intel-based Macs. AlDente limits the
+# maximum battery charging percentage to preserve battery health.
+#
+# Reference:
+# - https://apphousekitchen.com/aldente-overview/features/
+# - Brew cask: https://formulae.brew.sh/cask/aldente
+#
+# Note: Some features may require opening the app and granting permissions.
+# We do not auto-open GUI apps from automation; see the debug task below.
+#
+# Copyright (c) 2025 the person whose account is
+# https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+
+- name: Install AlDente via Homebrew Cask (Intel Macs)
+  community.general.homebrew_cask:
+    name: aldente
+    state: present
+  tags:
+    - tools
+    - darwin
+    - battery
+    - battery_saver
+    - intel
+
+- name: Post-install note for AlDente
+  debug:
+    msg: |
+      AlDente installed. Open the app to set your preferred charge limit
+      (e.g., 80%). Some features may require additional permissions.
+  tags:
+    - tools
+    - darwin
+    - battery
+    - battery_saver
+    - intel
