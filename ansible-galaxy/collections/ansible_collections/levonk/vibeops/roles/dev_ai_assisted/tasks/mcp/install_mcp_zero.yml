@@ -1,0 +1,87 @@
+---
+# Install MCP-Zero - Active Tool Discovery for Autonomous LLM Agents
+# Repository: https://github.com/xfey/MCP-Zero
+# Paper: https://arxiv.org/abs/2506.01056
+# Installs MCP-Zero by cloning the repository during runtime
+
+- name: "Set MCP-Zero installation directory"
+  ansible.builtin.set_fact:
+    mcp_zero_install_dir: "{{ mcp_zero_install_dir | default(ansible_env.HOME + '/.local/share/mcp-zero') }}"
+    mcp_zero_data_dir: "{{ mcp_zero_install_dir }}/MCP-tools"
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Create MCP-Zero installation directory"
+  ansible.builtin.file:
+    path: "{{ mcp_zero_install_dir }}"
+    state: directory
+    mode: '0755'
+  register: mcp_zero_install_dir_created
+  changed_when: false
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Check if MCP-Zero is already installed"
+  ansible.builtin.stat:
+    path: "{{ mcp_zero_install_dir }}/README.md"
+  register: mcp_zero_installed
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Clone or update MCP-Zero repository"
+  ansible.builtin.git:
+    repo: https://github.com/xfey/MCP-Zero.git
+    dest: "{{ mcp_zero_install_dir }}"
+    version: main
+    update: yes
+    force: no
+  register: mcp_zero_repo_updated
+  when: not mcp_zero_installed.stat.exists or mcp_zero_install_dir_created.changed
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Create MCP-tools data directory"
+  ansible.builtin.file:
+    path: "{{ mcp_zero_data_dir }}"
+    state: directory
+    mode: '0755'
+  when: mcp_zero_repo_updated is changed or not mcp_zero_installed.stat.exists
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Download MCP-tools dataset (if not already present)"
+  ansible.builtin.get_url:
+    url: https://drive.google.com/uc?export=download&id=1RjBGU-AGdHdhUABoeYSztbfQlD0hjUBn
+    dest: "{{ mcp_zero_data_dir }}/mcp_tools_with_embedding.json"
+    mode: '0644'
+    force: no
+  register: mcp_zero_dataset_downloaded
+  when: not mcp_zero_installed.stat.exists or mcp_zero_repo_updated is changed
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Install Python dependencies"
+  ansible.builtin.pip:
+    requirements: "{{ mcp_zero_install_dir }}/requirements.txt"
+    state: present
+    virtualenv: "{{ ansible_env.HOME }}/.virtualenvs/mcp-zero"
+    virtualenv_python: python3
+    virtualenv_site_packages: true
+  when: mcp_zero_repo_updated is changed or not mcp_zero_installed.stat.exists
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Set environment variables"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: "export MCP_ZERO_HOME={{ mcp_zero_install_dir }}"
+    regexp: '^export MCP_ZERO_HOME='
+    state: present
+  register: mcp_zero_env_updated
+  tags: ['mcp-zero', 'ai', 'dev-tools']
+
+- name: "Display MCP-Zero installation information"
+  ansible.builtin.debug:
+    msg: |
+      MCP-Zero has been installed to: {{ mcp_zero_install_dir }}
+      
+      To use MCP-Zero, you can run:
+      cd {{ mcp_zero_install_dir }}
+      python -m MCP-zero.experiment_mcptools  # Run the MCP-tools experiment
+      
+      The MCP-tools dataset is available at: {{ mcp_zero_data_dir }}/mcp_tools_with_embedding.json
+  when: mcp_zero_repo_updated is changed or mcp_zero_dataset_downloaded is changed or mcp_zero_env_updated is changed
+  tags: ['mcp-zero', 'ai', 'dev-tools']

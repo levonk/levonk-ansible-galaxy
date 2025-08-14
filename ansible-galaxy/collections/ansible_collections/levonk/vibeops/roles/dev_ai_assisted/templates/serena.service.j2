@@ -1,0 +1,15 @@
+[Unit]
+Description=Serena MCP Server
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user_id | default('root') }}
+WorkingDirectory={{ serena_install_dir }}
+Environment="PATH={{ ansible_env.PATH }}"
+ExecStart=/usr/bin/uv run --python 3 --directory {{ serena_install_dir }} serena start-mcp-server --transport sse --port 9121
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

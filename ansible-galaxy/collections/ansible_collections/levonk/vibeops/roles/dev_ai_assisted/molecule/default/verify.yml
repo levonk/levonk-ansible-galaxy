@@ -48,9 +48,119 @@
       failed_when: gemini_path.rc != 0
       when: ansible_facts['os_family'] != "Windows"
 
+    - name: "Check for Archon installation directory"
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/share/archon"
+      register: archon_dir
+
+    - name: "Assert Archon is installed"
+      ansible.builtin.assert:
+        that:
+          - archon_dir.stat.exists
+          - archon_dir.stat.isdir
+        fail_msg: "Archon installation directory not found at {{ ansible_env.HOME }}/.local/share/archon"
+
+    - name: "Check for Archon main script"
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/share/archon/archon.py"
+      register: archon_script
+
+    - name: "Assert Archon main script exists and is executable"
+      ansible.builtin.assert:
+        that:
+          - archon_script.stat.exists
+          - archon_script.stat.mode is defined
+          - (archon_script.stat.mode | int) & 0o111 != 0  # Check if executable bit is set
+        fail_msg: "Archon main script not found or not executable at {{ ansible_env.HOME }}/.local/share/archon/archon.py"
+
     - name: "Assert Gemini CLI is installed"
       ansible.builtin.assert:
         that:
           - gemini_path.rc == 0
         fail_msg: "Gemini CLI 'gemini' command not found in PATH"
       when: ansible_facts['os_family'] != "Windows"
+
+    # Serena installation verification
+    - name: "Check for Serena installation directory"
+      ansible.builtin.stat:
+        path: "{{ ansible_env.HOME }}/.local/share/serena"
+      register: serena_dir
+      tags: ['serena', 'mcp']
+
+    - name: "Assert Serena is installed"
+      ansible.builtin.assert:
+        that:
+          - serena_dir.stat.exists
+          - serena_dir.stat.isdir
+        fail_msg: "Serena installation directory not found at {{ ansible_env.HOME }}/.local/share/serena"
+      tags: ['serena', 'mcp']
+
+    - name: "Check for uv package manager"
+      ansible.builtin.command:
+        cmd: "which uv"
+      register: uv_path
+      changed_when: false
+      failed_when: uv_path.rc != 0
+      when: ansible_facts['os_family'] != "Windows"
+      tags: ['serena', 'mcp']
+
+    - name: "Assert uv package manager is installed"
+      ansible.builtin.assert:
+        that:
+          - uv_path.rc == 0
+        fail_msg: "uv package manager not found in PATH. Required for Serena installation."
+      when: ansible_facts['os_family'] != "Windows"
+      tags: ['serena', 'mcp']
+
+    - name: "Check Serena installation (non-Windows)"
+      ansible.builtin.command:
+        cmd: "uv run --python 3 --directory {{ ansible_env.HOME }}/.local/share/serena serena --version"
+      register: serena_version
+      changed_when: false
+      failed_when: serena_version.rc != 0
+      when: ansible_facts['os_family'] != "Windows"
+      tags: ['serena', 'mcp']
+
+    - name: "Assert Serena is properly installed (non-Windows)"
+      ansible.builtin.assert:
+        that:
+          - serena_version.rc == 0
+        fail_msg: "Serena installation verification failed. Command 'serena --version' did not execute successfully."
+      when: ansible_facts['os_family'] != "Windows"
+      tags: ['serena', 'mcp']
+
+    # Systemd service verification (Linux only)
+    - name: "Check if systemd is available"
+      ansible.builtin.stat:
+        path: /run/systemd/system
+      register: systemd_available
+      when: ansible_facts['os_family'] not in ['Windows', 'Darwin']
+      tags: ['serena', 'mcp', 'systemd']
+
+    - name: "Verify Serena systemd service (systemd systems only)"
+      block:
+        - name: "Check Serena service file"
+          ansible.builtin.stat:
+            path: /etc/systemd/system/serena.service
+          register: serena_service_file
+
+        - name: "Assert Serena service file exists"
+          ansible.builtin.assert:
+            that:
+              - serena_service_file.stat.exists
+            fail_msg: "Serena systemd service file not found at /etc/systemd/system/serena.service"
+
+        - name: "Check Serena service status"
+          ansible.builtin.systemd:
+            name: serena
+            enabled: yes
+          register: serena_service_status
+
+        - name: "Assert Serena service is enabled"
+          ansible.builtin.assert:
+            that:
+              - serena_service_status.enabled
+            fail_msg: "Serena service is not enabled to start on boot"
+
+      when: systemd_available.stat.exists is defined and systemd_available.stat.exists
+      tags: ['serena', 'mcp', 'systemd']

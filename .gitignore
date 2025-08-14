@@ -106,7 +106,6 @@ group_vars/local.yaml
 downloads/
 *.tar.gz
 roles/external/
-collections/ansible_collections/*
 *.info/
 .markers
 .ansible/

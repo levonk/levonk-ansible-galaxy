@@ -31,6 +31,53 @@ This repository contains a collection of Ansible roles for managing and provisio
 └── tests/                         # Test playbooks and test data
 ```
 
+### Tools Directory
+
+The `tools/` directory contains development and build tooling for the project. It's a central place for scripts and configurations that help with various development tasks, from project generation to build automation.
+
+```
+tools/
+├── executors/              # Custom Nx executors
+│   └── shell/              # Shell command executor
+│       ├── executor.json   # Executor configuration
+│       ├── impl.js         # Main implementation (legacy)
+│       ├── impl.mjs        # ESM implementation
+│       ├── impl.cjs        # CJS wrapper for ESM
+│       ├── package.json    # Package configuration
+│       └── schema.json     # Schema for executor options
+├── scripts/                # Utility scripts
+│   ├── ensure-directories.js  # Creates required directories
+│   ├── generate-nx-projects.js # Generates Nx project configurations
+│   ├── generate-script-wrappers.js # Creates script wrappers
+│   ├── help.js             # Displays help information
+│   ├── makefile-nx-bridge.js # Bridges Makefile and Nx
+│   ├── new-collection.js   # Creates new collection structure
+│   ├── new-module.js       # Creates new module structure
+│   ├── new-role.js         # Creates new role structure
+│   ├── update-readme.js    # Updates README documentation
+│   └── verify-nx-setup.js  # Verifies Nx setup
+└── templates/              # Template files
+    ├── collection-project.json  # Template for new collections
+    └── role-project.json       # Template for new roles
+```
+
+#### Key Components:
+
+1. **Executors**
+   - Custom Nx executors for running shell commands and other operations
+   - Supports both ESM and CommonJS modules for compatibility
+   - Defines schemas for input validation
+
+2. **Scripts**
+   - Node.js scripts for project scaffolding and maintenance
+   - Handles project generation, configuration, and verification
+   - Integrates with Nx for build automation
+
+3. **Templates**
+   - JSON templates for generating new collections and roles
+   - Ensures consistent project structure
+   - Used by the generator scripts
+
 ### Key Directories
 
 - **ansible-galaxy/bin/**: Contains executable scripts for various operations like version promotion and publishing.

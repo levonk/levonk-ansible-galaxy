@@ -1,0 +1,140 @@
+---
+# Install Serena - A powerful coding agent toolkit
+# Repository: https://github.com/oraios/serena
+# Installs Serena by cloning the repository during runtime
+
+- name: "Set Serena installation directory"
+  ansible.builtin.set_fact:
+    serena_install_dir: "{{ serena_install_dir | default(ansible_env.HOME + '/.local/share/serena') }}"
+    serena_config_dir: "{{ ansible_env.HOME }}/.config/serena"
+    serena_config_file: "{{ ansible_env.HOME }}/.config/serena/serena.toml"
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Create Serena installation directory"
+  ansible.builtin.file:
+    path: "{{ serena_install_dir }}"
+    state: directory
+    mode: '0755'
+  register: serena_install_dir_created
+  changed_when: false
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Check if uv is installed"
+  ansible.builtin.command: which uv
+  register: uv_installed
+  changed_when: false
+  failed_when: false
+  check_mode: no
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Install uv if not present (required for Serena)"
+  ansible.builtin.pip:
+    name: uv
+    state: present
+    executable: pip3
+  when: uv_installed.rc != 0 and not ansible_check_mode
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Check if Serena is already installed"
+  ansible.builtin.stat:
+    path: "{{ serena_install_dir }}/pyproject.toml"
+  register: serena_installed
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Clone or update Serena repository"
+  ansible.builtin.git:
+    repo: https://github.com/oraios/serena.git
+    dest: "{{ serena_install_dir }}"
+    version: main
+    update: yes
+    force: no
+  register: serena_clone
+  when: not serena_installed.stat.exists
+  notify: "Install Serena dependencies"
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Verify Serena installation"
+  ansible.builtin.command: >
+    uv run --python 3 --directory "{{ serena_install_dir }}" serena --version
+  register: serena_version_check
+  changed_when: false
+  failed_when: false
+  check_mode: no
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Install or update Serena"
+  block:
+    - name: "Install/update Serena dependencies"
+      ansible.builtin.pip:
+        requirements: "{{ serena_install_dir }}/requirements.txt"
+        state: present
+        executable: pip3
+      notify: "Restart Serena service"
+
+    - name: "Install/update Serena in development mode"
+      ansible.builtin.command: >
+        uv pip install -e "{{ serena_install_dir }}"
+      args:
+        removes: "{{ serena_install_dir }}/.installed"
+      register: serena_install
+      changed_when: "'Successfully installed' in serena_install.stderr"
+      notify: "Restart Serena service"
+  when: >
+    serena_clone is changed or
+    serena_version_check.rc != 0 or
+    serena_install is not defined
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Create Serena configuration directory"
+  ansible.builtin.file:
+    path: "{{ serena_config_dir }}"
+    state: directory
+    mode: '0755'
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Create default Serena configuration if it doesn't exist"
+  ansible.builtin.command: >
+    uv run --python 3 --directory "{{ serena_install_dir }}" serena config show
+  args:
+    creates: "{{ serena_config_file }}"
+  when: not ansible_check_mode and not serena_config_file | exists
+  tags: ['serena', 'ai', 'dev-tools']
+  register: serena_config_created
+
+- name: "Add Serena to PATH in .bashrc"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$PATH:{{ serena_install_dir }}/bin"'
+    regexp: '^export PATH=.*serena.*bin'
+    state: present
+    insertafter: EOF
+  tags: ['serena', 'ai', 'dev-tools']
+
+- name: "Create systemd service for Serena"
+  block:
+    - name: "Create systemd service directory"
+      ansible.builtin.file:
+        path: /etc/systemd/system
+        state: directory
+        mode: '0755'
+
+    - name: "Deploy systemd service file"
+      ansible.builtin.template:
+        src: serena.service.j2
+        dest: /etc/systemd/system/serena.service
+        owner: root
+        group: root
+        mode: '0644'
+      register: serena_service_created
+      notify: "Reload systemd daemon"
+
+    - name: "Enable and start Serena service"
+      ansible.builtin.systemd:
+        name: serena
+        state: started
+        enabled: yes
+      when: serena_service_created is changed or serena_install is changed
+      notify: "Restart Serena service"
+  when: ansible_facts['os_family'] == 'Linux' and not ansible_check_mode and
+        ansible_facts['distribution'] in ['Ubuntu', 'Debian', 'CentOS', 'Fedora']
+  tags: ['serena', 'ai', 'dev-tools', 'systemd']

@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "projects": {
-    "levonk-ansible-galaxy-workspace": ".",
-    "common": "collections/common"
-  }
-}

@@ -4,12 +4,14 @@
     name: kiro
     state: present
   when: ansible_facts['os_family'] == "Darwin"
+  tags: ['kiro', 'ide', 'graphical']
 
 - name: "Install Kiro (Windows)"
   ansible.windows.win_winget:
     name: Kiro.Kiro
     state: present
   when: ansible_facts['os_family'] == "Windows"
+  tags: ['kiro', 'ide', 'graphical']
 
 - name: "Install Kiro (Linux)"
   block:
@@ -19,6 +21,7 @@
         dest: "/usr/local/bin/Kiro.AppImage"
         mode: '0755'
       become: true
+      tags: ['kiro', 'ide', 'graphical']
 
     - name: "Create symlink for Kiro"
       ansible.builtin.file:
@@ -26,4 +29,6 @@
         dest: "/usr/local/bin/kiro"
         state: link
       become: true
+      tags: ['kiro', 'ide', 'graphical']
   when: ansible_facts['os_family'] == "Debian"
+  tags: ['kiro', 'ide', 'graphical']

@@ -23,6 +23,8 @@ Below is a list of all major features and tasks performed by this role, with lin
 | Install Cline               | Installs Cline AI CLI                                 | N/A                 | [tasks/install_cline.yml](tasks/install_cline.yml) |
 | Install Windsurf            | Installs Windsurf CLI/agent                           | N/A                 | [tasks/install_windsurf.yml](tasks/install_windsurf.yml) |
 | Install Kiro                | Installs Kiro AI CLI                                  | N/A                 | [tasks/install_kiro.yml](tasks/install_kiro.yml) |
+| Install Archon              | Installs Archon AI CLI tool                          | N/A                 | [tasks/mcp/install_archon.yml](tasks/mcp/install_archon.yml) |
+| Install Serena             | Installs Serena AI coding agent toolkit              | N/A                 | [tasks/mcp/install_serena.yml](tasks/mcp/install_serena.yml) |
 | Install Claude Code Tools   | Installs Claude Code, Router, Proxy, and frameworks   | N/A                 | [tasks/claude-code/](tasks/claude-code/) |
 | Install Tmux-Orchestrator   | Installs terminal session manager                     | N/A                 | [tasks/tmux/install_orchestrator.yml](tasks/tmux/install_orchestrator.yml) |
 
@@ -69,6 +71,64 @@ Below is a list of all major features and tasks performed by this role, with lin
 - **Idempotency:** Safe to run repeatedly.
 - **Security:** Uses only official sources.
 - **Usage:** Enabled by default; no variables needed.
+
+### Install Kiro
+**Description:** Installs Kiro AI CLI
+- **Supported Platforms:** Cross-platform (Python)
+- **Tags:** `kiro`, `ai`, `dev`
+- **Idempotency:** Safe to run repeatedly.
+- **Security:** Uses only official sources.
+- **Usage:** Enabled by default; no variables needed.
+
+### Install Archon
+**Description:** Installs [Archon](https://github.com/coleam00/Archon), a CLI tool for AI-assisted development. Clones the repository and sets up the Python environment.
+- **Supported Platforms:** Cross-platform (Python 3.6+)
+- **Tags:** `archon`, `ai`, `dev-tools`
+- **Idempotency:** Safe to run repeatedly. Will update if repository changes.
+- **Security:** Clones from official GitHub repository. Verifies SSL.
+- **Customization:**
+  - `archon_install_dir`: Custom installation directory (default: `~/.local/share/archon`)
+- **Usage:** 
+  ```yaml
+  - hosts: localhost
+    roles:
+      - role: levonk.vibeops.dev_ai_assisted
+        tags: ['archon']
+  ```
+
+### Install Serena
+**Description:** Installs [Serena](https://github.com/oraios/serena), a powerful coding agent toolkit providing semantic retrieval and editing capabilities. Installs as an MCP (Model Control Protocol) server that can be used with various AI coding assistants.
+- **Supported Platforms:** Cross-platform (Python 3.8+, uv package manager)
+- **Tags:** `serena`, `ai`, `mcp`, `dev-tools`
+- **Dependencies:** Python 3.8+, uv package manager
+- **Idempotency:** Safe to run repeatedly. Will update if repository changes.
+- **Security:** Clones from official GitHub repository. Verifies SSL.
+- **Features:**
+  - Semantic code search and retrieval
+  - Integration with Claude Code and other MCP clients
+  - Web-based dashboard for monitoring and control
+  - Support for multiple programming languages
+- **Customization:**
+  - `serena_install_dir`: Custom installation directory (default: `~/.local/share/serena`)
+  - `serena_port`: Port for the SSE server (default: 9121)
+- **Usage:**
+  ```yaml
+  - hosts: localhost
+    roles:
+      - role: levonk.vibeops.dev_ai_assisted
+        tags: ['serena']
+  ```
+  After installation, Serena will be available as a systemd service (on supported systems) and can be controlled via:
+  ```bash
+  # Start the service
+  systemctl start serena
+  
+  # Enable auto-start on boot
+  systemctl enable serena
+  
+  # View logs
+  journalctl -u serena -f
+  ```
 
 ### Claude Code Tools
 **Description:** Installs a suite of Claude AI development tools including:

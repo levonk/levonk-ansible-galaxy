@@ -1,0 +1,110 @@
+---
+# Install Terminal Jarvis - AI coding assistant command center
+# Repository: https://github.com/BA-CalderonMorales/terminal-jarvis
+# Installs Terminal Jarvis via npm (global) or Homebrew (macOS/Linux)
+
+- name: "Check if Node.js is installed"
+  ansible.builtin.command: which node
+  register: node_installed
+  changed_when: false
+  failed_when: false
+  check_mode: no
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+- name: "Install Node.js if not present (required for Terminal Jarvis)"
+  block:
+    - name: "Install Node.js (Linux)"
+      ansible.builtin.package:
+        name: nodejs
+        state: present
+      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat'
+      tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+    - name: "Install Node.js (macOS)"
+      community.general.homebrew:
+        name: node
+        state: present
+      when: ansible_facts['os_family'] == 'Darwin'
+      tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+    - name: "Install Node.js (Windows)"
+      community.chocolatey.chocolatey:
+        name: nodejs
+        state: present
+      when: ansible_facts['os_family'] == 'Windows'
+      tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+  when: node_installed.rc != 0
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+# Install via Homebrew on macOS/Linux if available, otherwise use npm
+- name: "Install Terminal Jarvis via Homebrew (macOS/Linux)"
+  block:
+    - name: "Install Terminal Jarvis via Homebrew"
+      community.general.homebrew:
+        name: ba-calderonmorales/terminal-jarvis/terminal-jarvis
+        state: present
+      register: homebrew_install
+      tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+  when: 
+    - (ansible_facts['os_family'] == 'Darwin' or ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'RedHat')
+    - '"homebrew" in ansible_facts.packages'
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+- name: "Install Terminal Jarvis via npm (fallback method)"
+  ansible.builtin.npm:
+    name: terminal-jarvis
+    global: yes
+    state: present
+  register: npm_install
+  when: 
+    - node_installed.rc == 0 or node_installed is not failed
+    - homebrew_install is not defined or homebrew_install is failed
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+- name: "Install Rust toolchain (required for some Terminal Jarvis features on macOS)"
+  block:
+    - name: "Install Rust using rustup"
+      ansible.builtin.shell: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        source "$HOME/.cargo/env"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/env"
+      when: ansible_facts['os_family'] == 'Darwin'
+      tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+  when: 
+    - ansible_facts['os_family'] == 'Darwin'
+    - not (ansible_env.HOME | dirname | path_join('.cargo/env') | path_exists)
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+- name: "Verify Terminal Jarvis installation"
+  ansible.builtin.command: terminal-jarvis --version
+  register: jarvis_version
+  changed_when: false
+  failed_when: false
+  check_mode: no
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+- name: "Display Terminal Jarvis installation information"
+  ansible.builtin.debug:
+    msg: |
+      Terminal Jarvis has been successfully installed!
+      
+      To use Terminal Jarvis, run:
+        terminal-jarvis
+        
+      Available commands:
+        terminal-jarvis claude    - Claude AI assistant
+        terminal-jarvis gemini    - Google's Gemini
+        terminal-jarvis qwen      - Qwen coding assistant
+        terminal-jarvis opencode  - Terminal-based AI coding agent
+        terminal-jarvis llxprt    - Multi-provider AI coding assistant
+        terminal-jarvis codex     - OpenAI Codex CLI
+        terminal-jarvis crush     - Charm's multi-model AI assistant
+  when: jarvis_version.rc == 0
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']
+
+- name: "Warn if Terminal Jarvis installation failed"
+  ansible.builtin.debug:
+    msg: "Terminal Jarvis installation may have failed. You can try installing manually with: npm install -g terminal-jarvis"
+  when: jarvis_version.rc != 0
+  tags: ['terminal-jarvis', 'ai', 'dev-tools', 'terminal']

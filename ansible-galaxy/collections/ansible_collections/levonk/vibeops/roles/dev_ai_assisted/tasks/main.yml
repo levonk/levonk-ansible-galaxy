@@ -1,69 +1,105 @@
 ---
 # tasks file for dev_ai_assisted
+# Main entry point for AI-assisted development tools installation
 
-- name: "Install Visual Studio Code"
-  include_tasks: install_vscode.yml
+# IDE Components
+- name: "Install GUI IDEs"
+  block:
+    - name: "Install Visual Studio Code"
+      include_tasks: ide/gui/install_vscode.yml
 
-- name: "Install Cursor"
-  include_tasks: install_cursor.yml
+    - name: "Install Cursor"
+      include_tasks: ide/terminal/install_cursor.yml
 
-- name: "Install Warp"
-  include_tasks: install_warp.yml
+    - name: "Install Kiro"
+      include_tasks: ide/gui/install_kiro.yml
 
-- name: "Install Google Cloud SDK"
-  include_tasks: install_gcloud_sdk.yml
+    - name: "Install Windsurf"
+      include_tasks: ide/gui/install_windsurf.yml
 
-- name: "Install Gemini CLI"
-  include_tasks: install_gemini_cli.yml
+# Terminal Tools
+- name: "Install Terminal Tools"
+  block:
+    - name: "Install Warp"
+      include_tasks: install_warp.yml
 
-- name: "Install GitHub Copilot CLI"
-  # Intention: Provision GitHub Copilot CLI for AI-assisted shell and code workflows.
-  include_tasks: copilot-cli.yml
+    - name: "Install GitHub Copilot CLI"
+      include_tasks: ide/terminal/copilot-cli.yml
 
-- name: "Install AWS CLI"
-  include_tasks: install_aws_cli.yml
+    - name: "Install Gemini CLI"
+      include_tasks: ide/terminal/install_gemini_cli.yml
 
-- name: "Install Amazon Q"
-  include_tasks: install_amazon_q.yml
+    - name: "Install OpenCode"
+      include_tasks: ide/terminal/install_opencode.yml
 
-- name: "Install Cline"
-  include_tasks: install_cline.yml
+    - name: "Crush Setup"
+      include_tasks: ide/terminal/crush.yml
 
-- name: "Install Windsurf"
-  include_tasks: install_windsurf.yml
+    - name: "Install Cline (Fig)"
+      include_tasks: ide/terminal/install_cline.yml
 
-- name: "Install Kiro"
-  include_tasks: install_kiro.yml
+# Cloud CLIs
+- name: "Install Cloud CLIs"
+  block:
+    - name: "Install Google Cloud SDK"
+      include_tasks: install_gcloud_sdk.yml
 
-- name: "Install Claude Code (npm package)"
-  include_tasks: claude-code/install_npm.yml
+    - name: "Install AWS CLI"
+      include_tasks: install_aws_cli.yml
 
-- name: "Install Claude Code Router"
-  include_tasks: claude-code/install_router.yml
+    - name: "Install Amazon Q"
+      include_tasks: install_amazon_q.yml
 
-- name: "Install Claude Code Proxy"
-  include_tasks: claude-code/install_proxy.yml
+# Claude Code Ecosystem
+- name: "Install Claude Code Tools"
+  block:
+    - name: "Install Claude Code (npm package)"
+      include_tasks: ide/terminal/claude-code/install-claude-code.yml
 
-- name: "Install CodeMCP (Claude Code Multi-Prompt)"
-  include_tasks: claude-code/install_codemcp.yml
+    - name: "Install Claude Code Router"
+      include_tasks: ide/terminal/claude-code/install-claude-router.yml
 
-- name: "Install SuperClaude Framework"
-  include_tasks: claude-code/install_superclaude.yml
+    - name: "Install Claude Code Proxy"
+      include_tasks: ide/terminal/claude-code/install_proxy.yml
 
-- name: "Install OpenCode"
-  include_tasks: install_opencode.yml
+    - name: "Install CodeMCP (Claude Code Multi-Prompt)"
+      include_tasks: ide/terminal/claude-code/install_codemcp.yml
 
-- name: "Install Awesome Claude Prompts"
-  include_tasks: claude-code/install_awesome_claude_prompts.yml
+    - name: "Install SuperClaude Framework"
+      include_tasks: ide/terminal/claude-code/install_superclaude.yml
 
-- name: "Install Awesome AI System Prompts"
-  include_tasks: claude-code/install_awesome_ai_system_prompts.yml
+    - name: "Install Awesome Claude Prompts"
+      include_tasks: ide/terminal/claude-code/install_awesome_claude_prompts.yml
 
-- name: "Install Awesome Claude Code Resources"
-  include_tasks: claude-code/install_awesome_claude_code.yml
+    - name: "Install Awesome AI System Prompts"
+      include_tasks: ide/terminal/claude-code/install_awesome_ai_system_prompts.yml
 
-- name: "Install Tmux-Orchestrator"
-  include_tasks: tmux/install_orchestrator.yml
+    - name: "Install Awesome Claude Code Resources"
+      include_tasks: ide/terminal/claude-code/install_awesome_claude_code.yml
 
-- name: "Install Agent (appdotbuild)"
-  include_tasks: install_agent.yml
+    - name: "Install Claude Suite"
+      include_tasks: ide/terminal/claude-code/install_claude_suite.yml
+
+# AI/ML Tools
+- name: "Install AI/ML Tools"
+  block:
+    - name: "Install Archon - AI-assisted development tool"
+      include_tasks: mcp/install_archon.yml
+      tags: ['archon', 'ai', 'dev-tools']
+
+    - name: "Install Serena - AI coding agent toolkit"
+      include_tasks: mcp/install_serena.yml
+      tags: ['serena', 'ai', 'mcp', 'dev-tools']
+
+    - name: "Install MCP-Zero - Active Tool Discovery for Autonomous LLM Agents"
+      include_tasks: mcp/install_mcp_zero.yml
+      tags: ['mcp-zero', 'ai', 'mcp', 'dev-tools']
+
+# System Tools
+- name: "Install System Tools"
+  block:
+    - name: "Install Tmux-Orchestrator"
+      include_tasks: tmux/install_orchestrator.yml
+
+    - name: "Install Agent (appdotbuild)"
+      include_tasks: agent/install_agent.yml

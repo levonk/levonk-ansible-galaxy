@@ -1,0 +1,46 @@
+---
+# Install Archon - A CLI tool for AI-assisted development
+# Repository: https://github.com/coleam00/Archon
+# Installs Archon by cloning the repository during runtime
+
+- name: "Create Archon installation directory"
+  ansible.builtin.file:
+    path: "{{ archon_install_dir | default('~/.local/share/archon') }}"
+    state: directory
+    mode: '0755'
+  register: archon_dir
+  changed_when: false
+  tags: ['archon', 'ai', 'dev-tools']
+
+- name: "Clone Archon repository"
+  ansible.builtin.git:
+    repo: https://github.com/coleam00/Archon.git
+    dest: "{{ archon_install_dir | default('~/.local/share/archon') }}"
+    version: main
+    update: yes
+    force: yes
+  register: archon_clone
+  tags: ['archon', 'ai', 'dev-tools']
+
+- name: "Install Archon dependencies"
+  ansible.builtin.pip:
+    requirements: "{{ archon_install_dir | default('~/.local/share/archon') }}/requirements.txt"
+    state: present
+    executable: pip3
+  when: archon_clone is changed
+  tags: ['archon', 'ai', 'dev-tools']
+
+- name: "Add Archon to PATH"
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: 'export PATH="$PATH:{{ archon_install_dir | default("~/.local/share/archon") }}/bin"'
+    regexp: '^export PATH=.*archon.*bin'
+    state: present
+    insertafter: EOF
+  tags: ['archon', 'ai', 'dev-tools']
+
+- name: "Make Archon executable"
+  ansible.builtin.file:
+    path: "{{ archon_install_dir | default('~/.local/share/archon') }}/archon.py"
+    mode: '0755'
+  tags: ['archon', 'ai', 'dev-tools']

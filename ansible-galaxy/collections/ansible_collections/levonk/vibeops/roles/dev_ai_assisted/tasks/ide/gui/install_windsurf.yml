@@ -4,12 +4,14 @@
     name: windsurf
     state: present
   when: ansible_facts['os_family'] == "Darwin"
+  tags: ['windsurf', 'ide', 'graphical']
 
 - name: "Install Windsurf (Windows)"
   ansible.windows.win_winget:
     name: Windsurf.Windsurf
     state: present
   when: ansible_facts['os_family'] == "Windows"
+  tags: ['windsurf', 'ide', 'graphical']
 
 - name: "Install Windsurf (Linux)"
   block:
@@ -19,6 +21,7 @@
         dest: "/usr/local/bin/Windsurf.AppImage"
         mode: '0755'
       become: true
+      tags: ['windsurf', 'ide', 'graphical']
 
     - name: "Create symlink for Windsurf"
       ansible.builtin.file:
@@ -26,4 +29,6 @@
         dest: "/usr/local/bin/windsurf"
         state: link
       become: true
+      tags: ['windsurf', 'ide', 'graphical']
   when: ansible_facts['os_family'] == "Debian"
+  tags: ['windsurf', 'ide', 'graphical']
