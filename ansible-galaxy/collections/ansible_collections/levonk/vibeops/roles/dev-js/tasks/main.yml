@@ -16,6 +16,6 @@
 
 - name: Include WebStorm IDE installation
   ansible.builtin.import_tasks: webstorm.yml
-  when: 
+  when:
     - dev_js_install_webstorm | bool
     - '"graphical" in ansible_run_tags'

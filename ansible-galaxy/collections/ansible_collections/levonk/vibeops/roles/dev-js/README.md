@@ -14,6 +14,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 |-----------------------------------|---------------------------------------------|-------------------------------------|--------|
 | Install Node.js and npm           | Installs Node.js and npm on all platforms   | [`dev_js_install_nodejs`](#dev_js_install_nodejs) | [tasks/nodejs.yml](tasks/nodejs.yml) |
 | Install fnm (Fast Node Manager)   | Installs fnm for Node.js version management | [`dev_js_install_fnm`](#dev_js_install_fnm)       | [tasks/js-managers.yml](tasks/js-managers.yml) |
+| Install Volta.sh                  | Installs Volta.sh for Node.js version management | [`dev_js_install_volta`](#dev_js_install_volta)   | [tasks/js-managers.yml](tasks/js-managers.yml) |
 | Install pnpm                      | Installs pnpm globally                      | [`dev_js_install_pnpm`](#dev_js_install_pnpm)     | [tasks/js-managers.yml](tasks/js-managers.yml) |
 | Install yarn                      | Installs yarn globally                      | [`dev_js_install_yarn`](#dev_js_install_yarn)     | [tasks/js-managers.yml](tasks/js-managers.yml) |
 | Install ESLint                    | Installs ESLint globally                    | [`dev_js_install_eslint`](#dev_js_install_eslint) | [tasks/js-linters.yml](tasks/js-linters.yml) |
@@ -27,7 +28,9 @@ Below is a list of all major features and tasks performed by this role, with lin
 ## Detailed Feature Documentation
 
 ### Install Node.js and npm
+
 **Description:** Installs Node.js and npm using the system package manager or Windows tools.
+
 - **Supported Platforms:** Debian, Ubuntu, RedHat, MacOSX, Windows
 - **Tags:** `dev`, `js`, `nodejs`, `npm`
 - **Idempotency:** Safe to run repeatedly.
@@ -35,15 +38,29 @@ Below is a list of all major features and tasks performed by this role, with lin
 - **Usage:** Controlled by `dev_js_install_nodejs` (opt-out, enabled by default).
 
 ### Install fnm (Fast Node Manager)
+
 **Description:** Installs fnm for Node.js version management.
+
 - **Supported Platforms:** Debian, Ubuntu, RedHat, MacOSX, Windows
 - **Tags:** `dev`, `js`, `fnm`, `nodejs`
 - **Idempotency:** Safe to run repeatedly.
 - **Security:** Uses official install script or package manager.
 - **Usage:** Controlled by `dev_js_install_fnm` (opt-out, enabled by default).
 
+### Install Volta.sh
+
+**Description:** Installs Volta.sh for Node.js version management.
+
+- **Supported Platforms:** Debian, Ubuntu, RedHat, MacOSX, Windows
+- **Tags:** `dev`, `js`, `volta`, `nodejs`
+- **Idempotency:** Safe to run repeatedly.
+- **Security:** Uses official install script.
+- **Usage:** Controlled by `dev_js_install_volta` (opt-out, enabled by default).
+
 ### Install pnpm
-a> Installs pnpm globally using npm.
+
+Installs pnpm globally using npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `pnpm`, `nodejs`
 - **Idempotency:** Safe to run repeatedly.
@@ -51,7 +68,9 @@ a> Installs pnpm globally using npm.
 - **Usage:** Controlled by `dev_js_install_pnpm` (opt-out, enabled by default).
 
 ### Install yarn
-a> Installs yarn globally using corepack or npm.
+
+Installs yarn globally using corepack or npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `yarn`, `nodejs`
 - **Idempotency:** Safe to run repeatedly.
@@ -59,7 +78,9 @@ a> Installs yarn globally using corepack or npm.
 - **Usage:** Controlled by `dev_js_install_yarn` (opt-out, enabled by default).
 
 ### Install ESLint
-a> Installs ESLint globally using npm.
+
+Installs ESLint globally using npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `eslint`, `linter`
 - **Idempotency:** Safe to run repeatedly.
@@ -67,7 +88,9 @@ a> Installs ESLint globally using npm.
 - **Usage:** Controlled by `dev_js_install_eslint` (opt-out, enabled by default).
 
 ### Install Prettier
-a> Installs Prettier globally using npm.
+
+Installs Prettier globally using npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `prettier`, `formatter`
 - **Idempotency:** Safe to run repeatedly.
@@ -75,7 +98,9 @@ a> Installs Prettier globally using npm.
 - **Usage:** Controlled by `dev_js_install_prettier` (opt-out, enabled by default).
 
 ### Install TypeScript
-a> Installs TypeScript globally using npm.
+
+Installs TypeScript globally using npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `typescript`, `build-tool`
 - **Idempotency:** Safe to run repeatedly.
@@ -83,7 +108,9 @@ a> Installs TypeScript globally using npm.
 - **Usage:** Controlled by `dev_js_install_typescript` (opt-out, enabled by default).
 
 ### Install Vite
-a> Installs Vite globally using npm.
+
+Installs Vite globally using npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `vite`, `build-tool`
 - **Idempotency:** Safe to run repeatedly.
@@ -91,7 +118,9 @@ a> Installs Vite globally using npm.
 - **Usage:** Controlled by `dev_js_install_vite` (opt-out, enabled by default).
 
 ### Install Create React App
-a> Installs create-react-app globally using npm.
+
+Installs create-react-app globally using npm.
+
 - **Supported Platforms:** All
 - **Tags:** `dev`, `js`, `create-react-app`, `build-tool`
 - **Idempotency:** Safe to run repeatedly.
@@ -105,6 +134,7 @@ a> Installs create-react-app globally using npm.
 ### Variables
 
 #### Variable Table Legend
+
 - **required**: Must be set for the role or feature to function.
 - **recommended**: Strongly encouraged for best results or security, but not strictly required.
 - **opt-in**: Feature is disabled by default; set this variable to enable it.
@@ -116,19 +146,21 @@ a> Installs create-react-app globally using npm.
 
 | Variable | Default | Sample Value | Type | Activation | Purpose | Used In |
 |----------|---------|--------------|------|------------|---------|---------|
-| <a name="dev_js_install_nodejs"></a>`dev_js_install_nodejs` | `true` | `false` | bool | opt-out | Install Node.js and npm | [tasks/nodejs.yml](tasks/nodejs.yml) |
-| <a name="dev_js_install_fnm"></a>`dev_js_install_fnm` | `true` | `false` | bool | opt-out | Install fnm (Fast Node Manager) | [tasks/js-managers.yml](tasks/js-managers.yml) |
-| <a name="dev_js_install_pnpm"></a>`dev_js_install_pnpm` | `true` | `false` | bool | opt-out | Install pnpm globally | [tasks/js-managers.yml](tasks/js-managers.yml) |
-| <a name="dev_js_install_yarn"></a>`dev_js_install_yarn` | `true` | `false` | bool | opt-out | Install yarn globally | [tasks/js-managers.yml](tasks/js-managers.yml) |
-| <a name="dev_js_install_typescript"></a>`dev_js_install_typescript` | `true` | `false` | bool | opt-out | Install TypeScript globally | [tasks/js-build-tools.yml](tasks/js-build-tools.yml) |
-| <a name="dev_js_install_eslint"></a>`dev_js_install_eslint` | `true` | `false` | bool | opt-out | Install ESLint globally | [tasks/js-linters.yml](tasks/js-linters.yml) |
-| <a name="dev_js_install_prettier"></a>`dev_js_install_prettier` | `true` | `false` | bool | opt-out | Install Prettier globally | [tasks/js-formatters.yml](tasks/js-formatters.yml) |
-| <a name="dev_js_install_vite"></a>`dev_js_install_vite` | `true` | `false` | bool | opt-out | Install Vite globally | [tasks/js-build-tools.yml](tasks/js-build-tools.yml) |
-| <a name="dev_js_install_create_react_app"></a>`dev_js_install_create_react_app` | `true` | `false` | bool | opt-out | Install create-react-app globally | [tasks/js-build-tools.yml](tasks/js-build-tools.yml) |
+| `dev_js_install_nodejs` | `true` | `false` | bool | opt-out | Install Node.js and npm | [tasks/nodejs.yml](tasks/nodejs.yml) |
+| `dev_js_install_fnm` | `true` | `false` | bool | opt-out | Install fnm (Fast Node Manager) | [tasks/js-managers.yml](tasks/js-managers.yml) |
+| `dev_js_install_volta` | `true` | `false` | bool | opt-out | Install Volta.sh | [tasks/js-managers.yml](tasks/js-managers.yml) |
+| `dev_js_install_pnpm` | `true` | `false` | bool | opt-out | Install pnpm globally | [tasks/js-managers.yml](tasks/js-managers.yml) |
+| `dev_js_install_yarn` | `true` | `false` | bool | opt-out | Install yarn globally | [tasks/js-managers.yml](tasks/js-managers.yml) |
+| `dev_js_install_typescript` | `true` | `false` | bool | opt-out | Install TypeScript globally | [tasks/js-build-tools.yml](tasks/js-build-tools.yml) |
+| `dev_js_install_eslint` | `true` | `false` | bool | opt-out | Install ESLint globally | [tasks/js-linters.yml](tasks/js-linters.yml) |
+| `dev_js_install_prettier` | `true` | `false` | bool | opt-out | Install Prettier globally | [tasks/js-formatters.yml](tasks/js-formatters.yml) |
+| `dev_js_install_vite` | `true` | `false` | bool | opt-out | Install Vite globally | [tasks/js-build-tools.yml](tasks/js-build-tools.yml) |
+| `dev_js_install_create_react_app` | `true` | `false` | bool | opt-out | Install create-react-app globally | [tasks/js-build-tools.yml](tasks/js-build-tools.yml) |
 
 ---
 
 ### Requirements
+
 - Ansible 2.9+
 - Python 3.6+
 - Supported platforms: Debian, Ubuntu, RedHat, MacOSX, Windows
@@ -137,11 +169,13 @@ a> Installs create-react-app globally using npm.
 ---
 
 ### Dependencies
+
 - None
 
 ---
 
 ### Example Playbooks
+
 ```yaml
 - hosts: all
   become: yes
@@ -150,6 +184,7 @@ a> Installs create-react-app globally using npm.
       vars:
         dev_js_install_nodejs: true
         dev_js_install_fnm: true
+        dev_js_install_volta: true
         dev_js_install_pnpm: true
         dev_js_install_yarn: true
         dev_js_install_typescript: true
@@ -183,4 +218,4 @@ Contributions should follow the documentation and variable table conventions sho
 
 ## License
 
-Copyright (c) 2025 the person whose account is https://github.com/levonk. Licensed under the MIT License. See LICENSE file in the project root for full license information.
+Copyright (c) 2025 the person whose account is [https://github.com/levonk](https://github.com/levonk). Licensed under the MIT License. See LICENSE file in the project root for full license information.

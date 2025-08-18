@@ -9,20 +9,45 @@
     - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
 
 - name: Install fnm (Fast Node Manager) on Windows (Scoop)
-  win_shell: scoop install fnm
+  ansible.builtin.command: >-
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command
+    "scoop install fnm"
   when:
     - dev_js_install_fnm | default(true)
     - ansible_facts['os_family'] == 'Windows'
     - lookup('ansible.builtin.env', 'SCOOP') != ''
 
 - name: Install fnm (Fast Node Manager) on Windows (Chocolatey fallback)
-  levonk.common.package:
-    name: fnm
-    state: latest
+  include_role:
+    name: levonk.common.package
+  vars:
+    packages:
+      - name: fnm
+        state: latest
   when:
     - dev_js_install_fnm | default(true)
     - ansible_facts['os_family'] == 'Windows'
     - lookup('ansible.builtin.env', 'SCOOP') == ''
+
+- name: Install Volta.sh on Linux/macOS
+  ansible.builtin.shell: |
+    curl https://get.volta.sh | bash
+  args:
+    creates: "~/.volta/bin/volta"
+  when:
+    - dev_js_install_volta | default(true)
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+- name: Install Volta.sh on Windows (PowerShell)
+  ansible.builtin.command: >-
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -Command
+    "Set-ExecutionPolicy Bypass -Scope Process -Force; `
+    [System.Net.ServicePointManager]::SecurityProtocol = `
+    [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+    iex ((New-Object System.Net.WebClient).DownloadString('https://get.volta.sh'))"
+  when:
+    - dev_js_install_volta | default(true)
+    - ansible_facts['os_family'] == 'Windows'
 
 - name: Install pnpm globally
   include_role:
@@ -46,9 +71,14 @@
     - dev_js_install_pnpm | default(true)
     - ansible_facts['os_family'] == 'Windows'
 
+# Bun package manager
+- name: Install Bun (all platforms)
+  include_tasks: package-managers/bun.yml
+  when:
+    - dev_js_install_bun | default(true)
+
 - name: Enable corepack for yarn/pnpm (Node >=16.10)
-  ansible.builtin.shell: corepack enable
-yarn
+  ansible.builtin.shell: corepack enable yarn
   when:
     - dev_js_install_yarn | default(true)
     - ansible_facts['os_family'] != 'Windows'
@@ -71,8 +101,6 @@ yarn
   vars:
     npm_packages:
       - yarn
-  args:
-    creates: C:\\Program Files\\nodejs\\yarn.cmd
   when:
     - dev_js_install_yarn | default(true)
     - ansible_facts['os_family'] == 'Windows'
