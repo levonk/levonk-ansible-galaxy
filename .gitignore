@@ -36,11 +36,42 @@ wheels/
 !.vscode/tasks.json
 
 # Editor files
-.idea/
-*.sublime-*
-*.code-workspace
-*.swp
 
+# Node / JavaScript
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/
+.yarn/cache/
+.yarn/install-state.gz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Nx cache
+.nx/cache/
+
+# Python virtualenvs and caches
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.cache/
+.coverage
+.coverage.*
+coverage/
+pytestdebug.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Ansible local data
+.ansible/
+
+# Bun cache (do not ignore bun.lock)
+.bun/
 
 # IntelliJ
 .idea/
