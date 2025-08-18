@@ -9,6 +9,8 @@ dev_js_install_eslint: true
 dev_js_install_prettier: true
 dev_js_install_vite: true
 dev_js_install_create_react_app: true
+dev_js_install_volta: true
+dev_js_install_bun: true
 
 # WebStorm IDE configuration
 dev_js_install_webstorm: true
