@@ -1,0 +1,7 @@
+---
+- name: Converge dev-js
+  hosts: all
+  gather_facts: true
+  roles:
+    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+      vars: {}

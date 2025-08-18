@@ -1,0 +1,11 @@
+---
+- name: Verify dev-js
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Check Bun is installed and on PATH
+      ansible.builtin.command:
+        cmd: bun --version
+      register: bun_check
+      changed_when: false
+      failed_when: bun_check.rc != 0

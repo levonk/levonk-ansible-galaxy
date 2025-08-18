@@ -1,0 +1,21 @@
+---
+dependency:
+  name: galaxy
+  options: {}
+driver:
+  name: default
+platforms:
+  - name: localhost
+    groups: [all]
+provisioner:
+  name: ansible
+  inventory:
+    host_vars:
+      localhost:
+        ansible_connection: local
+  env:
+    ANSIBLE_COLLECTIONS_PATH: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | dirname | dirname | dirname | dirname | dirname }}"
+verifier:
+  name: ansible
+scenario:
+  name: default
