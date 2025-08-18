@@ -1,0 +1,51 @@
+---
+# Install Bun (https://bun.sh) cross-platform with idempotency
+
+# Non-Windows: Linux/macOS
+- name: Check if Bun is already installed (non-Windows)
+  ansible.builtin.stat:
+    path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.bun/bin/bun"
+  register: bun_stat
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+- name: Install Bun on Linux/macOS
+  ansible.builtin.shell: |
+    curl -fsSL https://bun.sh/install | bash
+  args:
+    executable: /bin/bash
+  when:
+    - dev_js_install_bun | default(true)
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+    - not bun_stat.stat.exists | default(false)
+
+# Windows
+- name: Check if Bun is already installed (Windows)
+  ansible.windows.win_command: bun --version
+  register: bun_win_check
+  failed_when: false
+  changed_when: false
+  when:
+    - ansible_facts['os_family'] == 'Windows'
+
+- name: Install Bun on Windows (Scoop)
+  ansible.windows.win_shell: scoop install bun
+  when:
+    - dev_js_install_bun | default(true)
+    - ansible_facts['os_family'] == 'Windows'
+    - bun_win_check.rc is defined and bun_win_check.rc != 0
+    - lookup('ansible.builtin.env', 'SCOOP') != ''
+
+- name: Install Bun on Windows (winget fallback)
+  ansible.windows.win_shell: |
+    winget install `
+      --id Oven-sh.Bun `
+      -e `
+      --source winget `
+      --accept-source-agreements `
+      --accept-package-agreements
+  when:
+    - dev_js_install_bun | default(true)
+    - ansible_facts['os_family'] == 'Windows'
+    - bun_win_check.rc is defined and bun_win_check.rc != 0
+    - lookup('ansible.builtin.env', 'SCOOP') == ''
