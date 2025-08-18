@@ -57,5 +57,9 @@
   import_tasks: base_packages.yml
   tags: ['packages', 'base']
 
+- name: Install ShellCheck (all OS)
+  import_tasks: system/shellcheck.yml
+  tags: ['tools', 'shell', 'shellcheck', 'lint']
+
 - name: Install JetBrains Mono Nerd Font (all OS)
   import_tasks: fonts.yml

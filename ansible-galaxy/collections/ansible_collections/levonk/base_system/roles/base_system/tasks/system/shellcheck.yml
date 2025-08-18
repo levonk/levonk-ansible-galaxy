@@ -1,0 +1,31 @@
+---
+# Install ShellCheck cross-platform using levonk.common.package
+# Rationale: provide shell script linting across supported OSes.
+# TODO: Compliance - Verify ShellCheck licensing and usage policies
+
+- name: Install ShellCheck (Debian/Ubuntu)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: shellcheck
+    state: latest
+  when: ansible_os_family == 'Debian'
+  tags: ['tools', 'shell', 'shellcheck', 'lint', 'debian']
+
+- name: Install ShellCheck (macOS)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: shellcheck
+    state: latest
+  when: ansible_os_family == 'Darwin'
+  tags: ['tools', 'shell', 'shellcheck', 'lint', 'macos']
+
+- name: Install ShellCheck (Windows)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: shellcheck
+    state: latest
+  when: ansible_os_family == 'Windows'
+  tags: ['tools', 'shell', 'shellcheck', 'lint', 'windows']
