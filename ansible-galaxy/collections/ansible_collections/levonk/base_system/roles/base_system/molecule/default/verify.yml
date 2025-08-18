@@ -41,3 +41,17 @@
         name: testzshuser
         state: absent
       become: true
+
+    - name: Check ShellCheck is installed (Linux/macOS)
+      ansible.builtin.command: shellcheck --version
+      register: sc_version_unix
+      changed_when: false
+      failed_when: sc_version_unix.rc != 0
+      when: ansible_os_family in ['Debian', 'Darwin']
+
+    - name: Check ShellCheck is installed (Windows)
+      ansible.windows.win_command: shellcheck --version
+      register: sc_version_win
+      changed_when: false
+      failed_when: sc_version_win.rc != 0
+      when: ansible_os_family == 'Windows'
