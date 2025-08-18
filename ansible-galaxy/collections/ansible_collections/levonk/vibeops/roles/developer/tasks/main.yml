@@ -48,3 +48,12 @@
     - developer
     - tools
     - yamlfmt
+
+- name: Install Mise runtime manager
+  ansible.builtin.include_tasks:
+    file: install_mise.yml
+  when: developer_install_mise | default(true)
+  tags:
+    - developer
+    - tools
+    - mise

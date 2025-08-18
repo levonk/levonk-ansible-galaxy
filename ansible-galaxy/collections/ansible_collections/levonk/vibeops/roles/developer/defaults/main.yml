@@ -1,0 +1,4 @@
+---
+# Defaults for developer role
+# Toggle for installing Mise (https://mise.jdx.dev)
+developer_install_mise: true

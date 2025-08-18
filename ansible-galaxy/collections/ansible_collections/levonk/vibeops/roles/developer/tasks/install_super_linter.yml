@@ -18,7 +18,7 @@
     - name: Fallback to install Super-Linter via npm
       community.general.npm:
         name: super-linter
-        global: yes
+        global: true
         state: present
       become: true
       when: super_linter_pkg_result is failed
