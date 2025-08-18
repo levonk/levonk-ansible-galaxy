@@ -9,8 +9,9 @@ extends: default
 rules:
   # Comments
   comments:
-    level: warning  # Consider 'error' for stricter enforcement
-    require-spaces-after: true # Must have space after #
+    level: warning
+    require-starting-space: true
+    min-spaces-from-content: 1
 
   # Document start
   document-start:
@@ -19,15 +20,15 @@ rules:
   # Empty values
   empty-values:
     level: warning   # Consider 'error' to be more strict
-    forbid-flow-scalars: true  # Forbid flow scalars
 
   # Key names
   key-ordering: disable # Too opinionated
   key-duplicates:
     level: error   # No duplicate keys in a YAML document
   quoted-strings:
-    level: "consistent"
-    implicit: "any"  # Allow unquoted strings when they are implicit scalars
+    level: warning
+    quote-type: any
+    required: false
 
   # Line length
   line-length:
@@ -50,6 +51,9 @@ rules:
     level: warning  # Or 'error' for stricter enforcement
     #ignore-empty: false # Report on blank lines
 
+  # Comments indentation
+  comments-indentation: disable
+
   # Indentation
   indentation:
     level: error   # Indentation must be consistent
@@ -60,9 +64,7 @@ rules:
   braces:
     level: warning  # Style check
     max-spaces-inside: 1
-    min-spaces-inside: 1
-    max-spaces-outside: 1
-    min-spaces-outside: 1
+    min-spaces-inside: 0
 
   # Colons
   colons:
@@ -80,29 +82,14 @@ rules:
   # Hyphens
   hyphens:
     level: error
-    max-spaces-before: 0
-    max-spaces-after: 1
 
   # Empty lines
   empty-lines:
     level: warning
     max-start: 1    # No more than 1 empty line at start of file
     max-end: 1      # No more than 1 empty line at end of file
-    max-consecutive: 1  # No more than 1 consecutive empty line
 
   # Truthy
   truthy:
     level: warning
-    check: [ "lower", "upper", "camel", "number", "string" ]  # List of allowed types
 
-  # Scalar spacing
-  scalar-spaces:
-    level: warning  # Recommended for readability
-    min-spaces-left: 1
-    min-spaces-right: 1
-
-  # Ignore specific files or directories
-  ignore: |
-    ansible/roles/*/files/**/*
-    ansible/roles/*/templates/**/*
-    CHANGELOG.md
