@@ -14,3 +14,7 @@
 - name: Ensure SSH client/server present (Windows)
   ansible.builtin.include_tasks: ssh_windows.yml
   when: ansible_os_family == 'Windows'
+
+- name: Install dos2unix (all OS)
+  ansible.builtin.include_tasks: dos2unix.yml
+  when: tools_install_dos2unix | default(true)

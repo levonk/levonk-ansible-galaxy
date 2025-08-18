@@ -1,0 +1,31 @@
+---
+# Install dos2unix cross-platform using levonk.common.package
+# Converts DOS line endings (CRLF) to Unix (LF). Useful in mixed-OS repos.
+# TODO: Compliance - Review licensing/usage policies if required.
+
+- name: Install dos2unix (Debian/Ubuntu)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: dos2unix
+    state: latest
+  when: ansible_os_family == 'Debian'
+  tags: ['tools', 'system', 'dos2unix', 'lineendings', 'debian']
+
+- name: Install dos2unix (macOS)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: dos2unix
+    state: latest
+  when: ansible_os_family == 'Darwin'
+  tags: ['tools', 'system', 'dos2unix', 'lineendings', 'macos']
+
+- name: Install dos2unix (Windows)
+  include_role:
+    name: levonk.common.package
+  vars:
+    name: dos2unix
+    state: latest
+  when: ansible_os_family == 'Windows'
+  tags: ['tools', 'system', 'dos2unix', 'lineendings', 'windows']
