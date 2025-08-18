@@ -29,7 +29,7 @@
   ansible.builtin.get_url:
     url: https://download.jetbrains.com/webstorm/WebStorm-{{ webstorm_version }}.tar.gz
     dest: /tmp/webstorm-{{ webstorm_version }}.tar.gz
-    checksum: "sha256:{{ webstorm_checksum }}
+    checksum: "sha256:{{ webstorm_checksum }}"
     mode: '0644'
   register: download_webstorm
   tags:
@@ -51,9 +51,9 @@
   ansible.builtin.unarchive:
     src: /tmp/webstorm-{{ webstorm_version }}.tar.gz
     dest: /opt/
-    remote_src: yes
+    remote_src: true
     extra_opts: [--strip-components=1]
-    creates: /opt/WebStorm/bin/webstorm.sh
+    creates: /opt/webstorm/bin/webstorm.sh
   register: extracted_webstorm
   tags:
     - webstorm
@@ -62,10 +62,10 @@
 
 - name: Create symlink to WebStorm binary
   ansible.builtin.file:
-    src: /opt/WebStorm/bin/webstorm.sh
+    src: /opt/webstorm/bin/webstorm.sh
     dest: /usr/local/bin/webstorm
     state: link
-    force: yes
+    force: true
     mode: '0755'
   when: extracted_webstorm.changed
   tags:
