@@ -20,3 +20,8 @@
   ansible.builtin.include_tasks: ollama-desktop.yml
   when: tools_install_ollama_desktop | default(true)
   tags: ['ollama', 'ai', 'graphical']
+
+- name: Install Wispr Flow
+  ansible.builtin.include_tasks: wispr_flow.yml
+  when: tools_install_wispr_flow | default(true)
+  tags: ['ai', 'graphical']

@@ -45,3 +45,6 @@ free_cluely_gemini_api_key: ""  # Set your Gemini API key here or in group_vars/
 free_cluely_build: true  # Set to false to skip the build step (useful for development)
 free_cluely_port: 5180  # Port to run the development server on
 
+# Wispr Flow configuration
+tools_install_wispr_flow: true  # Set to false to skip installation
+

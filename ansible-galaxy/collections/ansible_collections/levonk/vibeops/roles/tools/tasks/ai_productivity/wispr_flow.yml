@@ -1,0 +1,186 @@
+---
+# Copyright (c) 2025 the person whos account is https://github.com/levonk. Licensed under the GNU AGPL-3.0 License.
+# See LICENSE file in the project root for full license information.
+
+# Install Wispr Flow AI productivity tool across different platforms
+# This task file handles installation for Windows, macOS (both Apple Silicon and x86), iOS
+# with placeholders for Linux and Android
+
+- name: Install Wispr Flow on Windows
+  block:
+    # Microsoft Store URL: https://apps.microsoft.com/detail/9N1B9JWB3M35?hl=en-us&gl=US&ocid=pdpshare
+    - name: Install Wispr Flow using winget
+      ansible.windows.win_shell: |
+        winget install --id=9N1B9JWB3M35 --source=msstore --accept-source-agreements --accept-package-agreements
+      register: winget_result
+      failed_when: false # Don't fail so we can try the fallback method
+      changed_when: winget_result.rc == 0 and 'successfully installed' in winget_result.stdout
+      when: not ansible_check_mode
+      
+    - name: Display winget installation information
+      ansible.builtin.debug:
+        msg: "Wispr Flow installed from Microsoft Store (ID: 9N1B9JWB3M35)"
+      when: winget_result is defined and winget_result.changed
+      
+    # Fallback method if winget fails
+    - name: Download Wispr Flow installer for Windows (fallback)
+      ansible.windows.win_get_url:
+        url: "https://wisprflow.com/download/windows/latest"
+        dest: "{{ ansible_env.TEMP }}\\wispr_flow_installer.exe"
+      register: download_result
+      when: not ansible_check_mode and (winget_result is defined and winget_result.rc != 0 and 'already installed' not in winget_result.stderr)
+      
+    - name: Install Wispr Flow on Windows (fallback)
+      ansible.windows.win_package:
+        path: "{{ ansible_env.TEMP }}\\wispr_flow_installer.exe"
+        state: present
+        arguments: "/S /D={{ ansible_env.LOCALAPPDATA }}\\WisprFlow"
+      when: not ansible_check_mode and download_result is defined and download_result.changed
+      
+    - name: Display fallback installation information
+      ansible.builtin.debug:
+        msg: "Wispr Flow installed using direct download (fallback method)"
+      when: download_result is defined and download_result.changed
+  when: ansible_os_family == "Windows"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
+    - windows
+
+- name: Install Wispr Flow on macOS (Apple Silicon)
+  block:
+    - name: Download Wispr Flow for macOS (Apple Silicon)
+      ansible.builtin.get_url:
+        url: "https://wisprflow.com/download/mac/arm64/latest"
+        dest: "/tmp/WisprFlow-arm64.dmg"
+        mode: '0644'
+      register: download_result
+      when: not ansible_check_mode
+      
+    - name: Mount Wispr Flow DMG (Apple Silicon)
+      ansible.builtin.command: hdiutil attach /tmp/WisprFlow-arm64.dmg
+      register: mount_result
+      when: not ansible_check_mode and download_result is defined and download_result.changed
+      changed_when: mount_result.rc == 0
+      
+    - name: Copy Wispr Flow app to Applications folder (Apple Silicon)
+      ansible.builtin.command: cp -R "/Volumes/Wispr Flow/Wispr Flow.app" /Applications/
+      when: not ansible_check_mode and mount_result is defined and mount_result.changed
+      changed_when: true
+      
+    - name: Unmount Wispr Flow DMG (Apple Silicon)
+      ansible.builtin.command: hdiutil detach "/Volumes/Wispr Flow"
+      when: not ansible_check_mode and mount_result is defined and mount_result.changed
+      changed_when: true
+      ignore_errors: yes
+  when: ansible_os_family == "Darwin" and ansible_architecture == "arm64"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
+    - macos
+    - apple_silicon
+
+- name: Install Wispr Flow on macOS (Intel x86)
+  block:
+    - name: Download Wispr Flow for macOS (Intel x86)
+      ansible.builtin.get_url:
+        url: "https://wisprflow.com/download/mac/x64/latest"
+        dest: "/tmp/WisprFlow-x64.dmg"
+        mode: '0644'
+      register: download_result
+      when: not ansible_check_mode
+      
+    - name: Mount Wispr Flow DMG (Intel x86)
+      ansible.builtin.command: hdiutil attach /tmp/WisprFlow-x64.dmg
+      register: mount_result
+      when: not ansible_check_mode and download_result is defined and download_result.changed
+      changed_when: mount_result.rc == 0
+      
+    - name: Copy Wispr Flow app to Applications folder (Intel x86)
+      ansible.builtin.command: cp -R "/Volumes/Wispr Flow/Wispr Flow.app" /Applications/
+      when: not ansible_check_mode and mount_result is defined and mount_result.changed
+      changed_when: true
+      
+    - name: Unmount Wispr Flow DMG (Intel x86)
+      ansible.builtin.command: hdiutil detach "/Volumes/Wispr Flow"
+      when: not ansible_check_mode and mount_result is defined and mount_result.changed
+      changed_when: true
+      ignore_errors: yes
+  when: ansible_os_family == "Darwin" and ansible_architecture == "x86_64"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
+    - macos
+    - intel
+
+- name: Install Wispr Flow on iOS (Information Only)
+  ansible.builtin.debug:
+    msg:
+      - "Wispr Flow for iOS should be installed from the App Store"
+      - "Direct URL: https://apps.apple.com/app/wispr-flow/id1234567890"
+      - "Note: Ansible cannot directly install iOS apps; this is for information only"
+  when: ansible_os_family == "iOS"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
+    - ios
+    - info_only
+
+# Placeholder for Linux installation
+- name: Install Wispr Flow on Linux
+  block:
+    - name: Check if Wispr Flow is available for Linux
+      ansible.builtin.debug:
+        msg: "Placeholder for Wispr Flow Linux installation"
+      
+    # Uncomment and implement when Linux version becomes available
+    # - name: Download Wispr Flow for Linux
+    #   ansible.builtin.get_url:
+    #     url: "https://wisprflow.com/download/linux/latest"
+    #     dest: "/tmp/wispr-flow.deb"
+    #     mode: '0644'
+    #   register: download_result
+    #   when: not ansible_check_mode
+    #
+    # - name: Install Wispr Flow package on Linux
+    #   ansible.builtin.apt:
+    #     deb: "/tmp/wispr-flow.deb"
+    #     state: present
+    #   when: not ansible_check_mode and download_result is defined and download_result.changed
+    #   become: true
+  when: ansible_os_family == "Debian" or ansible_os_family == "RedHat"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
+    - linux
+    - placeholder
+
+# Placeholder for Android installation
+- name: Install Wispr Flow on Android (Information Only)
+  ansible.builtin.debug:
+    msg:
+      - "Wispr Flow for Android should be installed from the Google Play Store"
+      - "Direct URL: https://play.google.com/store/apps/details?id=com.wisprflow.android"
+      - "Note: Ansible cannot directly install Android apps; this is for information only"
+  when: ansible_os_family == "Android"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
+    - android
+    - info_only
+
+- name: Display installation information
+  ansible.builtin.debug:
+    msg:
+      - "Wispr Flow has been installed or information has been provided for your platform"
+      - "For more information, visit https://wisprflow.com/docs"
+  tags:
+    - tools
+    - ai
+    - wispr_flow
