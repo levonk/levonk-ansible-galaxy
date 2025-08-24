@@ -33,6 +33,22 @@
   when: ansible_os_family == 'Darwin'
   tags: [llm, install, check]
 
+- name: Check if pip is available (Unix)
+  ansible.builtin.command: python3 -m pip --version
+  register: pip_check_unix
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family != 'Windows'
+  tags: [llm, python, pip, check]
+
+- name: Check if pip is available (Windows)
+  ansible.builtin.command: py -m pip --version
+  register: pip_check_win
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family == 'Windows'
+  tags: [llm, python, pip, check]
+
 - name: Install LLM via Homebrew (macOS)
   community.general.homebrew:
     name: llm
@@ -42,6 +58,16 @@
     - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
     - (brew_check is defined and brew_check.rc == 0)
   tags: [llm, install, homebrew]
+
+- name: Ensure Python via dev-python role (Linux, if pip missing)
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-python
+  when:
+    - ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
+    - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
+    - (llm_user_llm_stat is not defined or (llm_user_llm_stat.stat.exists | default(false)) == false)
+    - (pip_check_unix is defined and pip_check_unix.rc != 0)
+  tags: [llm, python, pip]
 
 - name: Install LLM via pip (Linux)
   ansible.builtin.pip:
@@ -54,6 +80,16 @@
     - (llm_user_llm_stat is not defined or (llm_user_llm_stat.stat.exists | default(false)) == false)
   tags: [llm, install, pip]
 
+- name: Ensure Python via dev-python role (macOS fallback, if pip missing)
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-python
+  when:
+    - ansible_os_family == 'Darwin'
+    - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
+    - (brew_check is defined and brew_check.rc != 0)
+    - (pip_check_unix is defined and pip_check_unix.rc != 0)
+  tags: [llm, python, pip]
+
 - name: Install LLM via pip (macOS fallback)
   ansible.builtin.pip:
     name: llm
@@ -64,6 +100,15 @@
     - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
     - (brew_check is defined and brew_check.rc != 0)
   tags: [llm, install, pip]
+
+- name: Ensure Python via dev-python role (Windows, if pip missing)
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-python
+  when:
+    - ansible_os_family == 'Windows'
+    - (llm_check_win is defined and llm_check_win.rc | default(1) != 0)
+    - (pip_check_win is defined and pip_check_win.rc != 0)
+  tags: [llm, python, pip]
 
 - name: Install LLM via pip (Windows)
   ansible.builtin.pip:
