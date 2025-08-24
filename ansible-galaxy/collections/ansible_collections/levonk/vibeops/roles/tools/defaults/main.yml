@@ -48,3 +48,9 @@ free_cluely_port: 5180  # Port to run the development server on
 # Wispr Flow configuration
 tools_install_wispr_flow: true  # Set to false to skip installation
 
+# LLM CLI (datasette-llm) configuration
+tools_install_llm: true  # Install the LLM CLI by default
+
+# ORT (OpenRouter CLI) configuration
+tools_install_ort: true  # Install the ORT CLI by default (non-Windows only)
+

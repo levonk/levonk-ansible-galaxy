@@ -25,3 +25,13 @@
   ansible.builtin.include_tasks: wispr_flow.yml
   when: tools_install_wispr_flow | default(true)
   tags: ['ai', 'graphical']
+
+- name: Install LLM CLI
+  ansible.builtin.include_tasks: llm.yml
+  when: tools_install_llm | default(true)
+  tags: ['ai', 'llm']
+
+- name: Install ORT CLI
+  ansible.builtin.include_tasks: ort.yml
+  when: tools_install_ort | default(true)
+  tags: ['ai', 'ort']

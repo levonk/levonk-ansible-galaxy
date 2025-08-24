@@ -1,0 +1,62 @@
+---
+# Install LLM (datasette LLM CLI)
+# Docs: https://llm.datasette.io/en/stable/
+
+- name: Check if LLM is installed (Unix)
+  ansible.builtin.command: which llm
+  register: llm_check_unix
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family != 'Windows'
+  tags: [llm, install, check]
+
+- name: Check if LLM exists in ~/.local/bin (Unix)
+  ansible.builtin.stat:
+    path: "{{ ansible_env.HOME }}/.local/bin/llm"
+  register: llm_user_llm_stat
+  when: ansible_os_family != 'Windows'
+  tags: [llm, install, check]
+
+- name: Check if LLM is installed (Windows)
+  ansible.builtin.command: where llm
+  register: llm_check_win
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family == 'Windows'
+  tags: [llm, install, check]
+
+- name: Install LLM via pip (Linux/macOS)
+  ansible.builtin.pip:
+    name: llm
+    state: latest
+    extra_args: --user
+  when:
+    - ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+    - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
+    - (llm_user_llm_stat is not defined or (llm_user_llm_stat.stat.exists | default(false)) == false)
+  tags: [llm, install, pip]
+
+- name: Install LLM via pip (Windows)
+  ansible.builtin.pip:
+    name: llm
+    state: latest
+  when:
+    - ansible_os_family == 'Windows'
+    - (llm_check_win is defined and llm_check_win.rc | default(1) != 0)
+  tags: [llm, install, pip]
+
+- name: Verify LLM installation
+  ansible.builtin.command: llm --version
+  register: llm_version
+  changed_when: false
+  check_mode: false
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:{{ ansible_env.PATH }}"
+  tags: [llm, verify]
+
+- name: Display LLM version
+  ansible.builtin.debug:
+    msg: "LLM version {{ llm_version.stdout | default('unknown') }} installed"
+  when: llm_version is defined and llm_version.rc == 0
+  tags: [llm, verify]
+

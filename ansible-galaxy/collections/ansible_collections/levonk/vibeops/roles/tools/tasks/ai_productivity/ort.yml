@@ -1,0 +1,93 @@
+---
+# Install ORT - Basic fast OpenRouter CLI in Rust
+# Repo: https://github.com/grahamking/ort
+
+- name: Check if ort is installed (Unix)
+  ansible.builtin.command: which ort
+  register: ort_check_unix
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family != 'Windows'
+  tags: [ort, install, check]
+
+- name: Check if ort is installed (Windows)
+  ansible.builtin.command: where ort
+  register: ort_check_win
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family == 'Windows'
+  tags: [ort, install, check]
+
+- name: Ensure Rust toolchain present (Linux/macOS)
+  block:
+    - name: Install rustup and cargo
+      levonk.common.package:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - rustup
+        - cargo
+      tags: [ort, rust]
+
+    - name: Install ort via cargo (from git)
+      ansible.builtin.command: >
+        cargo install --git https://github.com/grahamking/ort
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/ort"
+      register: ort_cargo_install
+      changed_when: ort_cargo_install.rc == 0
+      tags: [ort, cargo, install]
+  when:
+    - ansible_os_family != 'Windows'
+    - (ort_check_unix is defined and ort_check_unix.rc | default(1) != 0)
+
+- name: Attempt install ort via cargo on Windows if cargo exists
+  block:
+    - name: Check if cargo exists on Windows
+      ansible.builtin.command: where cargo
+      register: cargo_check_win
+      failed_when: false
+      changed_when: false
+
+    - name: Install ort via cargo on Windows
+      ansible.builtin.command: >
+        cargo install --git https://github.com/grahamking/ort
+      environment:
+        PATH: "%USERPROFILE%\\.cargo\\bin;{{ ansible_env.PATH }}"
+      args:
+        creates: "%USERPROFILE%\\.cargo\\bin\\ort.exe"
+      register: ort_cargo_install_win
+      changed_when: ort_cargo_install_win.rc == 0
+      when:
+        - cargo_check_win.rc == 0
+  when:
+    - ansible_os_family == 'Windows'
+    - (ort_check_win is defined and ort_check_win.rc | default(1) != 0)
+  tags: [ort, cargo, install]
+
+- name: Verify ort installation (Unix)
+  ansible.builtin.command: ort -h
+  register: ort_help
+  failed_when: false
+  changed_when: false
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.cargo/bin:/usr/local/bin:/usr/bin:{{ ansible_env.PATH }}"
+  when: ansible_os_family != 'Windows'
+  tags: [ort, verify]
+
+- name: Verify ort installation (Windows)
+  ansible.builtin.command: ort -h
+  register: ort_help
+  failed_when: false
+  changed_when: false
+  environment:
+    PATH: "{{ ansible_env.USERPROFILE }}\\.cargo\\bin;{{ ansible_env.PATH }}"
+  when: ansible_os_family == 'Windows'
+  tags: [ort, verify]
+
+- name: Display ort presence
+  ansible.builtin.debug:
+    msg: "ORT installed: {{ (ort_help.rc == 0) | ternary('yes', 'no') }}"
+  tags: [ort, verify]
