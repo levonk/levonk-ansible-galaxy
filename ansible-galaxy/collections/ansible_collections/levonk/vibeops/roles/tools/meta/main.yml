@@ -1,6 +1,4 @@
 ---
-dependencies:
-  - role: levonk.vibeops.dev-rust
-    when: tools_install_ort | default(true)
+dependencies: []
 # TODO: Compliance
 # Add role dependencies here as needed

@@ -18,6 +18,22 @@
   when: ansible_os_family == 'Windows'
   tags: [ort, install, check]
 
+- name: Check if cargo is installed (Unix)
+  ansible.builtin.command: which cargo
+  register: cargo_check_unix
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family != 'Windows'
+  tags: [ort, rust, check]
+
+- name: Ensure Rust toolchain via dev-rust role (Unix, if missing)
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-rust
+  when:
+    - ansible_os_family != 'Windows'
+    - cargo_check_unix is defined and cargo_check_unix.rc != 0
+  tags: [ort, rust]
+
 - name: Install ort via cargo (from git) on Unix
   ansible.builtin.command: >
     cargo install --git https://github.com/grahamking/ort
@@ -32,28 +48,35 @@
     - (ort_check_unix is defined and ort_check_unix.rc | default(1) != 0)
   tags: [ort, cargo, install]
 
-- name: Attempt install ort via cargo on Windows if cargo exists
-  block:
-    - name: Check if cargo exists on Windows
-      ansible.builtin.command: where cargo
-      register: cargo_check_win
-      failed_when: false
-      changed_when: false
+- name: Check if cargo exists on Windows
+  ansible.builtin.command: where cargo
+  register: cargo_check_win
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family == 'Windows'
+  tags: [ort, rust, check]
 
-    - name: Install ort via cargo on Windows
-      ansible.builtin.command: >
-        cargo install --git https://github.com/grahamking/ort
-      environment:
-        PATH: "%USERPROFILE%\\.cargo\\bin;{{ ansible_env.PATH }}"
-      args:
-        creates: "%USERPROFILE%\\.cargo\\bin\\ort.exe"
-      register: ort_cargo_install_win
-      changed_when: ort_cargo_install_win.rc == 0
-      when:
-        - cargo_check_win.rc == 0
+- name: Ensure Rust toolchain via dev-rust role (Windows, if missing)
+  ansible.builtin.include_role:
+    name: levonk.vibeops.dev-rust
+  when:
+    - ansible_os_family == 'Windows'
+    - cargo_check_win is defined and cargo_check_win.rc != 0
+  tags: [ort, rust]
+
+- name: Install ort via cargo on Windows
+  ansible.builtin.command: >
+    cargo install --git https://github.com/grahamking/ort
+  environment:
+    PATH: "%USERPROFILE%\\.cargo\\bin;{{ ansible_env.PATH }}"
+  args:
+    creates: "%USERPROFILE%\\.cargo\\bin\\ort.exe"
+  register: ort_cargo_install_win
+  changed_when: ort_cargo_install_win.rc == 0
   when:
     - ansible_os_family == 'Windows'
     - (ort_check_win is defined and ort_check_win.rc | default(1) != 0)
+    - (cargo_check_win is defined and cargo_check_win.rc == 0)
   tags: [ort, cargo, install]
 
 - name: Verify ort installation (Unix)
