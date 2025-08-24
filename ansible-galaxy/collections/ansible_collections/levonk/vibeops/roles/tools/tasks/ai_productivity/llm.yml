@@ -25,15 +25,44 @@
   when: ansible_os_family == 'Windows'
   tags: [llm, install, check]
 
-- name: Install LLM via pip (Linux/macOS)
+- name: Check if Homebrew is available (macOS)
+  ansible.builtin.command: brew --version
+  register: brew_check
+  failed_when: false
+  changed_when: false
+  when: ansible_os_family == 'Darwin'
+  tags: [llm, install, check]
+
+- name: Install LLM via Homebrew (macOS)
+  community.general.homebrew:
+    name: llm
+    state: present
+  when:
+    - ansible_os_family == 'Darwin'
+    - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
+    - (brew_check is defined and brew_check.rc == 0)
+  tags: [llm, install, homebrew]
+
+- name: Install LLM via pip (Linux)
   ansible.builtin.pip:
     name: llm
     state: latest
     extra_args: --user
   when:
-    - ansible_os_family in ['Debian', 'RedHat', 'Archlinux', 'Darwin']
+    - ansible_os_family in ['Debian', 'RedHat', 'Archlinux']
     - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
     - (llm_user_llm_stat is not defined or (llm_user_llm_stat.stat.exists | default(false)) == false)
+  tags: [llm, install, pip]
+
+- name: Install LLM via pip (macOS fallback)
+  ansible.builtin.pip:
+    name: llm
+    state: latest
+    extra_args: --user
+  when:
+    - ansible_os_family == 'Darwin'
+    - (llm_check_unix is defined and llm_check_unix.rc | default(1) != 0)
+    - (brew_check is defined and brew_check.rc != 0)
   tags: [llm, install, pip]
 
 - name: Install LLM via pip (Windows)
@@ -45,13 +74,24 @@
     - (llm_check_win is defined and llm_check_win.rc | default(1) != 0)
   tags: [llm, install, pip]
 
-- name: Verify LLM installation
+- name: Verify LLM installation (macOS)
+  ansible.builtin.command: llm --version
+  register: llm_version
+  changed_when: false
+  check_mode: false
+  environment:
+    PATH: "/opt/homebrew/bin:/usr/local/bin:{{ ansible_env.HOME }}/.local/bin:/usr/bin:{{ ansible_env.PATH }}"
+  when: ansible_os_family == 'Darwin'
+  tags: [llm, verify]
+
+- name: Verify LLM installation (Unix)
   ansible.builtin.command: llm --version
   register: llm_version
   changed_when: false
   check_mode: false
   environment:
     PATH: "{{ ansible_env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:{{ ansible_env.PATH }}"
+  when: ansible_os_family not in ['Windows', 'Darwin']
   tags: [llm, verify]
 
 - name: Display LLM version

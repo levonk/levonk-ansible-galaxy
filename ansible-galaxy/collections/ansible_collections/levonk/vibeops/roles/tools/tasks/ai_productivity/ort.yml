@@ -18,30 +18,19 @@
   when: ansible_os_family == 'Windows'
   tags: [ort, install, check]
 
-- name: Ensure Rust toolchain present (Linux/macOS)
-  block:
-    - name: Install rustup and cargo
-      levonk.common.package:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - rustup
-        - cargo
-      tags: [ort, rust]
-
-    - name: Install ort via cargo (from git)
-      ansible.builtin.command: >
-        cargo install --git https://github.com/grahamking/ort
-      environment:
-        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
-      args:
-        creates: "{{ ansible_env.HOME }}/.cargo/bin/ort"
-      register: ort_cargo_install
-      changed_when: ort_cargo_install.rc == 0
-      tags: [ort, cargo, install]
+- name: Install ort via cargo (from git) on Unix
+  ansible.builtin.command: >
+    cargo install --git https://github.com/grahamking/ort
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+  args:
+    creates: "{{ ansible_env.HOME }}/.cargo/bin/ort"
+  register: ort_cargo_install
+  changed_when: ort_cargo_install.rc == 0
   when:
     - ansible_os_family != 'Windows'
     - (ort_check_unix is defined and ort_check_unix.rc | default(1) != 0)
+  tags: [ort, cargo, install]
 
 - name: Attempt install ort via cargo on Windows if cargo exists
   block:
