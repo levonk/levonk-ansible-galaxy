@@ -1,0 +1,4 @@
+---
+# Defaults for levonk.common.mise
+# Controls whether the Mise runtime manager should be installed
+common_mise_install: true
