@@ -1,0 +1,42 @@
+---
+# Use Mise to install JS runtimes and package managers
+
+- name: Ensure Mise is installed
+  ansible.builtin.include_role:
+    name: levonk.common.mise
+
+# Non-Windows: Linux/macOS
+- name: Install Node via Mise (non-Windows)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    mise use -g node@{{ dev_js_node_version }}
+  args:
+    executable: /bin/bash
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+- name: Enable corepack for yarn/pnpm (non-Windows)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    corepack enable
+  args:
+    executable: /bin/bash
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+    - dev_js_corepack_enable | default(true)
+
+- name: Install Bun via Mise (non-Windows)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    mise use -g bun@{{ dev_js_bun_version }}
+  args:
+    executable: /bin/bash
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+# Windows
+- name: Install Node via Mise (Windows)
+  ansible.builtin.command: mise use -g node@{{ dev_js_node_version }}
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Install Bun via Mise (Windows)
+  ansible.builtin.command: mise use -g bun@{{ dev_js_bun_version }}
+  when: ansible_facts['os_family'] == 'Windows'

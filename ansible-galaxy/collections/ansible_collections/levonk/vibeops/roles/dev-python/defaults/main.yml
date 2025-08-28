@@ -1,0 +1,9 @@
+---
+# Defaults for Python development role
+# Prefer installing runtimes and tools via Mise
+dev_python_use_mise: true
+
+# Versions managed by Mise
+# Use 'latest' per user directive
+dev_python_version: latest
+dev_poetry_version: latest

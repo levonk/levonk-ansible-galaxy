@@ -1,0 +1,11 @@
+---
+# Defaults for JavaScript development role
+# Prefer installing runtimes and package managers via Mise
+dev_js_use_mise: true
+
+# Versions managed by Mise
+# Use 'latest' per user directive
+dev_js_node_version: latest
+dev_js_bun_version: latest
+# Enable corepack for yarn/pnpm when Node is installed via Mise
+dev_js_corepack_enable: true

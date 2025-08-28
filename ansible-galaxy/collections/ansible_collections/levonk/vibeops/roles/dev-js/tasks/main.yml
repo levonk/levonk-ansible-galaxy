@@ -1,9 +1,15 @@
 ---
-- name: Include Node.js and npm installation
-  ansible.builtin.import_tasks: nodejs.yml
+- name: Include Mise-based JS runtime setup
+  ansible.builtin.import_tasks: mise.yml
+  when: dev_js_use_mise | default(true)
 
-- name: Include JavaScript managers (fnm, pnpm, yarn)
+- name: Include Node.js and npm installation (legacy)
+  ansible.builtin.import_tasks: nodejs.yml
+  when: not (dev_js_use_mise | default(true))
+
+- name: Include JavaScript managers (legacy: fnm, pnpm, yarn)
   ansible.builtin.import_tasks: js-managers.yml
+  when: not (dev_js_use_mise | default(true))
 
 - name: Include JavaScript linters (eslint)
   ansible.builtin.import_tasks: js-linters.yml
