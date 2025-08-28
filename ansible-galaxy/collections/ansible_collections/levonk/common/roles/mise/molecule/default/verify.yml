@@ -1,0 +1,14 @@
+---
+- name: Verify
+  hosts: all
+  tasks:
+    - name: Check mise binary exists in ~/.local/bin
+      ansible.builtin.stat:
+        path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/bin/mise"
+      register: mise_stat
+
+    - name: Assert mise is installed
+      ansible.builtin.assert:
+        that:
+          - mise_stat.stat.exists | default(false)
+        fail_msg: "Mise binary not found in ~/.local/bin"

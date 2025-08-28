@@ -1,0 +1,7 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - role: levonk.common.mise
+      vars:
+        common_mise_install: true
