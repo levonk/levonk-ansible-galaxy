@@ -1,53 +1,13 @@
 ---
-# Install Mise (https://mise.jdx.dev) cross-platform with idempotency
+# Backward-compatibility wrapper for Mise install
+# Delegates to the new levonk.common.mise role
 
-# Non-Windows: Linux/macOS
-- name: Check if Mise is already installed (non-Windows)
-  ansible.builtin.stat:
-    path: "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/bin/mise"
-  register: mise_stat
-  when:
-    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
-
-- name: Install Mise on Linux/macOS
-  ansible.builtin.shell: |
-    curl -fsSL https://mise.jdx.dev/install.sh | sh
-  args:
-    executable: /bin/bash
-  environment:
-    MISE_INSTALL_PATH: "{{ lookup('ansible.builtin.env', 'HOME') }}/.local/bin"
-  when:
-    - developer_install_mise | default(true)
-    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
-    - not mise_stat.stat.exists | default(false)
-
-# Windows
-- name: Check if Mise is already installed (Windows)
-  ansible.windows.win_command: mise --version
-  register: mise_win_check
-  failed_when: false
-  changed_when: false
-  when:
-    - ansible_facts['os_family'] == 'Windows'
-
-- name: Install Mise on Windows (Scoop)
-  ansible.windows.win_shell: scoop install jdx/mise
-  when:
-    - developer_install_mise | default(true)
-    - ansible_facts['os_family'] == 'Windows'
-    - mise_win_check.rc is defined and mise_win_check.rc != 0
-    - lookup('ansible.builtin.env', 'SCOOP') != ''
-
-- name: Install Mise on Windows (winget fallback)
-  ansible.windows.win_shell: |
-    winget install `
-      --id jdx.mise `
-      -e `
-      --source winget `
-      --accept-source-agreements `
-      --accept-package-agreements
-  when:
-    - developer_install_mise | default(true)
-    - ansible_facts['os_family'] == 'Windows'
-    - mise_win_check.rc is defined and mise_win_check.rc != 0
-    - lookup('ansible.builtin.env', 'SCOOP') == ''
+- name: Include levonk.common.mise role (compat)
+  ansible.builtin.include_role:
+    name: levonk.common.mise
+  vars:
+    common_mise_install: {{ developer_install_mise | default(true) }}
+  tags:
+    - developer
+    - tools
+    - mise

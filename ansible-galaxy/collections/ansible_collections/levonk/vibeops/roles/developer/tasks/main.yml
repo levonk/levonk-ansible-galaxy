@@ -50,8 +50,8 @@
     - yamlfmt
 
 - name: Install Mise runtime manager
-  ansible.builtin.include_tasks:
-    file: install_mise.yml
+  ansible.builtin.include_role:
+    name: levonk.common.mise
   when: developer_install_mise | default(true)
   tags:
     - developer
