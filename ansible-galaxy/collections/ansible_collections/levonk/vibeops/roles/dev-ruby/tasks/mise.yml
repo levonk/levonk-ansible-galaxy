@@ -1,0 +1,25 @@
+---
+# Use Mise to install Ruby runtime and tools
+
+- name: Ensure Mise is installed
+  ansible.builtin.include_role:
+    name: levonk.common.mise
+
+# Non-Windows: Linux/macOS
+- name: Install Ruby via Mise (non-Windows)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    mise use -g ruby@{{ dev_ruby_version }}
+    mise use -g bundler@{{ dev_bundler_version }}
+  args:
+    executable: /bin/bash
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+
+# Windows
+- name: Install Ruby via Mise (Windows)
+  ansible.builtin.command: mise use -g ruby@{{ dev_ruby_version }}
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Install Bundler via Mise (Windows)
+  ansible.builtin.command: mise use -g bundler@{{ dev_bundler_version }}
+  when: ansible_facts['os_family'] == 'Windows'

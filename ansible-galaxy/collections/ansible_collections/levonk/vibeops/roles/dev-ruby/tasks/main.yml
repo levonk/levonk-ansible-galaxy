@@ -1,12 +1,20 @@
 ---
+- name: Include Mise-based Ruby setup
+  ansible.builtin.include_tasks: mise.yml
+  when: dev_ruby_use_mise | default(true)
+
 - name: Ensure Ruby is installed (Linux)
   ansible.builtin.package:
     name: ruby-full
     state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+    - not (dev_ruby_use_mise | default(true))
 
 - name: Ensure Ruby is installed (Windows)
   ansible.windows.win_chocolatey:
     name: ruby
     state: present
-  when: ansible_facts['os_family'] == 'Windows'
+  when:
+    - ansible_facts['os_family'] == 'Windows'
+    - not (dev_ruby_use_mise | default(true))

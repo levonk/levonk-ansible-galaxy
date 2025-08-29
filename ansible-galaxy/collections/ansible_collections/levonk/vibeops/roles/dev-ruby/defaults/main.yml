@@ -1,0 +1,9 @@
+---
+# Defaults for Ruby development role
+# Prefer installing runtimes and tools via Mise
+dev_ruby_use_mise: true
+
+# Versions managed by Mise
+# Use 'latest' per user directive
+dev_ruby_version: latest
+dev_bundler_version: latest
