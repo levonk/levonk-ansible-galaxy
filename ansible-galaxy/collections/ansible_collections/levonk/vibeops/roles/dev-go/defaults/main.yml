@@ -1,0 +1,8 @@
+---
+# Defaults for Go development role
+# Prefer installing runtimes via Mise
+dev_go_use_mise: true
+
+# Versions managed by Mise
+# Use 'latest' per user directive
+dev_go_version: latest

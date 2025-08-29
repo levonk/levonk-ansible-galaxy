@@ -1,12 +1,20 @@
 ---
+- name: Include Mise-based Go setup
+  ansible.builtin.include_tasks: mise.yml
+  when: dev_go_use_mise | default(true)
+
 - name: Ensure Go is installed (Linux)
   ansible.builtin.package:
     name: golang
     state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu']
+    - not (dev_go_use_mise | default(true))
 
 - name: Ensure Go is installed (Windows)
   ansible.windows.win_chocolatey:
     name: golang
     state: present
-  when: ansible_facts['os_family'] == 'Windows'
+  when:
+    - ansible_facts['os_family'] == 'Windows'
+    - not (dev_go_use_mise | default(true))
