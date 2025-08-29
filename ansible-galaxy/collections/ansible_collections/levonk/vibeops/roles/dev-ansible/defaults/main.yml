@@ -1,0 +1,7 @@
+---
+# Defaults for Ansible development role
+# Prefer installing Ansible and tooling via UV (astral-sh/uv)
+dev_ansible_use_uv: true
+
+# Tool list to install via UV (latest by default)
+dev_ansible_tools: ["ansible", "ansible-lint", "yamllint", "molecule", "molecule-plugins[docker]"]

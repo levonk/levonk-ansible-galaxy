@@ -1,18 +1,28 @@
 ---
+- name: Include UV-based Ansible setup
+  ansible.builtin.include_tasks: uv.yml
+  when: dev_ansible_use_uv | default(true)
+
 - name: Ensure Ansible is installed (Linux)
   ansible.builtin.pip:
     name: "ansible=={{ ansible_version | default('latest') }}"
     state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']
+    - not (dev_ansible_use_uv | default(true))
 
 - name: Ensure Ansible is installed (Windows)
   ansible.windows.win_chocolatey:
     name: ansible
     state: present
-  when: ansible_facts['os_family'] == 'Windows'
+  when:
+    - ansible_facts['os_family'] == 'Windows'
+    - not (dev_ansible_use_uv | default(true))
 
 - name: Install dev tools/plugins
   ansible.builtin.pip:
     name: "{{ dev_ansible_tools | default(['molecule', 'molecule-plugins[docker]', 'ansible-lint', 'yamllint']) }}"
     state: present
-  when: ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'MacOSX']
+    - not (dev_ansible_use_uv | default(true))

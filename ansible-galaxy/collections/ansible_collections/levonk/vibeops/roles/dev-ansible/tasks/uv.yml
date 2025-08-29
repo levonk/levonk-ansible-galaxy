@@ -1,0 +1,56 @@
+---
+# Install Ansible toolchain via UV (astral-sh/uv)
+
+- name: Ensure UV is installed via levonk.common.package
+  levonk.common.package:
+    name: uv
+    state: latest
+  register: uv_pkg
+  ignore_errors: true
+  tags: [uv, install]
+
+- name: Install UV using official install script (Linux/macOS fallback)
+  block:
+    - name: Download UV install script
+      ansible.builtin.get_url:
+        url: https://astral.sh/uv/install.sh
+        dest: /tmp/uv-install.sh
+        mode: '0755'
+    - name: Run UV install script
+      ansible.builtin.command: /tmp/uv-install.sh
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/uv"
+      environment:
+        CARGO_HOME: "{{ ansible_env.HOME }}/.cargo"
+    - name: Clean up install script
+      ansible.builtin.file:
+        path: /tmp/uv-install.sh
+        state: absent
+  when:
+    - ansible_facts['os_family'] in ['Debian', 'RedHat', 'Ubuntu', 'MacOSX']
+    - uv_pkg is failed or uv_pkg is skipped
+  tags: [uv, install]
+
+- name: Install UV using pipx (Windows fallback)
+  ansible.builtin.command: pipx install uv
+  args:
+    creates: "{{ ansible_env.LOCALAPPDATA }}\\pipx\\venvs\\uv\\Scripts\\uv.exe"
+  when:
+    - ansible_facts['os_family'] == 'Windows'
+    - uv_pkg is failed or uv_pkg is skipped
+  tags: [uv, install, windows]
+
+- name: Ensure UV is available
+  ansible.builtin.command: uv --version
+  register: uv_version
+  changed_when: false
+
+- name: Install Ansible toolchain via UV
+  ansible.builtin.command: uv tool install {{ item }}
+  loop: "{{ dev_ansible_tools }}"
+  environment:
+    PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+  register: uv_tools
+  changed_when: "'installed' in uv_tools.stdout | default('') or uv_tools.rc == 0"
+  failed_when: uv_tools.rc is defined and uv_tools.rc not in [0]
+  tags: [uv, ansible]
