@@ -22,7 +22,7 @@ This Ansible collection provides reusable roles for user management, shell confi
 | local_user     | Local user account management                      | Shell install, user create/update, SSH key management                | [README](roles/local_user/README.md) |
 | remote_user    | Remote-access user (SSH/RDP) management            | Shell install, user create/update, SSH keys, enable RDP (Windows)    | [README](roles/remote_user/README.md) |
 | service_user   | Service/system user creation with minimal privileges| Shell install, system user create/update                             | [README](roles/service_user/README.md) |
-| thick-shell    | Advanced shell and terminal environment setup       | Multi-shell stack, tmux/zellij/mosh, fzf, direnv, neovim, CLI tools  | [README](roles/thick-shell/README.md) |
+| thick-shell    | Advanced shell and terminal environment setup       | Multi-shell stack, tmux/zellij/mosh, fzf, direnv, vim editor, CLI tools  | [README](roles/thick-shell/README.md) |
 
 ### Modules
 

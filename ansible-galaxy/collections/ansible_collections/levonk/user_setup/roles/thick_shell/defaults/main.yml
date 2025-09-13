@@ -12,5 +12,4 @@ thick_shell_install_ripgrep: true
 thick_shell_install_bat: true
 thick_shell_install_fd: true
 thick_shell_install_zoxide: true
-thick_shell_install_neovim: true
-
+thick_shell_install_vim: true

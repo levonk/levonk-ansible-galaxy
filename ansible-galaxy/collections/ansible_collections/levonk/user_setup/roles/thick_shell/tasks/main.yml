@@ -64,6 +64,6 @@
   include_tasks: tools/zoxide.yml
   when: thick_shell_install_zoxide 
 
-- name: Install Neovim
-  include_tasks: tools/neovim.yml
-  when: thick_shell_install_neovim 
+- name: Install Vim editor (AstroVim)
+  include_tasks: tools/vim.yml
+  when: (thick_shell_install_vim | default(false)) or (thick_shell_install_neovim | default(false))

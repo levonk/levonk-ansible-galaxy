@@ -27,7 +27,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 | Install bat                       | Installs bat syntax highlighter                                       | `thick_shell_install_bat`             | [tasks/tools/bat.yml](tasks/tools/bat.yml) |
 | Install fd                        | Installs fd file finder                                               | `thick_shell_install_fd`              | [tasks/tools/fd.yml](tasks/tools/fd.yml) |
 | Install zoxide                    | Installs zoxide smart cd                                              | `thick_shell_install_zoxide`          | [tasks/tools/zoxide.yml](tasks/tools/zoxide.yml) |
-| Install Neovim                    | Installs Neovim and ensures config directory exists                   | `thick_shell_install_neovim`          | [tasks/tools/neovim.yml](tasks/tools/neovim.yml) |
+| Install Vim editor (AstroVim)     | Installs Vim editor using AstroVim distribution; ensures config exists | `thick_shell_install_vim`             | [tasks/tools/vim.yml](tasks/tools/vim.yml) |
 
 ---
 
@@ -43,7 +43,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 ### Advanced Terminal Tools
 **Description:**
 > Installs tmux, zellij, mosh, and modern CLI tools for productivity.
-- **Tags:** `tmux`, `zellij`, `mosh`, `fzf`, `direnv`, `ripgrep`, `bat`, `fd`, `zoxide`, `neovim`
+- **Tags:** `tmux`, `zellij`, `mosh`, `fzf`, `direnv`, `ripgrep`, `bat`, `fd`, `zoxide`, `vim`
 - **Idempotency:** Each tool is only installed if not present.
 - **Usage:**
   - Set `thick_shell_install_*` variables to enable installation of each tool.
@@ -60,7 +60,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 -   **bat**: Syntax-highlighted cat replacement with Git integration.
 -   **fd**: A simpler, faster alternative to find.
 -   **zoxide**: A smarter cd command that learns your habits and lets you jump to frequently used directories.
--   **neovim**: Modern, extensible Vim-based text editor (`nvim`) with Lua plugin support. Installs on all platforms and ensures `~/.config/nvim` exists.
+-   **vim editor**: Modern, extensible editor setup using AstroVim with Lua plugin support. Installs on all platforms and ensures `~/.config/nvim` exists.
 
 **Note**: On Windows, these tools are intended for use within the Windows Subsystem for Linux (WSL). The role will not install them on the native Windows host but will display a message advising to install them within WSL.
 
@@ -70,7 +70,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 -   `homebrew` on macOS.
 -   `apt` on Debian-based systems.
 -   For **Zellij** on Debian, a working **Rust** development environment is required (e.g., via the `levonk.dev_setup.dev-rust` role).
--   For **Neovim**, Python 3 is recommended for advanced plugin support (not required for minimal usage).
+-   For the **Vim editor (AstroVim)**, Python 3 is recommended for advanced plugin support (not required for minimal usage).
 
 ## Role Variables
 
@@ -84,7 +84,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 -   `thick_shell_install_bat`: Set to `true` to install bat syntax highlighter.
 -   `thick_shell_install_fd`: Set to `true` to install fd file finder.
 -   `thick_shell_install_zoxide`: Set to `true` to install zoxide smart cd.
--   `thick_shell_install_neovim`: Set to `true` to install Neovim modern text editor.
+-   `thick_shell_install_vim`: Set to `true` to install the Vim editor (AstroVim distribution).
 
 ## Dependencies
 
@@ -108,21 +108,19 @@ To install the default Zsh stack along with all advanced tools:
     thick_shell_install_bat: true
     thick_shell_install_fd: true
     thick_shell_install_zoxide: true
-    thick_shell_install_neovim: true
+    thick_shell_install_vim: true
   roles:
     - role: levonk.user_setup.thick-shell
 ```
 
-## Neovim
+## Vim editor (AstroVim)
 
-- Installs Neovim (`nvim`) on all supported platforms.
-- Ensures the config directory `~/.config/nvim` exists.
+- Installs a Vim editor setup using the AstroVim distribution on all supported platforms.
+- Ensures the editor config directory `~/.config/nvim` exists for compatibility with modern distributions.
 - BDD and Testinfra tests verify:
-  - Neovim is installed and runs (`nvim --version`, `nvim --headless +qall`)
+  - Editor is installed and runs in headless mode
   - Config directory exists
   - Editor launches and exits cleanly
-
-See `doc/gherkin/features/neovim.feature` and `molecule/default/tests/test_neovim.py` for details.
 
 
 ## License

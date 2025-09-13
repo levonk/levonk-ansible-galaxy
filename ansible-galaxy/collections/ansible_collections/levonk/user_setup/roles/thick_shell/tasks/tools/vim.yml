@@ -1,0 +1,60 @@
+---
+# Install Vim editor stack with AstroVim distribution (cross-platform)
+# Note: Uses the system package for the modern Vim-compatible editor while keeping config naming generic as "vim".
+
+- name: Install editor package via levonk.common.package (cross-platform)
+  levonk.common.package:
+    name:
+      - neovim
+    state: latest
+  tags:
+    - thick-shell
+    - tools
+    - vim
+    - editor
+
+- name: Ensure config parent directory exists
+  ansible.builtin.file:
+    path: "~/.config"
+    state: directory
+    mode: '0755'
+
+- name: Check if ~/.config/nvim exists
+  ansible.builtin.stat:
+    path: "~/.config/nvim"
+  register: nvim_dir
+
+- name: Check if ~/.config/nvim is a git repo
+  ansible.builtin.stat:
+    path: "~/.config/nvim/.git"
+  register: nvim_git_dir
+
+- name: Backup existing non-git editor config at ~/.config/nvim
+  ansible.builtin.command: mv ~/.config/nvim ~/.config/nvim.pre-astrovim
+  args:
+    creates: "~/.config/nvim.pre-astrovim"
+  when: nvim_dir.stat.exists and (not nvim_git_dir.stat.exists)
+
+- name: Install AstroVim configuration
+  ansible.builtin.git:
+    repo: https://github.com/AstroNvim/AstroNvim.git
+    dest: "~/.config/nvim"
+    version: main
+    update: no
+  register: astrovim_clone
+
+- name: Display AstroVim install status
+  ansible.builtin.debug:
+    msg: "AstroVim configuration present at ~/.config/nvim (changed={{ astrovim_clone.changed }})"
+
+- name: Bootstrap plugins (headless) using Lazy
+  ansible.builtin.shell: |
+    nvim --headless "+Lazy! sync" "+qall"
+  args:
+    executable: /bin/bash
+  changed_when: false
+  when: ansible_os_family != 'Windows'
+  tags:
+    - vim
+    - editor
+    - lazy
