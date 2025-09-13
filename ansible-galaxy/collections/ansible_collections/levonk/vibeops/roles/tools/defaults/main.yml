@@ -9,6 +9,9 @@ tools_install_sublime_text: false
 tools_install_espanso: false
 tools_install_speech_tools: false
 
+# Shell/terminal tool toggles
+tools_install_jj: true
+
 # macOS-specific tools (default: true for better macOS experience)
 tools_install_alttab: true
 tools_install_stats: true

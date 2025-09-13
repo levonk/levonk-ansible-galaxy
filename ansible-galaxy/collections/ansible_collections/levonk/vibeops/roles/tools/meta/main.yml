@@ -1,6 +1,6 @@
----
-dependencies: []
+-dependencies: []
 # TODO: Compliance
 # Add role dependencies here as needed
 collections:
   - community.general
+  - levonk.common

@@ -23,6 +23,10 @@
   ansible.builtin.include_tasks: eza.yml
   when: tools_install_eza | default(true)
 
+- name: Install Jujutsu (jj)
+  ansible.builtin.include_tasks: jj.yml
+  when: tools_install_jj | default(true)
+
 # Terminal emulators
 - name: Install Windows Terminal
   ansible.builtin.include_tasks: windows_terminal.yml

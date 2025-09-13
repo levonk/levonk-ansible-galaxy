@@ -1,0 +1,58 @@
+---
+# Jujutsu (jj) installation tasks
+# Project URL: https://github.com/jj-vcs/jj
+# JJ is a Git-compatible VCS. Prefer native package managers via levonk.common.package,
+# and fall back to cargo if unavailable.
+
+- name: Install Jujutsu (jj) using levonk.common.package (primary)
+  levonk.common.package:
+    name: "{{ 'jujutsu' if ansible_os_family != 'Windows' else 'jj' }}"
+    state: latest
+  register: jj_pkg_install
+  ignore_errors: true
+  tags: [vibeops, tools, shell, jj, jujutsu, install, package]
+  changed_when: jj_pkg_install is changed
+
+- name: Install Jujutsu (jj) using cargo (fallback for Linux/macOS)
+  block:
+    - name: Ensure Rust toolchain via levonk.common.package (install cargo/rustup)
+      levonk.common.package:
+        name:
+          - rustup
+          - cargo
+        state: present
+      when: ansible_facts['os_family'] != 'Windows'
+      tags: [jj, jujutsu, rust, cargo, package]
+
+    - name: Check if cargo is available
+      ansible.builtin.command: cargo --version
+      register: cargo_check
+      changed_when: false
+      failed_when: false
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+      when: ansible_facts['os_family'] != 'Windows'
+      tags: [jj, jujutsu, rust, cargo]
+
+    - name: Ensure Rust toolchain via dev-rust role (last resort)
+      ansible.builtin.include_role:
+        name: levonk.vibeops.dev-rust
+      when:
+        - ansible_facts['os_family'] != 'Windows'
+        - cargo_check.rc is defined and cargo_check.rc != 0
+      tags: [jj, jujutsu, rust, cargo, dev_rust]
+
+    - name: Install jj via cargo from upstream repo
+      ansible.builtin.command: >
+        cargo install --locked --git https://github.com/jj-vcs/jj jj-cli
+      environment:
+        PATH: "{{ ansible_env.HOME }}/.cargo/bin:{{ ansible_env.PATH }}"
+      args:
+        creates: "{{ ansible_env.HOME }}/.cargo/bin/jj"
+      register: jj_cargo_install
+      changed_when: jj_cargo_install.rc == 0
+      tags: [jj, jujutsu, install, cargo]
+  when:
+    - jj_pkg_install is failed or jj_pkg_install is skipped
+    - ansible_facts['os_family'] != 'Windows'
+  tags: [jj, jujutsu, install, fallback]
