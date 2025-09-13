@@ -154,7 +154,7 @@
     - vim
     - base_system
 
-- name: Set JetBrains Mono Nerd Font as default for neovim
+- name: Set JetBrains Mono Nerd Font as default for Vim editor (nvim)
   lineinfile:
     path: "/etc/xdg/nvim/sysinit.vim"
     line: "set guifont=JetBrainsMono\ Nerd\ Font:h12"
@@ -165,7 +165,7 @@
     - font
     - nerd-font
     - jetbrains
-    - neovim
+    - vim
     - base_system
 
 # NOTE: For macOS/iTerm2 and other terminals/editors, manual or user-specific scripting may be required for full automation due to plist/binary config formats.
