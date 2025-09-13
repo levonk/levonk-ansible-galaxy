@@ -1,0 +1,30 @@
+# Toolchain managed by mise (https://github.com/jdx/mise)
+# This file pins developer tooling for consistent local/devcontainer/CI.
+
+[env]
+MISE_EXPERIMENTAL = "1"
+
+[tools]
+# Python runtime and uv package manager
+python = "3.12"
+uv = "latest"
+
+# Linters and formatters
+"pipx:yamllint" = "latest"
+"npm:markdownlint-cli2" = "latest"
+"npm:prettier" = "latest"
+
+# Shell and YAML helpers
+shellcheck = "latest"
+yamlfmt = "latest"
+bat = "latest"
+
+# JavaScript runtime
+bun = "latest"
+
+# Notes:
+# - Some tools install via language-specific ecosystems:
+#   - pipx for Python CLIs (e.g., yamllint)
+#   - npm for Node CLIs (e.g., markdownlint-cli2, prettier)
+# - If a tool isn’t available via mise on this OS, install it with the system package manager
+#   and keep the version aligned in CI.
