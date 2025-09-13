@@ -1,0 +1,55 @@
+---
+# Install GitHub spec-kit CLI entrypoint "specify"
+# Source: https://github.com/github/spec-kit
+# Install strategy:
+#  - Ensure UV is installed cross-platform via levonk.common.package
+#  - Create a wrapper script that uses `uvx --from git+https://github.com/github/spec-kit.git specify`
+#  - Verify with `specify --help`
+
+- name: Ensure UV is installed (primary method)
+  levonk.common.package:
+    name: uv
+    state: latest
+  register: uv_pkg
+
+- name: Determine installation bin directory
+  set_fact:
+    system_bindir: "/usr/local/bin"
+  when: ansible_facts['os_family'] != 'Windows'
+
+- name: Create wrapper script for spec-kit (Linux/macOS)
+  ansible.builtin.copy:
+    dest: "{{ system_bindir }}/specify"
+    mode: '0755'
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      exec uvx --from git+https://github.com/github/spec-kit.git specify "$@"
+  become: true
+  when: ansible_facts['os_family'] != 'Windows'
+
+- name: Create wrapper script for spec-kit (Windows)
+  ansible.windows.win_copy:
+    dest: "C:/Windows/System32/specify.cmd"
+    content: |
+      @echo off
+      setlocal enabledelayedexpansion
+      uvx --from git+https://github.com/github/spec-kit.git specify %*
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Verify spec-kit wrapper is functional (non-Windows)
+  ansible.builtin.command: "{{ system_bindir }}/specify --help"
+  changed_when: false
+  failed_when: false
+  when: ansible_facts['os_family'] != 'Windows'
+
+- name: Verify spec-kit wrapper is functional (Windows)
+  ansible.windows.win_command:
+    command: "specify --help"
+  changed_when: false
+  failed_when: false
+  when: ansible_facts['os_family'] == 'Windows'
+
+- name: Display installation hint
+  ansible.builtin.debug:
+    msg: "Run: specify init <PROJECT_NAME> (uses uvx to execute from github/spec-kit)"
