@@ -214,6 +214,10 @@ browsers:
       search_focused: true
       privacy_mode: true
 
+  carbonyl:
+    name: "Carbonyl CLI"
+    version: "v0.0.3"
+
 # Package manager configuration
 package_managers:
   windows:

@@ -1,0 +1,88 @@
+---
+# Carbonyl (CLI browser) installation task
+# Installs Carbonyl on Linux and macOS from GitHub releases (no submodule)
+
+- name: Install Carbonyl CLI browser
+  block:
+    - name: Determine target OS and architecture for Carbonyl asset
+      set_fact:
+        carbonyl_target_os: >-
+          {{ 'linux' if ansible_os_family in ['Debian', 'RedHat', 'Archlinux'] else ('macos' if ansible_os_family == 'Darwin' else 'unsupported') }}
+        carbonyl_target_arch: >-
+          {{ 'amd64' if ansible_architecture in ['x86_64', 'amd64'] else ('arm64' if ansible_architecture in ['aarch64', 'arm64'] else 'unsupported') }}
+
+    - name: Fail if platform not supported by Carbonyl
+      fail:
+        msg: "Carbonyl is only provided for Linux/macOS on amd64/arm64. Detected os={{ carbonyl_target_os }}, arch={{ carbonyl_target_arch }}"
+      when: carbonyl_target_os == 'unsupported' or carbonyl_target_arch == 'unsupported'
+
+    - name: Compute Carbonyl download URL and local paths
+      set_fact:
+        carbonyl_version: "{{ browsers.carbonyl.version | default('v0.0.3') }}"
+        carbonyl_asset_name: "carbonyl.{{ carbonyl_target_os }}-{{ carbonyl_target_arch }}.zip"
+        carbonyl_download_url: "https://github.com/fathyb/carbonyl/releases/download/{{ carbonyl_version }}/{{ carbonyl_asset_name }}"
+        carbonyl_install_path: "/usr/local/bin/carbonyl"
+
+    - name: Determine runtime dependency package names
+      set_fact:
+        carbonyl_runtime_deps: >-
+          {{
+            (
+              ansible_os_family == 'Debian' and ['libnss3','libexpat1','libasound2','libfontconfig1']
+            ) or (
+              ansible_os_family == 'RedHat' and ['nss','expat','alsa-lib','fontconfig']
+            ) or (
+              ansible_os_family == 'Archlinux' and ['nss','expat','alsa-lib','fontconfig']
+            ) or []
+          }}
+
+    - name: Install runtime dependencies via levonk.common.package
+      levonk.common.package:
+        name: "{{ carbonyl_runtime_deps }}"
+        state: present
+        update_cache: yes
+      when: carbonyl_runtime_deps | length > 0
+
+    - name: Create temp directory for Carbonyl download
+      tempfile:
+        state: directory
+        suffix: carbonyl
+      register: carbonyl_tmpdir
+
+    - name: Download Carbonyl binary archive
+      get_url:
+        url: "{{ carbonyl_download_url }}"
+        dest: "{{ carbonyl_tmpdir.path }}/{{ carbonyl_asset_name }}"
+        mode: '0644'
+      register: carbonyl_download
+
+    - name: Unpack Carbonyl archive
+      unarchive:
+        src: "{{ carbonyl_tmpdir.path }}/{{ carbonyl_asset_name }}"
+        dest: "{{ carbonyl_tmpdir.path }}"
+        remote_src: true
+
+    - name: Install Carbonyl to /usr/local/bin
+      copy:
+        src: "{{ carbonyl_tmpdir.path }}/carbonyl"
+        dest: "{{ carbonyl_install_path }}"
+        mode: '0755'
+        remote_src: true
+      args:
+        # idempotency guard; only copy if not already installed with same size
+        # (Ansible copy with remote_src will still check and only update if different)
+      when: carbonyl_target_os in ['linux', 'macos']
+
+    - name: Verify Carbonyl installation
+      command: "{{ carbonyl_install_path }} --version"
+      register: carbonyl_version_cmd
+      changed_when: false
+
+  rescue:
+    - name: Log Carbonyl installation failure
+      debug:
+        msg: "Carbonyl installation failed; continuing as per error handling policy"
+
+  tags:
+    - browsers
+    - carbonyl
