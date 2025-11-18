@@ -1,0 +1,23 @@
+---
+- name: Ensure Fail2Ban is installed
+  levonk.common.package:
+    name: fail2ban
+    state: present
+  become: true
+  tags:
+    - harden_baseline
+    - linux
+    - security
+    - fail2ban
+
+- name: Ensure Fail2Ban service is enabled and started
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+  become: true
+  tags:
+    - harden_baseline
+    - linux
+    - security
+    - fail2ban

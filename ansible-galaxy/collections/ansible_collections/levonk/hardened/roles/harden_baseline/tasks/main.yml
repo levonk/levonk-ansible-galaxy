@@ -17,6 +17,10 @@
   import_tasks: linux.yml
   when: ansible_facts['os_family'] in ['Debian', 'RedHat']
 
+- name: Include Fail2Ban (Linux)
+  import_tasks: fail2ban.yml
+  when: ansible_facts['os_family'] in ['Debian', 'RedHat']
+
 - name: Include macOS baseline tasks
   import_tasks: macos.yml
   when: ansible_facts['os_family'] == 'Darwin'
