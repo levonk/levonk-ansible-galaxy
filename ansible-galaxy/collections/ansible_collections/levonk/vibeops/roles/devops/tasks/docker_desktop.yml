@@ -5,6 +5,7 @@
   levonk.common.package:
     name: docker-desktop
     state: latest
+  when: "'graphical' in ansible_run_tags"
   tags:
     - devops
     - docker
