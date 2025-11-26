@@ -1,12 +1,12 @@
 ---
 # Main task orchestration for browser installation and configuration
-# This role requires graphical-user tag since all browsers need GUI environment
+# This role requires graphical tag since all browsers need GUI environment
 
-- name: Check if graphical-user tag is present
+- name: Check if graphical tag is present
   fail:
-    msg: "Browser installation requires graphical-user tag since all browsers need GUI environment. Please run with --tags graphical-user,browsers"
+    msg: "Browser installation requires graphical tag since all browsers need GUI environment. Please run with --tags graphical,browsers"
   when:
-    - "'graphical-user' not in ansible_run_tags"
+    - "'graphical' not in ansible_run_tags"
     - ansible_run_tags != ['all']
   tags: always
 

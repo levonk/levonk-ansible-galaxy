@@ -7,21 +7,75 @@ browsers_enabled: true
 
 # List of browsers to install (can be overridden to install subset)
 browsers_to_install:
-  - firefox_dev
-  - chrome
-  - chromium
-  - edge
-  - opera_gx
-  - brave
-  - dia
-  - browser_os
-  - ladybird
-  - opera_neon
-  - perplexity_comet
+  - tor_browser
+  - mullvad_browser
   - librewolf
+  - brave
+  - ungoogled_chromium
+  - chrome
+  - edge
+  - safari
+  # - firefox_dev
+  # - chromium
+  # - opera_gx
+  # - dia
+  # - browser_os
+  # - ladybird
+  # - opera_neon
+  # - perplexity_comet
 
 # Browser configuration definitions
 browsers:
+  tor_browser:
+    name: "Tor Browser"
+    package_names:
+      windows: "TorProject.TorBrowser"
+      macos: "tor-browser"
+      debian: "torbrowser-launcher"
+      redhat: "torbrowser-launcher"
+      arch: "torbrowser-launcher"
+    config_method: "none"
+    settings:
+      privacy_level: "high"
+
+  mullvad_browser:
+    name: "Mullvad Browser"
+    package_names:
+      windows: "MullvadVPN.MullvadBrowser"
+      macos: "mullvad-browser"
+      debian: "mullvad-browser"
+      redhat: "mullvad-browser"
+      arch: "mullvad-browser-bin"
+    repos:
+      debian:
+        url: "https://repository.mullvad.net/deb/stable"
+        key_url: "https://repository.mullvad.net/deb/mullvad-keyring.asc"
+      redhat:
+        url: "https://repository.mullvad.net/rpm/stable"
+    config_method: "none"
+    settings:
+      vpn_integration: true
+
+  ungoogled_chromium:
+    name: "Ungoogled Chromium"
+    package_names:
+      windows: "eloston.ungoogled-chromium"
+      macos: "eloston-chromium"
+      debian: "ungoogled-chromium"
+      redhat: "ungoogled-chromium"
+      arch: "ungoogled-chromium"
+    config_method: "preferences_file"
+    settings:
+      google_features: false
+
+  safari:
+    name: "Safari"
+    package_names:
+      macos: "safari" # System default, placeholder
+    config_method: "none"
+    settings:
+      default_browser: false
+
   librewolf:
     name: "LibreWolf"
     package_names:

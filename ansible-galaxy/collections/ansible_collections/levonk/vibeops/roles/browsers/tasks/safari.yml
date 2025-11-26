@@ -1,0 +1,20 @@
+---
+- name: "Check Safari Status"
+  debug:
+    msg: "Safari is built-in on macOS and cannot be installed via Ansible on other platforms."
+  when: ansible_os_family != 'Darwin'
+  tags: ['safari']
+
+- name: "Verify Safari on macOS"
+  command: /usr/bin/mdfind "kMDItemCFBundleIdentifier == 'com.apple.Safari'"
+  register: safari_check
+  changed_when: false
+  failed_when: false
+  when: ansible_os_family == 'Darwin'
+  tags: ['safari']
+
+- name: "Report Safari Status"
+  debug:
+    msg: "Safari is available at {{ safari_check.stdout }}"
+  when: ansible_os_family == 'Darwin' and safari_check.rc == 0
+  tags: ['safari']

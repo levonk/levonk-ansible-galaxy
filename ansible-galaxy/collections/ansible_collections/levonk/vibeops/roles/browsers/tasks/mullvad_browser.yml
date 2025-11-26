@@ -1,0 +1,49 @@
+---
+- name: "Install Mullvad Browser"
+  block:
+    - name: "Install Mullvad Browser on Windows"
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.mullvad_browser.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: "Install Mullvad Browser on macOS"
+      homebrew_cask:
+        name: "{{ browsers.mullvad_browser.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: "Configure Mullvad Repository (Debian)"
+      block:
+        - name: "Download Mullvad GPG key"
+          get_url:
+            url: "{{ browsers.mullvad_browser.repos.debian.key_url }}"
+            dest: "/etc/apt/trusted.gpg.d/mullvad-keyring.asc"
+            mode: '0644'
+
+        - name: "Add Mullvad Repository"
+          apt_repository:
+            repo: "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/mullvad-keyring.asc] {{ browsers.mullvad_browser.repos.debian.url }} {{ ansible_distribution_release }} main"
+            state: present
+            filename: mullvad
+            update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: "Install Mullvad Browser on Debian/Ubuntu"
+      apt:
+        name: "{{ browsers.mullvad_browser.package_names.debian }}"
+        state: present
+      when: ansible_os_family == 'Debian'
+
+    - name: "Install Mullvad Browser on Arch Linux"
+      pacman:
+        name: "{{ browsers.mullvad_browser.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: "Log Mullvad Browser installation failure"
+      debug:
+        msg: "Mullvad Browser installation failed, continuing with other browsers"
+  tags: ['mullvad_browser']

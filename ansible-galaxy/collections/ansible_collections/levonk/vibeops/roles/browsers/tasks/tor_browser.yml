@@ -1,0 +1,40 @@
+---
+- name: "Install Tor Browser"
+  block:
+    - name: "Install Tor Browser on Windows"
+      win_package:
+        path: "winget"
+        arguments: "install --id {{ browsers.tor_browser.package_names.windows }} --silent --accept-package-agreements --accept-source-agreements"
+        state: present
+      when: ansible_os_family == 'Windows'
+
+    - name: "Install Tor Browser on macOS"
+      homebrew_cask:
+        name: "{{ browsers.tor_browser.package_names.macos }}"
+        state: present
+      when: ansible_os_family == 'Darwin'
+
+    - name: "Install Tor Browser Launcher on Debian/Ubuntu"
+      apt:
+        name: "{{ browsers.tor_browser.package_names.debian }}"
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian'
+
+    - name: "Install Tor Browser Launcher on RedHat/CentOS/Fedora"
+      package:
+        name: "{{ browsers.tor_browser.package_names.redhat }}"
+        state: present
+      when: ansible_os_family == 'RedHat'
+
+    - name: "Install Tor Browser Launcher on Arch Linux"
+      pacman:
+        name: "{{ browsers.tor_browser.package_names.arch }}"
+        state: present
+      when: ansible_os_family == 'Archlinux'
+
+  rescue:
+    - name: "Log Tor Browser installation failure"
+      debug:
+        msg: "Tor Browser installation failed, continuing with other browsers"
+  tags: ['tor_browser']
