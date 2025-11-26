@@ -1,0 +1,22 @@
+---
+- name: "Install Google Antigravity (macOS)"
+  community.general.homebrew_cask:
+    name: google-antigravity
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+  tags: ['google-antigravity', 'ide', 'graphical']
+
+- name: "Install Google Antigravity (Windows)"
+  ansible.windows.win_winget:
+    name: Google.Antigravity
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+  tags: ['google-antigravity', 'ide', 'graphical']
+
+- name: "Install Google Antigravity (Linux)"
+  ansible.builtin.debug:
+    msg:
+      - "Automated installation for Google Antigravity on Linux is not yet available."
+      - "Please download it manually from: https://antigravity.google/download"
+  when: ansible_facts['os_family'] == "Debian"
+  tags: ['google-antigravity', 'ide', 'graphical']

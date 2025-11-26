@@ -1,0 +1,47 @@
+---
+- name: "Install Goose Desktop (macOS)"
+  community.general.homebrew_cask:
+    name: block-goose
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+  tags: ['goose', 'ide', 'graphical']
+
+- name: "Install Goose Desktop (Windows)"
+  block:
+    - name: "Create directory for Goose"
+      ansible.windows.win_file:
+        path: 'C:\Program Files\Goose'
+        state: directory
+
+    - name: "Download Goose Desktop zip"
+      ansible.windows.win_get_url:
+        url: "https://github.com/block/goose/releases/download/stable/Goose-win32-x64.zip"
+        dest: 'C:\Windows\Temp\Goose.zip'
+
+    - name: "Unzip Goose Desktop"
+      community.windows.win_unzip:
+        src: 'C:\Windows\Temp\Goose.zip'
+        dest: 'C:\Program Files\Goose'
+        creates: 'C:\Program Files\Goose\Goose.exe'
+  when: ansible_facts['os_family'] == "Windows"
+  tags: ['goose', 'ide', 'graphical']
+
+- name: "Install Goose Desktop (Linux)"
+  block:
+    - name: "Download Goose Desktop DEB"
+      ansible.builtin.get_url:
+        # Attempting to use the stable link pattern, typically this redirects or works for latest
+        url: "https://github.com/block/goose/releases/download/stable/Goose_linux_amd64.deb"
+        dest: "/tmp/goose_desktop.deb"
+        mode: '0644'
+      register: download_goose_deb
+      ignore_errors: true
+
+    - name: "Install Goose Desktop DEB"
+      ansible.builtin.apt:
+        deb: "/tmp/goose_desktop.deb"
+        state: present
+      when: download_goose_deb is success
+      become: true
+  when: ansible_facts['os_family'] == "Debian"
+  tags: ['goose', 'ide', 'graphical']

@@ -6,12 +6,26 @@
   when: ansible_facts['os_family'] == "Darwin"
   tags: ['vscode', 'ide', 'graphical']
 
+- name: "Install Visual Studio Code (macOS - Insiders)"
+  community.general.homebrew_cask:
+    name: visual-studio-code-insiders
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+  tags: ['vscode', 'vscode_insiders', 'ide', 'graphical']
+
 - name: "Install Visual Studio Code (Windows)"
   ansible.windows.win_winget:
     name: Microsoft.VisualStudioCode
     state: present
   when: ansible_facts['os_family'] == "Windows"
   tags: ['vscode', 'ide', 'graphical']
+
+- name: "Install Visual Studio Code (Windows - Insiders)"
+  ansible.windows.win_winget:
+    name: Microsoft.VisualStudioCode.Insiders
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+  tags: ['vscode', 'vscode_insiders', 'ide', 'graphical']
 
 - name: "Install Visual Studio Code (Linux)"
   include_role:
@@ -27,3 +41,18 @@
         filename: vscode
   when: ansible_facts['os_family'] == "Debian"
   tags: ['vscode', 'ide', 'graphical']
+
+- name: "Install Visual Studio Code (Linux - Insiders)"
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: code-insiders
+    state: present
+    apt_keys:
+      - url: https://packages.microsoft.com/keys/microsoft.asc
+        id: microsoft.gpg
+    apt_repositories:
+      - repo: "deb [arch=amd64] https://packages.microsoft.com/repos/code insiders main"
+        filename: vscode-insiders
+  when: ansible_facts['os_family'] == "Debian"
+  tags: ['vscode', 'vscode_insiders', 'ide', 'graphical']

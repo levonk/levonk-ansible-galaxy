@@ -1,0 +1,16 @@
+---
+- name: "Install Cline VS Code Extension (Unix)"
+  ansible.builtin.command: "code --install-extension saoudrizwan.claude-dev --force"
+  register: install_ext
+  changed_when: "'already installed' not in install_ext.stdout"
+  failed_when: false
+  when: ansible_facts['os_family'] != "Windows"
+  tags: ['cline', 'ide', 'graphical']
+
+- name: "Install Cline VS Code Extension (Windows)"
+  ansible.windows.win_shell: "code --install-extension saoudrizwan.claude-dev --force"
+  register: install_ext_win
+  changed_when: "'already installed' not in install_ext_win.stdout"
+  failed_when: false
+  when: ansible_facts['os_family'] == "Windows"
+  tags: ['cline', 'ide', 'graphical']

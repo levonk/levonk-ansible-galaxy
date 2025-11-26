@@ -8,6 +8,9 @@
     - name: "Install Visual Studio Code"
       include_tasks: ide/gui/install_vscode.yml
 
+    - name: "Install Visual Studio Code Insiders"
+      include_tasks: ide/gui/install_vscode_insiders.yml
+
     - name: "Install Cursor"
       include_tasks: ide/terminal/install_cursor.yml
 
@@ -17,9 +20,27 @@
     - name: "Install Windsurf"
       include_tasks: ide/gui/install_windsurf.yml
 
+    - name: "Install Windsurf Next"
+      include_tasks: ide/gui/install_windsurf_next.yml
+
+    - name: "Install Google Antigravity"
+      include_tasks: ide/gui/install_google_antigravity.yml
+
+    - name: "Install Cline (VS Code Extension)"
+      include_tasks: ide/gui/install_cline.yml
+
+    - name: "Install Goose Desktop"
+      include_tasks: ide/gui/install_goose.yml
+
+    - name: "Install Android Studio"
+      include_tasks: ide/gui/install_android_studio.yml
+
 # Terminal Tools
 - name: "Install Terminal Tools"
   block:
+    - name: "Install Goose CLI"
+      include_tasks: ide/terminal/install_goose.yml
+
     - name: "Install Warp"
       include_tasks: install_warp.yml
 

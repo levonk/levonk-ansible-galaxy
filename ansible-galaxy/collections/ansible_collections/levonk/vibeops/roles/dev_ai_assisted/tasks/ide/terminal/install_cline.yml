@@ -1,20 +1,9 @@
 ---
-- name: "Install Cline (via Fig) (macOS)"
-  community.general.homebrew_cask:
-    name: fig
-    state: present
-  when: ansible_facts['os_family'] == "Darwin"
-
-- name: "Install Cline (via Fig) (Windows)"
-  ansible.windows.win_winget:
-    name: Fig.Fig
-    state: present
-  when: ansible_facts['os_family'] == "Windows"
-
-- name: "Install Cline (via Fig) (Linux)"
+- name: "Install Cline CLI"
   include_role:
-    name: levonk.common.package
+    name: levonk.common.node_pm
   vars:
-    deb_package: "https://fig.io/download/linux/deb"
+    package: "@yaegaki/cline-cli"
     state: present
-  when: ansible_facts['os_family'] == "Debian"
+    global: true
+  tags: ['cline', 'ide', 'cli']

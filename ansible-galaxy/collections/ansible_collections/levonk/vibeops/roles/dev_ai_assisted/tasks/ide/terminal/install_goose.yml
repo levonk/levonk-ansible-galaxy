@@ -1,0 +1,16 @@
+---
+- name: "Install Goose CLI (Unix-like)"
+  ansible.builtin.shell:
+    cmd: "curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh | CONFIGURE=false bash"
+    creates: "{{ ansible_env.HOME }}/.local/bin/goose"
+  when: ansible_facts['os_family'] != "Windows"
+  tags: ['goose', 'ide', 'cli']
+
+- name: "Install Goose CLI (Windows)"
+  ansible.windows.win_shell: |
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/block/goose/main/download_cli.ps1" -OutFile "$env:TEMP\download_cli.ps1"
+    & "$env:TEMP\download_cli.ps1"
+  args:
+    creates: "{{ ansible_env.USERPROFILE }}\\.local\\bin\\goose.exe"
+  when: ansible_facts['os_family'] == "Windows"
+  tags: ['goose', 'ide', 'cli']

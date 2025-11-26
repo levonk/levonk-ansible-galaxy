@@ -1,0 +1,28 @@
+---
+- name: "Install Android Studio (macOS)"
+  community.general.homebrew_cask:
+    name: android-studio
+    state: present
+  when: ansible_facts['os_family'] == "Darwin"
+  tags: ['android_studio', 'ide', 'graphical']
+
+- name: "Install Android Studio (Windows)"
+  ansible.windows.win_winget:
+    name: Google.AndroidStudio
+    state: present
+  when: ansible_facts['os_family'] == "Windows"
+  tags: ['android_studio', 'ide', 'graphical']
+
+- name: "Install Android Studio (Linux)"
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: android-studio
+    state: present
+    # Note: On Ubuntu/Debian, android-studio is typically a snap.
+    # levonk.common.package should handle snap if configured, or apt if PPA added.
+    # Often it's recommended to use snap for Android Studio on Linux for ease of updates.
+    # Adding fallback to snap specifically for this if package role doesn't auto-detect or if we want to enforce it.
+    use_snap: true
+  when: ansible_facts['os_family'] == "Debian"
+  tags: ['android_studio', 'ide', 'graphical']
