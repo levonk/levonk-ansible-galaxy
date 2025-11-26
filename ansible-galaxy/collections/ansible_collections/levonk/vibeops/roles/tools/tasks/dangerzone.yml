@@ -1,0 +1,14 @@
+---
+# Install Dangerzone secure document viewer
+
+- name: Install Dangerzone (Windows, requires Docker Desktop)
+  include_role:
+    name: levonk.common.package
+  vars:
+    package_name: dangerzone
+    state: present
+  when:
+    - tools_install_dangerzone | default(true)
+    - ansible_os_family == 'Windows'
+    - tools_install_docker_desktop | default(true)
+  tags: ['dangerzone']

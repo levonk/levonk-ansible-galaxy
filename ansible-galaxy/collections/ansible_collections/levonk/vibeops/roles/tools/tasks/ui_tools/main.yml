@@ -5,6 +5,12 @@
   ansible.builtin.include_tasks: raycast.yml
   when: "'graphical' in ansible_run_tags"
 
+- name: Install Dangerzone secure document viewer
+  ansible.builtin.include_tasks: dangerzone.yml
+  when:
+    - tools_install_dangerzone | default(true)
+    - "'graphical' in ansible_run_tags"
+
 - name: Install Speech Tools
   ansible.builtin.include_tasks: speech.yml
   when:

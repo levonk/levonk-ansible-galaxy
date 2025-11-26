@@ -33,6 +33,9 @@ tools_install_notepadplusplus: true
 # System utilities toggles
 tools_install_dos2unix: true
 
+# Dangerzone secure document viewer
+tools_install_dangerzone: true
+
 # m1f tool configuration
 tools_install_m1f: false  # Set to true to install m1f tool
 m1f_version: "latest"  # Can be set to a specific version like "v1.0.0" or "latest"
@@ -56,4 +59,3 @@ tools_install_llm: true  # Install the LLM CLI by default
 
 # ORT (OpenRouter CLI) configuration
 tools_install_ort: true  # Install the ORT CLI by default (non-Windows only)
-
