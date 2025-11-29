@@ -1,141 +1,27 @@
 ---
-# TODO: Compliance - Add compliance test for package manager licensing
+- include_tasks: ../nix_check.yml
 
-# --- APT (Debian/Ubuntu) ---
-- name: Check for apt package manager
-  stat:
-    path: "/usr/bin/apt"
-  register: apt_check
-  ignore_errors: true
-
-- name: Run apt logic if present
-  include_tasks: apt.yml
-  when: apt_check.stat.exists
-
-# --- DNF (Fedora) ---
-- name: Check for dnf package manager
-  stat:
-    path: "/usr/bin/dnf"
-  register: dnf_check
-  ignore_errors: true
-
-- name: Run dnf logic if present
-  include_tasks: dnf.yml
-  when: dnf_check.stat.exists and not apt_check.stat.exists
-
-# --- YUM (RHEL/CentOS) ---
-- name: Check for yum package manager
-  stat:
-    path: "/usr/bin/yum"
-  register: yum_check
-  ignore_errors: true
-
-- name: Run yum logic if present
-  include_tasks: yum.yml
-  when: yum_check.stat.exists and not apt_check.stat.exists and not dnf_check.stat.exists
-
-# --- Zypper (openSUSE) ---
-- name: Check for zypper package manager
-  stat:
-    path: "/usr/bin/zypper"
-  register: zypper_check
-  ignore_errors: true
-
-- name: Run zypper logic if present
-  include_tasks: zypper.yml
-  when: zypper_check.stat.exists and not apt_check.stat.exists and not dnf_check.stat.exists and not yum_check.stat.exists
-
-# --- APK (Alpine) ---
-- name: Check for apk package manager
-  stat:
-    path: "/sbin/apk"
-  register: apk_check
-  ignore_errors: true
-
-- name: Run apk logic if present
-  include_tasks: apk.yml
-  when: apk_check.stat.exists and not apt_check.stat.exists and not dnf_check.stat.exists and not yum_check.stat.exists and not zypper_check.stat.exists
-
-# --- Fallback ---
-- name: Fail if no supported package manager found
-  fail:
-    msg: "No supported package manager found (expected apt, dnf, yum, zypper, or apk)."
-  when: not apt_check.stat.exists and not dnf_check.stat.exists and not yum_check.stat.exists and not zypper_check.stat.exists and not apk_check.stat.exists
-
-- name: Cache: Check if apt update needed
-  stat:
-    path: "{{ cache_file }}"
-  register: cache_stat
-
-- name: Cache: Load cache
-  slurp:
-    src: "{{ cache_file }}"
-  register: cache_content
-  when: cache_stat.stat.exists
-
-- name: Cache: Parse cache
+- name: Initialize Nix result
   set_fact:
-    _levonk_package_cache: "{{ cache_content.content | b64decode | from_json }}"
-  when: cache_stat.stat.exists
+    _levonk_nix_install_success: false
 
+- name: Attempt install with Nix
+  block:
+    - name: Install package with Nix
+      command: "nix-env -iA nixpkgs.{{ package_name }}"
+      environment:
+        PATH: "/nix/var/nix/profiles/default/bin:/root/.nix-profile/bin:{{ ansible_env.PATH }}"
+        NIX_PATH: "nixpkgs=/nix/var/nix/profiles/per-user/root/channels/nixpkgs:/nix/var/nix/profiles/per-user/{{ ansible_user_id }}/channels/nixpkgs"
+      register: _nix_install_cmd
+      ignore_errors: true
+      changed_when: "'installing' in _nix_install_cmd.stderr"
 
-- name: Cache: Determine if update needed
-  set_fact:
-    _apt_update_needed: >-
-      {{ (_levonk_package_cache.apt_update_last is not defined) or
-      ((ansible_date_time.epoch | int - _levonk_package_cache.apt_update_last | int) > (cache_expiry | int * 60)) }}
-  when: cache_stat.stat.exists
+    - name: Record Nix success
+      set_fact:
+        _levonk_nix_install_success: true
+      when: _nix_install_cmd.rc == 0
+  when: nix_available | default(false)
 
-
-- name: Update apt if needed
-  apt:
-    update_cache: yes
-  register: apt_update
-  when: _apt_update_needed | default(true)
-  ignore_errors: true
-
-- name: Update cache after apt update
-  copy:
-    dest: "{{ cache_file }}"
-    content: "{{ {'apt_update_last': ansible_date_time.epoch | int } | to_json }}"
-  when: _apt_update_needed | default(true)
-
-- name: Search for package
-  command: apt-cache search ^{{ package_name }}$
-  register: apt_search
-  changed_when: false
-  ignore_errors: true
-
-- name: Fail if package not found
-  fail:
-    msg: "Package {{ package_name }} not found in apt repositories."
-  when: apt_search.rc != 0 or (apt_search.stdout is not search('^' ~ package_name ~ ' '))
-
-
-- name: Install/upgrade package
-  ansible.builtin.package:
-    name: "{{ package_name }}"
-    state: "{{ package_state }}"
-    update_cache: false
-  register: apt_result
-  ignore_errors: true
-
-- name: Verify package installed
-  command: dpkg -l {{ package_name }}
-  register: apt_verify
-  changed_when: false
-  ignore_errors: true
-
-- name: Fail if not installed
-  fail:
-    msg: "Failed to install {{ package_name }} with apt."
-  when: apt_result is not defined or apt_result.rc != 0 or (apt_verify is defined and apt_verify.rc != 0)
-
-- name: Log package installation result
-  ansible.builtin.debug:
-    msg: "Package {{ package_name }} installed successfully with result: {{ apt_result }}"
-    warn: false
-
-- name: Return result
-  set_fact:
-    levonk_package_result: "{{ apt_result }}"
+- name: Fallback to native package manager
+  include_tasks: linux_native.yml
+  when: not _levonk_nix_install_success

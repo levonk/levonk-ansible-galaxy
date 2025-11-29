@@ -1,0 +1,24 @@
+---
+- name: Check if Nix is available
+  command: command -v nix
+  register: nix_check_cmd
+  ignore_errors: true
+  changed_when: false
+
+- name: Install Nix if missing and desired
+  include_tasks: install_nix.yml
+  when:
+    - nix_check_cmd.rc != 0
+    - levonk_package_use_nix | default(true)
+    - ansible_system in ['Linux', 'Darwin']
+
+- name: Re-check if Nix is available
+  command: command -v nix
+  register: nix_check_cmd_retry
+  ignore_errors: true
+  changed_when: false
+  when: nix_check_cmd.rc != 0 and levonk_package_use_nix | default(true)
+
+- name: Set nix_available fact
+  set_fact:
+    nix_available: "{{ (nix_check_cmd.rc == 0) or (nix_check_cmd_retry is defined and nix_check_cmd_retry.rc == 0) }}"

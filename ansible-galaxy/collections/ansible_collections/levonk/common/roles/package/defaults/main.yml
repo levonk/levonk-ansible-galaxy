@@ -9,4 +9,5 @@ checksum_url: ""
 levonk_package_cache_file: "/var/tmp/levonk_package_cache.json"
 levonk_package_manager: "auto"  # auto, winget, choco, brew, apt, yum, dnf, zypper, etc.
 levonk_package_cache_expiry_minutes: 60
+levonk_package_use_nix: true
 # Forward all ansible.builtin.package variables as needed

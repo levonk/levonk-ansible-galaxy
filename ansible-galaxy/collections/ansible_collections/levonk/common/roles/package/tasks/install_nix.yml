@@ -1,0 +1,54 @@
+---
+- name: Install Nix dependencies (Debian/Ubuntu)
+  ansible.builtin.package:
+    name:
+      - curl
+      - xz-utils
+    state: present
+    update_cache: true
+  when: ansible_os_family == 'Debian'
+  become: true
+
+- name: Install Nix dependencies (RedHat/Fedora)
+  ansible.builtin.package:
+    name:
+      - curl
+      - xz
+    state: present
+  when: ansible_os_family == 'RedHat'
+  become: true
+
+- name: Install Nix dependencies (macOS)
+  community.general.homebrew:
+    name: xz
+    state: present
+  when: ansible_os_family == 'Darwin'
+  ignore_errors: true
+
+- name: Download Nix installer
+  get_url:
+    url: https://nixos.org/nix/install
+    dest: /tmp/install-nix.sh
+    mode: '0755'
+
+- name: Run Nix installer
+  command: /tmp/install-nix.sh --daemon --yes
+  args:
+    creates: /nix/store
+  become: true
+  # The daemon install requires root.
+  # --yes accepts prompts.
+
+- name: Configure Nix for user (Bash - Linux)
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.bashrc"
+    line: ". /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+    create: yes
+  when: ansible_os_family != 'Darwin'
+
+- name: Configure Nix for user (Zsh - macOS)
+  lineinfile:
+    path: "{{ ansible_env.HOME }}/.zshrc"
+    line: "if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'; fi"
+    create: yes
+  when: ansible_os_family == 'Darwin'

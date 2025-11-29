@@ -80,6 +80,7 @@ Below is a list of all major features and tasks performed by this role, with lin
 | <a name="checksum_url"></a>`checksum_url` | *(unset)* | URL | string | opt-in | URL to retrieve checksum | [defaults/main.yml](defaults/main.yml) |
 | <a name="levonk_package_cache_file"></a>`levonk_package_cache_file` | `/var/tmp/levonk_package_cache.json` | `/tmp/mycache.json` | string | opt-out | Path for stateful cache | [defaults/main.yml](defaults/main.yml) |
 | <a name="levonk_package_manager"></a>`levonk_package_manager` | `auto` | `brew` | string | opt-out | Override detected package manager | [defaults/main.yml](defaults/main.yml) |
+| <a name="levonk_package_use_nix"></a>`levonk_package_use_nix` | `true` | `false` | bool | opt-out | Try to install Nix and use it for packages | [defaults/main.yml](defaults/main.yml) |
 | <a name="levonk_package_cache_expiry_minutes"></a>`levonk_package_cache_expiry_minutes` | `60` | `30` | int | opt-out | Minutes before cache is considered stale | [defaults/main.yml](defaults/main.yml) |
 
 ---
