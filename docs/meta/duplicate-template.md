@@ -29,7 +29,7 @@ Edit the `galaxy.yml` file in your new collection directory:
 
 ```bash
 cd your-collection-name
-nano galaxy.yml
+vi galaxy.yml
 ```
 
 Update the following fields:
